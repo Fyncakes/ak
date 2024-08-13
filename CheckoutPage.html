@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>FynCakes - Checkout</title>
+		<style>
+			/* Global styles */
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f8f8f8;
+				color: #333;
+				margin: 0;
+				padding: 0;
+			}
+
+			.container {
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 20px;
+				background-color: #fff;
+				border-radius: 10px;
+				box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+			}
+
+			h1 {
+				text-align: center;
+				color: #ff6f61;
+				margin-bottom: 20px;
+			}
+
+			/* Product list styles */
+			.product-list {
+				list-style: none;
+				padding: 0;
+			}
+
+			.product-item {
+				margin-bottom: 20px;
+				padding: 20px;
+				border: 1px solid #ccc;
+				border-radius: 10px;
+			}
+
+			.product-name {
+				font-weight: bold;
+				color: #333;
+				margin-bottom: 10px;
+			}
+
+			.product-image {
+				max-width: 100px;
+				max-height: 100px;
+				margin-bottom: 10px;
+			}
+
+			.product-price {
+				color: #ff6f61;
+				font-weight: bold;
+			}
+
+			.product-description {
+				color: #666;
+			}
+
+			/* Confirm purchase button styles */
+			.confirm-button {
+				display: block;
+				width: 100%;
+				padding: 15px 0;
+				background-color: #ff6f61;
+				color: #fff;
+				border: none;
+				border-radius: 5px;
+				font-size: 18px;
+				cursor: pointer;
+				transition: background-color 0.3s ease;
+			}
+
+			.confirm-button:hover {
+				background-color: #e6564c;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Checkout</h1>
+			<ul class="product-list" id="productList">
+				<!-- Product items will be dynamically added here -->
+			</ul>
+			<button class="confirm-button" onclick="confirmPurchase()">Confirm Purchase</button>
+		</div>
+
+		<script>
+			// Retrieve selected products from local storage
+			const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+
+			// Function to display selected products on the checkout page
+			function displaySelectedProducts() {
+				const productList = document.getElementById("productList");
+
+				// Clear previous content
+				productList.innerHTML = "";
+
+				// Iterate over selected products and add them to the list
+				selectedProducts.forEach((product) => {
+					const listItem = document.createElement("li");
+					listItem.classList.add("product-item");
+					listItem.innerHTML = `
+                <p class="product-name">${product.name}</p>
+                <img class="product-image" src="${product.imageUrl}" alt="${product.name}" />
+                <p>Price: <span class="product-price">${product.price}</span></p>
+                <p class="product-description">Description: ${product.description}</p>
+            `;
+					productList.appendChild(listItem);
+				});
+			}
+
+			window.onload = function () {
+				displaySelectedProducts();
+			};
+
+			// Function to confirm purchase and redirect to the customer page
+			function confirmPurchase() {
+				// Implement logic to process the purchase
+				alert("Purchase confirmed!");
+				// Redirect to the customer page
+				window.location.href = "/customerPage.html";
+			}
+		</script>
+	</body>
+</html>
