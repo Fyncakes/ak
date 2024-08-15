@@ -1,0 +1,75 @@
+/* Global styles */
+body {
+	font-family: Arial, sans-serif;
+	background-color: #f8f8f8;
+	color: #333;
+	margin: 0;
+	padding: 0;
+}
+
+.container {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+	background-color: #fff;
+	border-radius: 10px;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+	text-align: center;
+	color: #ff6f61;
+	margin-bottom: 20px;
+}
+
+/* Product list styles */
+.product-list {
+	list-style: none;
+	padding: 0;
+}
+
+.product-item {
+	margin-bottom: 20px;
+	padding: 20px;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+}
+
+.product-name {
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 10px;
+}
+
+.product-image {
+	max-width: 100px;
+	max-height: 100px;
+	margin-bottom: 10px;
+}
+
+.product-price {
+	color: #ff6f61;
+	font-weight: bold;
+}
+
+.product-description {
+	color: #666;
+}
+
+/* Confirm purchase button styles */
+.confirm-button {
+	display: block;
+	width: 100%;
+	padding: 15px 0;
+	background-color: #ff6f61;
+	color: #fff;
+	border: none;
+	border-radius: 5px;
+	font-size: 18px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.confirm-button:hover {
+	background-color: #e6564c;
+}
