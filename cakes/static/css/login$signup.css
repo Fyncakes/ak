@@ -1,0 +1,78 @@
+/* Global Styles */
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	animation: changeBackground 15s infinite;
+	color: #fff;
+}
+
+.container {
+	max-width: 400px;
+	margin: 100px auto;
+	padding: 20px;
+	background-color: rgba(0, 0, 0, 0.7);
+	border-radius: 10px;
+	box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+	text-align: center;
+	margin-bottom: 20px;
+}
+
+label {
+	display: block;
+	margin: 10px 0 5px;
+}
+
+input[type="email"],
+input[type="password"] {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 15px;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+}
+
+input[type="submit"] {
+	width: 100%;
+	padding: 10px;
+	background-color: #ff6600;
+	border: none;
+	border-radius: 5px;
+	color: white;
+	font-size: 16px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover {
+	background-color: #ff8533;
+}
+
+.footer {
+	text-align: center;
+	margin-top: 50px;
+	font-size: 12px;
+	color: #fff;
+}
+
+/* Background image animation */
+@keyframes changeBackground {
+	0% {
+		background-image: url("/cakes/static/FynCakes/gettyimages-1366984916-612x612.jpg");
+	}
+	33% {
+		background-image: url("/cakes/static/FynCakes/gettyimages-673646765-640x640.jpg");
+	}
+	66% {
+		background-image: url("/cakes/static/FynCakes/IMG-20240108-WA0006.jpg");
+	}
+	100% {
+		background-image: url("/cakes/static/FynCakes/IMG-20240110-WA0012.jpg");
+	}
+}

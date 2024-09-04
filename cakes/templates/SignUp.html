@@ -3,14 +3,13 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>FynCakes - Signup</title>
-		<link rel="stylesheet" href="/signup.css" />
+		<title>FynCakes - Sign Up</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/login$signup.css') }}" />
 	</head>
 	<body>
 		<div class="container">
 			<h1>Sign Up</h1>
-			<form  id="signupForm" method="post">
-
+			<form action="{{ url_for('signup') }}" method="POST">
 				<label for="email">Email:</label>
 				<input type="email" id="email" name="email" required />
 
@@ -20,27 +19,6 @@
 				<input type="submit" value="Sign Up" />
 			</form>
 		</div>
-		<script>
-			document.getElementById("signupForm").addEventListener("submit", function (event) {
-				event.preventDefault();
-
-				// Fetch the input values
-				var email = document.getElementById("email").value;
-				var password = document.getElementById("password").value;
-
-				console.log("email:", email);
-				console.log("Password:", password);
-
-				// Perform your login logic here
-
-				// For now, let's just check if username and password are non-empty
-				if (email && password) {
-					alert("signup successful!"); // For testing purposes
-					window.location.href = "/Login.html"; // Replace with the actual URL of your dashboard page
-				} else {
-					alert("Please enter both username and password."); // For testing purposes
-				}
-			});
-		</script>
+		<div class="footer">&copy; 2024 FynCakes.co.ug</div>
 	</body>
 </html>
