@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>About Us - FynCakes</title>
-		<link rel="stylesheet" href="/about.css" />
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}" />
 	</head>
 	<body>
 		<header>
@@ -22,7 +22,7 @@
 			<section id="team">
 				<h2>Meet Our Team</h2>
 				<div class="team-member">
-					<img src="/FynCakes/profile.img2.jpg" alt="Team Member 1" />
+					<img src={{ url_for('static', filename='FynCakes/profile.img2.jpg') }} alt="Team Member 1" />
 					<h3>John Doe</h3>
 					<p>Head Baker</p>
 					<p>
@@ -32,7 +32,7 @@
 					</p>
 				</div>
 				<div class="team-member">
-					<img src="/FynCakes/profile.img" alt="Team Member 2" />
+					<img src={{ url_for('static', filename='FynCakes/profile.img2.jpg') }} alt="Team Member 2" />
 					<h3>Jane Smith</h3>
 					<p>Marketing Manager</p>
 					<p>

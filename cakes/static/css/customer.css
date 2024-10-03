@@ -1,36 +1,35 @@
 /* Navigation bar styles */
 .navbar {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* .logo img {
-    height: 25px;
-} */
+.logo img {
+    height: 25px; /* Logo size */
+}
 
 .nav-links ul {
-	list-style: none;
-	display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
 }
 
 .nav-links li {
-	margin-right: 20px; /* Adjust space between navigation links */
-}
-
-.nav-links li:last-child {
-	margin-right: 0;
+    margin: 0 15px; /* Adjust space between navigation links */
 }
 
 .nav-links a {
-	text-decoration: none;
-	color: #fff;
-	font-size: 18px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 18px;
+    transition: color 0.3s; /* Smooth color transition */
 }
 
-/* Style for the shopping cart icon */
-.nav-links img {
-	height: 50px; /* Adjust cart icon height */
+.nav-links a:hover {
+    color: #8d2d2d; /* Hover color */
 }
 
 body,
@@ -39,102 +38,135 @@ p {
 	margin: 0;
 	padding: 0;
 }
+
 /* Basic styling */
 body {
 	font-family: "Arial", sans-serif;
 	background-color: #f8f8f8;
 	color: #333;
 }
+
 .container {
 	max-width: 1200px;
-	margin: 0 auto;
-	padding: 20px;
+	margin: 40px auto;
+	padding: 30px;
+	background: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 header {
-	background-color: #464444;
-	padding: 1px 0; /* Reduce top and bottom padding */
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	text-align: center;
+    background: rgba(255, 255, 255, 0.9); /* Transparent background for header */
+    border-bottom: 1px solid #ddd;
+    padding: 10px 20px; /* Add padding for header */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
-header h1 {
-	font-size: 36px;
-	margin-bottom: 10px;
-	color: #ff6f61; /* Custom brand color */
-}
+
 .cake-container {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: space-around;
+	justify-content: space-between; /* Ensure space between cakes */
+	gap: 20px; /* Add spacing between cakes */
 	margin-top: 20px;
 }
+
 .cake {
 	width: 300px;
 	background-color: #fff;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	border-radius: 12px;
+	overflow: hidden;
 	margin-bottom: 20px;
-	transition: transform 0.3s ease;
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .cake:hover {
-	transform: translateY(-5px);
+	transform: translateY(-8px); /* Smoother hover effect */
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhance hover shadow */
 }
+
 .cake img {
 	width: 100%;
+	height: auto;
 	border-top-left-radius: 8px;
 	border-top-right-radius: 8px;
 }
+
 .cake-content {
 	padding: 20px;
+	text-align: center; /* Center align content */
 }
+
 .cake h3 {
-	font-size: 20px;
-	margin-bottom: 10px;
+	font-size: 22px;
+	margin-bottom: 12px;
 	color: #333;
 }
+
 .cake p {
 	font-size: 16px;
 	color: #666;
-	margin-bottom: 10px;
-}
-.cake .price {
-	font-size: 18px;
-	color: #ff6f61;
-}
-/* Footer styles */
-footer {
-	position: fixed; /* Fixed position to stick to the bottom */
-	width: 100%; /* Full width */
-	bottom: 0; /* Align to the bottom */
-	background-color: #333;
-	color: #fff;
-	text-align: left;
-	padding: 20px 0;
+	margin-bottom: 12px;
 }
 
-/* Make footer text smaller */
+.cake .price {
+	font-size: 18px;
+	color: #ff6f61; /* Price color */
+	font-weight: bold;
+}
+
+.order-button {
+	background-color: #ff6f61;
+	color: #fff;
+	border: none;
+	padding: 15px 30px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.3s ease, box-shadow 0.3s ease;
+	font-size: 18px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.order-button:hover {
+	background: linear-gradient(135deg, #ff6f61, #ff8b80); /* Gradient on hover */
+	box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+}
+
+/* Footer styles */
+footer {
+	position: fixed;
+	width: 100%;
+	bottom: 0;
+	background-color: #333;
+	color: #fff;
+	text-align: center;
+	padding: 20px 0;
+	box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
 footer p {
 	font-size: 16px;
+	margin: 0;
 }
 
 /* Checkout button styles */
 .checkout-button {
-	position: fixed; /* Fixed position to stick to the bottom */
-	bottom: 20px; /* Leave some space from the bottom */
-	left: 50%; /* Center horizontally */
-	transform: translateX(-50%); /* Adjust to perfectly center */
-	width: calc(100% - 40px); /* Full width with some padding */
-	max-width: 400px; /* Limit maximum width */
-	background-color: #ff6f61; /* Button background color */
+	position: fixed;
+	bottom: 30px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: calc(100% - 40px);
+	max-width: 400px;
+	background-color: #ff6f61;
 	color: #fff;
-	padding: 15px 0; /* Adjust padding */
+	padding: 15px 0;
 	text-align: center;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add box shadow */
-	border-radius: 25px; /* Add border radius for rounded corners */
-	z-index: 999; /* Ensure it's above other elements */
-	margin: 0 auto; /* Center horizontally (redundant with the transform, but doesn't hurt) */
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	border-radius: 25px;
+	z-index: 999;
 }
 
-/* Style for the button inside the checkout button */
 .checkout-button button {
 	border: none;
 	background: none;
@@ -147,23 +179,6 @@ footer p {
 	border-radius: inherit;
 }
 
-/* Hover effect for the button */
 .checkout-button button:hover {
 	background-color: #ff8b80; /* Lighter color on hover */
-}
-
-
-.order-button {
-	background-color: #ff6f61;
-	color: #fff;
-	border: none;
-	padding: 15px 30px; /* Adjust padding */
-	border-radius: 5px;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-	font-size: 18px; /* Adjust font size */
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add box shadow */
-}
-.order-button:hover {
-	background-color: #e6564c;
 }
