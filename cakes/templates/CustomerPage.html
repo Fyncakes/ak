@@ -34,295 +34,25 @@
 		</header>
 	</head>
 	<body>
-		<header>
-			<div class="container">
-				<h1>FynCakes</h1>
-			</div>
-		</header>
-
 		<div class="container">
 			<h2>Our Cakes</h2>
 			<div class="cake-container">
+				{% for cake in cakes %}
 				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/fyncakes2.jpg') }}"
-						alt="Cake 1"
-					/>
+					<img src="{{ cake['image'] }}" alt="{{ cake['name'] }}" />
 					<div class="cake-content">
-						<h3>Chocolate Fudge Cake</h3>
-						<p>A rich and moist chocolate cake, perfect for chocolate lovers.</p>
-						<p class="price">$25</p>
+						<h3>{{ cake['name'] }}</h3>
+						<p>{{ cake['description'] }}</p>
+						<p class="price">${{ cake['price'] }}</p>
 						<button
 							class="order-button"
-							onclick="addToCart('Chocolate Fudge Cake', '{{ url_for('static', filename='FynCakes/fyncakes2.jpg') }}', 25, 'A rich and moist chocolate cake, perfect for chocolate lovers.')"
+							onclick="addToCart('{{ cake['name'] }}', '{{ cake['image'] }}', {{ cake['price'] }}, '{{ cake['description'] }}')"
 						>
 							Add to Cart
 						</button>
 					</div>
 				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-1295068268-612x612.jpg') }}"
-						alt="Cake 2"
-					/>
-					<div class="cake-content">
-						<h3>Vanilla Celebration Cake</h3>
-						<p>A classic vanilla sponge cake decorated with colorful sprinkles.</p>
-						<p class="price">$20</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Vanilla Celebration Cake', '{{ url_for('static', filename='FynCakes/gettyimages-1295068268-612x612.jpg') }}', 20, 'A classic vanilla sponge cake decorated with colorful sprinkles.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-1249225891-612x612.jpg') }}"
-						alt="Cake 3"
-					/>
-					<div class="cake-content">
-						<h3>Red Velvet Cheesecake</h3>
-						<p>A decadent red velvet cake layered with creamy cheesecake filling.</p>
-						<p class="price">$30</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Red Velvet Cheesecake', '{{ url_for('static', filename='FynCakes/gettyimages-1249225891-612x612.jpg') }}', 30, 'A decadent red velvet cake layered with creamy cheesecake filling.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<!-- Add more cake items as needed -->
-			</div>
-		</div>
-
-		<div class="container">
-			<div class="cake-container">
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/IMG-20240110-WA0018.jpg') }}"
-						alt="Cake 1"
-					/>
-					<div class="cake-content">
-						<h3>Chocolate Fudge Cake</h3>
-						<p>A rich and moist chocolate cake, perfect for chocolate lovers.</p>
-						<p class="price">$15</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Chocolate Fudge Cake', '{{ url_for('static', filename='FynCakes/IMG-20240110-WA0018.jpg') }}', 15, 'A rich and moist chocolate cake, perfect for chocolate lovers.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/IMG-20240110-WA0014.jpg') }}"
-						alt="Cake 2"
-					/>
-					<div class="cake-content">
-						<h3>Vanilla Celebration Cake</h3>
-						<p>A classic vanilla sponge cake decorated with colorful sprinkles.</p>
-						<p class="price">$25</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Vanilla Celebration Cake', '{{ url_for('static', filename='FynCakes/IMG-20240110-WA0014.jpg') }}', 25, 'A classic vanilla sponge cake decorated with colorful sprinkles.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/IMG-20240207-WA0026.jpg') }}"
-						alt="Cake 3"
-					/>
-					<div class="cake-content">
-						<h3>Red Velvet Cheesecake</h3>
-						<p>A decadent red velvet cake layered with creamy cheesecake filling.</p>
-						<p class="price">$30</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Red Velvet Cheesecake', '{{ url_for('static', filename='FynCakes/IMG-20240207-WA0026.jpg') }}', 30, 'A decadent red velvet cake layered with creamy cheesecake filling.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<!-- Add more cake items as needed -->
-			</div>
-		</div>
-
-		<div class="container">
-			<div class="cake-container">
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/IMG-20240215-WA0015.jpg') }}"
-						alt="Cake 1"
-					/>
-					<div class="cake-content">
-						<h3>Chocolate Fudge Cake</h3>
-						<p>A rich and moist chocolate cake, perfect for chocolate lovers.</p>
-						<p class="price">$25</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Chocolate Fudge Cake', '{{ url_for('static', filename='FynCakes/IMG-20240215-WA0015.jpg') }}', 25, 'A rich and moist chocolate cake, perfect for chocolate lovers.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-1462023176-612x612.jpg') }}"
-						alt="Cake 2"
-					/>
-					<div class="cake-content">
-						<h3>Vanilla Celebration Cake</h3>
-						<p>A classic vanilla sponge cake decorated with colorful sprinkles.</p>
-						<p class="price">$20</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Vanilla Celebration Cake', '{{ url_for('static', filename='FynCakes/gettyimages-1462023176-612x612.jpg') }}', 20, 'A classic vanilla sponge cake decorated with colorful sprinkles.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-958232742-640x640.jpg') }}"
-						alt="Cake 3"
-					/>
-					<div class="cake-content">
-						<h3>Red Velvet Cheesecake</h3>
-						<p>A decadent red velvet cake layered with creamy cheesecake filling.</p>
-						<p class="price">$30</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Red Velvet Cheesecake', '{{ url_for('static', filename='FynCakes/gettyimages-958232742-640x640.jpg') }}', 30, 'A decadent red velvet cake layered with creamy cheesecake filling.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<!-- Add more cake items as needed -->
-			</div>
-		</div>
-
-		<div class="container">
-			<div class="cake-container">
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/IMG-20240110-WA0022.jpg') }}"
-						alt="Cake 1"
-					/>
-					<div class="cake-content">
-						<h3>Chocolate Fudge Cake</h3>
-						<p>A rich and moist chocolate cake, perfect for chocolate lovers.</p>
-						<p class="price">$25</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Chocolate Fudge Cake', '{{ url_for('static', filename='FynCakes/IMG-20240110-WA0022.jpg') }}', 25, 'A rich and moist chocolate cake, perfect for chocolate lovers.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-1215885122-640x640.jpg') }}"
-						alt="Cake 2"
-					/>
-					<div class="cake-content">
-						<h3>Vanilla Celebration Cake</h3>
-						<p>A classic vanilla sponge cake decorated with colorful sprinkles.</p>
-						<p class="price">$20</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Vanilla Celebration Cake', '{{ url_for('static', filename='FynCakes/gettyimages-1215885122-640x640.jpg') }}', 20, 'A classic vanilla sponge cake decorated with colorful sprinkles.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-1517142499-612x612.jpg') }}"
-						alt="Cake 3"
-					/>
-					<div class="cake-content">
-						<h3>Red Velvet Cheesecake</h3>
-						<p>A decadent red velvet cake layered with creamy cheesecake filling.</p>
-						<p class="price">$30</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Red Velvet Cheesecake', '{{ url_for('static', filename='FynCakes/gettyimages-1517142499-612x612.jpg') }}', 30, 'A decadent red velvet cake layered with creamy cheesecake filling.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<!-- Add more cake items as needed -->
-			</div>
-		</div>
-
-		<div class="container">
-			<div class="cake-container">
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-673646765-640x640.jpg') }}"
-						alt="Cake 1"
-					/>
-					<div class="cake-content">
-						<h3>Chocolate Fudge Cake</h3>
-						<p>A rich and moist chocolate cake, perfect for chocolate lovers.</p>
-						<p class="price">$45</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Chocolate Fudge Cake', '{{ url_for('static', filename='FynCakes/gettyimages-673646765-640x640.jpg') }}', 45, 'A rich and moist chocolate cake, perfect for chocolate lovers.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-184637124-612x612.jpg') }}"
-						alt="Cake 2"
-					/>
-					<div class="cake-content">
-						<h3>Vanilla Celebration Cake</h3>
-						<p>A classic vanilla sponge cake decorated with colorful sprinkles.</p>
-						<p class="price">$20</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Vanilla Celebration Cake', '{{ url_for('static', filename='FynCakes/gettyimages-184637124-612x612.jpg') }}', 20, 'A classic vanilla sponge cake decorated with colorful sprinkles.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<div class="cake">
-					<img
-						src="{{ url_for('static', filename='FynCakes/gettyimages-185088091-612x612.jpg') }}"
-						alt="Cake 3"
-					/>
-					<div class="cake-content">
-						<h3>Red Velvet Cheesecake</h3>
-						<p>A decadent red velvet cake layered with creamy cheesecake filling.</p>
-						<p class="price">$35</p>
-						<button
-							class="order-button"
-							onclick="addToCart('Red Velvet Cheesecake', '{{ url_for('static', filename='FynCakes/gettyimages-185088091-612x612.jpg') }}', 35, 'A decadent red velvet cake layered with creamy cheesecake filling.')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				<!-- Add more cake items as needed -->
+				{% endfor %}
 			</div>
 		</div>
 
@@ -340,6 +70,7 @@
 
 			// Function to add selected cake to cart
 			function addToCart(cakeName, imageUrl, price, description) {
+				let selectedProducts = [];
 				selectedProducts.push({
 					name: cakeName,
 					imageUrl: imageUrl,

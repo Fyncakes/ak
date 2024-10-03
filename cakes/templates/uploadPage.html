@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>FynCakes - Upload Page</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}" />
+	</head>
+	<body>
+		<header>
+			<div class="container">
+				<div class="navbar">
+					<nav class="nav-links">
+						<ul>
+							<li><a href="{{ url_for('home') }}">Home</a></li>
+							<li><a href="{{ url_for('about_us') }}">About</a></li>
+							<li><a href="{{ url_for('signup') }}">Signup</a></li>
+							<li><a href="{{ url_for('customer') }}">CustomerPage</a></li>
+							<li>
+								<a href="#">
+									<img
+										src="{{ url_for('static', filename='FynCakes/download.png') }}"
+										alt="Shopping Cart"
+									/>
+								</a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</header>
+
+		<div class="container">
+			<h2>Upload New Cake</h2>
+			<form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+				<!-- Cake Name -->
+				<div class="form-group">
+					<label for="cake-name">Cake Name:</label>
+					<input
+						type="text"
+						class="form-control"
+						id="cake-name"
+						name="cake_name"
+						required
+						placeholder="Enter cake name"
+					/>
+				</div>
+
+				<!-- Cake Description -->
+				<div class="form-group">
+					<label for="cake-description">Description:</label>
+					<textarea
+						id="cake-description"
+						class="form-control"
+						name="cake_description"
+						rows="4"
+						placeholder="Enter a description"
+						required
+					></textarea>
+				</div>
+
+				<!-- Cake Price -->
+				<div class="form-group">
+					<label for="cake-price">Price (shs):</label>
+					<input
+						type="number"
+						class="form-control"
+						id="cake-price"
+						name="cake_price"
+						step="0.01"
+						placeholder="Enter the price"
+						required
+					/>
+				</div>
+
+				<!-- Date of Made -->
+				<div class="form-group">
+					<label for="date">Date of Made:</label>
+					<input type="date" class="form-control" id="date" name="cake_date" required />
+				</div>
+
+				<!-- Cake Image -->
+				<div class="form-group">
+					<label for="cake-image">Upload Image:</label>
+					<input
+						type="file"
+						class="form-control"
+						id="cake-image"
+						name="cake_image"
+						accept="image/*"
+						required
+					/>
+				</div>
+
+				<!-- Submit Button -->
+				<button type="submit" class="btn btn-primary">Upload Cake</button>
+
+				<!-- Message Display -->
+				<div class="message">
+					{% if message %}
+					<p>{{ message }}</p>
+					{% endif %}
+				</div>
+			</form>
+
+			<!-- Display the uploaded image if available -->
+			{% if uploaded_image_filename %}
+			<div class="uploaded-image-preview">
+				<img
+					src="{{ url_for('uploaded_file', filename='images/' + uploaded_image_filename) }}"
+					alt="Uploaded Cake Image"
+				/>
+			</div>
+			{% endif %}
+		</div>
+
+		<footer>
+			<p>&copy; 2024 FynCakes. All rights reserved.</p>
+		</footer>
+	</body>
+</html>
