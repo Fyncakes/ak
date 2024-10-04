@@ -9,47 +9,91 @@
 	<body>
 		<div class="container">
 			<h1>Checkout</h1>
-			<ul class="product-list" id="productList">
-				<!-- Product items will be dynamically added here -->
-			</ul>
+			<table>
+				<thead>
+					<tr>
+						<th>Product</th>
+						<th>Image</th>
+						<th>Price</th>
+						<th>Description</th>
+						<th>Remove</th>
+					</tr>
+				</thead>
+				<tbody id="productList">
+					<!-- Product items will be dynamically added here -->
+				</tbody>
+			</table>
 			<button class="confirm-button" onclick="confirmPurchase()">Confirm Purchase</button>
 		</div>
 
 		<script>
 			// Retrieve selected products from local storage
-			const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+			let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
 
-			// Function to display selected products on the checkout page
+			// Function to display selected products in the table
 			function displaySelectedProducts() {
 				const productList = document.getElementById("productList");
 
 				// Clear previous content
 				productList.innerHTML = "";
 
-				// Iterate over selected products and add them to the list
-				selectedProducts.forEach((product) => {
-					const listItem = document.createElement("li");
-					listItem.classList.add("product-item");
-					listItem.innerHTML = `
-						<p class="product-name">${product.name}</p>
-						<img class="product-image" src="${product.imageUrl}" alt="${product.name}" />
-						<p>Price: <span class="product-price">${product.price}</span></p>
-						<p class="product-description">Description: ${product.description}</p>
+				// Iterate over selected products and add them to the table
+				selectedProducts.forEach((product, index) => {
+					const row = document.createElement("tr");
+
+					row.innerHTML = `
+						<td>${product.name}</td>
+						<td><img class="product-image" src="${product.imageUrl}" alt="${product.name}" /></td>
+						<td>$${product.price}</td>
+						<td>${product.description}</td>
+						<td><button class="delete-button" onclick="removeFromCart(${index})">Delete</button></td>
 					`;
-					productList.appendChild(listItem);
+
+					productList.appendChild(row);
 				});
+			}
+
+			// Function to remove a product from the cart
+			function removeFromCart(index) {
+				// Remove the product at the given index from the array
+				selectedProducts.splice(index, 1);
+
+				// Update local storage with the new array
+				localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+
+				// Refresh the displayed product list
+				displaySelectedProducts();
 			}
 
 			window.onload = function () {
 				displaySelectedProducts();
 			};
 
-			// Function to confirm purchase and redirect to the customer page
+			// Function to confirm purchase, send products to the server, and clear the cart
 			function confirmPurchase() {
-				// Implement logic to process the purchase
-				alert("Purchase confirmed!");
-				// Redirect to the customer page
-				window.location.href = "{{ url_for('customer') }}";
+				// Send selected products to the server using Fetch API
+				fetch("/confirm_purchase", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ products: selectedProducts }),
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						if (data.success) {
+							// Alert the user and clear the cart
+							alert("Purchase confirmed!");
+							localStorage.removeItem("selectedProducts");
+							// Redirect to customer page
+							window.location.href = "{{ url_for('customer') }}";
+						} else {
+							alert("Error processing purchase. Please try again.");
+						}
+					})
+					.catch((error) => {
+						console.error("Error:", error);
+					});
 			}
 		</script>
 	</body>
