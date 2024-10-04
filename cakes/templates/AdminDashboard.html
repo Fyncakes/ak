@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Admin Dashboard - FynCakes</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>Admin Dashboard - FynCakes</h1>
+
+			<!-- Business Performance Overview -->
+			<div class="stats">
+				<div class="card">
+					<h2>Business Performance</h2>
+					<p>Total Sales: ${{ total_sales }}</p>
+					<p>Total Orders: {{ total_orders }}</p>
+					<p>Most Clicked Product: {{ most_clicked_product }}</p>
+					<p>Most Deleted Product: {{ most_deleted_product }}</p>
+				</div>
+
+				<div class="card">
+					<h2>Website Interactions</h2>
+					<p>Total Views: {{ total_views }}</p>
+					<p>Total Likes: {{ total_likes }}</p>
+				</div>
+			</div>
+			<div class="card">
+				<h2>Sales Rate Per Month</h2>
+				<img
+					src="{{ url_for('sales_graph') }}"
+					alt="Sales Graph"
+					style="width: 100%; height: auto"
+				/>
+			</div>
+			<!-- Purchased Products & Most Clicked Products -->
+			<div class="stats">
+				<div class="card">
+					<h2>Bought Products</h2>
+					<table>
+						<thead>
+							<tr>
+								<th>Product</th>
+								<th>Quantity</th>
+								<th>Total Amount</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for product in bought_products %}
+							<tr>
+								<td>{{ product.name }}</td>
+								<td>{{ product.quantity }}</td>
+								<td>${{ product.total_amount }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="card">
+					<h2>Most Clicked Products</h2>
+					<table>
+						<thead>
+							<tr>
+								<th>Product</th>
+								<th>Clicks</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for product in most_clicked_products %}
+							<tr>
+								<td>{{ product.name }}</td>
+								<td>{{ product.clicks }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- Deleted Orders -->
+			<div class="card">
+				<h2>Deleted Orders</h2>
+				<table>
+					<thead>
+						<tr>
+							<th>Order ID</th>
+							<th>Product</th>
+							<th>Deleted Reason</th>
+							<th>Date Deleted</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for order in deleted_orders %}
+						<tr>
+							<td>{{ order._id }}</td>
+							<td>{{ order.product_name }}</td>
+							<td>{{ order.reason }}</td>
+							<td>{{ order.deleted_at }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Customer Log Details -->
+			<div class="card logs">
+				<h2>Customer Log Details</h2>
+				<table>
+					<thead>
+						<tr>
+							<th>Customer</th>
+							<th>Email</th>
+							<th>Last Login</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for customer in customers %}
+						<tr>
+							<td>{{ customer.name }}</td>
+							<td>{{ customer.email }}</td>
+							<td>{{ customer.last_login }}</td>
+							<td>{{ customer.actions }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</body>
+</html>
