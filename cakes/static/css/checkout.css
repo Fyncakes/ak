@@ -1,75 +1,87 @@
-/* Global styles */
 body {
-	font-family: Arial, sans-serif;
-	background-color: #f8f8f8;
-	color: #333;
+	font-family: "Roboto", sans-serif;
 	margin: 0;
 	padding: 0;
+	background: #f4f4f4;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	background-image: url("/static/FynCakes/gettyimages-1288873262-612x612.jpg"); /* Your background image path */
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
 }
 
+/* Container styling */
 .container {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: 20px;
-	background-color: #fff;
+	background: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+	padding: 40px;
 	border-radius: 10px;
-	box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+	max-width: 800px;
+	width: 100%;
 }
 
 h1 {
 	text-align: center;
 	color: #ff6f61;
+	font-size: 2.5em;
 	margin-bottom: 20px;
 }
 
-/* Product list styles */
-.product-list {
-	list-style: none;
-	padding: 0;
-}
-
-.product-item {
+/* Table styling */
+table {
+	width: 100%;
+	border-collapse: collapse;
 	margin-bottom: 20px;
-	padding: 20px;
-	border: 1px solid #ccc;
-	border-radius: 10px;
+	font-size: 1.1em;
 }
 
-.product-name {
-	font-weight: bold;
-	color: #333;
-	margin-bottom: 10px;
+th, td {
+	padding: 15px;
+	border-bottom: 1px solid #ddd;
+	text-align: left;
+}
+
+th {
+	background-color: #ff6f61;
+	color: white;
 }
 
 .product-image {
-	max-width: 100px;
-	max-height: 100px;
-	margin-bottom: 10px;
-}
-
-.product-price {
-	color: #ff6f61;
-	font-weight: bold;
-}
-
-.product-description {
-	color: #666;
-}
-
-/* Confirm purchase button styles */
-.confirm-button {
-	display: block;
-	width: 100%;
-	padding: 15px 0;
-	background-color: #ff6f61;
-	color: #fff;
-	border: none;
+	width: 80px;
+	height: auto;
 	border-radius: 5px;
-	font-size: 18px;
+}
+
+/* Button styles */
+.confirm-button, .delete-button {
+	background-color: #ff6f61;
+	color: white;
+	border: none;
+	padding: 12px 20px;
+	border-radius: 5px;
+	font-size: 1em;
 	cursor: pointer;
 	transition: background-color 0.3s ease;
+	margin-top: 15px;
+	display: block;
+	width: 100%;
 }
 
-.confirm-button:hover {
-	background-color: #e6564c;
+.confirm-button:hover, .delete-button:hover {
+	background-color: #ff4d4d;
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+	th, td {
+		font-size: 0.9em;
+		padding: 10px;
+	}
+
+	.product-image {
+		width: 60px;
+	}
 }

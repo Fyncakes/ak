@@ -43,7 +43,7 @@
 					<div class="cake-content">
 						<h3>{{ cake['name'] }}</h3>
 						<p>{{ cake['description'] }}</p>
-						<p class="price">${{ cake['price'] }}</p>
+						<p class="price">$ {{ cake['price'] }}</p>
 						<button
 							class="order-button"
 							onclick="addToCart('{{ cake['name'] }}', '{{ cake['image'] }}', {{ cake['price'] }}, '{{ cake['description'] }}')"
@@ -65,26 +65,29 @@
 		</footer>
 
 		<script>
-			// Array to store selected products
-			let selectedProducts = [];
+			// Retrieve stored products if any exist, or initialize an empty array
+			let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
 
 			// Function to add selected cake to cart
 			function addToCart(cakeName, imageUrl, price, description) {
-				let selectedProducts = [];
-				selectedProducts.push({
+				// Create a product object and add it to the array
+				const product = {
 					name: cakeName,
 					imageUrl: imageUrl,
 					price: price,
 					description: description,
-				});
-				// alert(cakeName + " added to cart!");
+				};
+
+				// Add the product to the existing array of products
+				selectedProducts.push(product);
+
+				// Store the updated list in local storage
+				localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+
 			}
 
 			// Function to proceed to checkout
 			function proceedToCheckout() {
-				// Store selected products in local storage
-				localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-
 				// Redirect to checkout page
 				window.location.href = "{{ url_for('checkout') }}";
 			}
