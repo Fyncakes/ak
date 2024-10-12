@@ -1,6 +1,6 @@
 /* General Styles */
 body {
-	font-family: 'Arial', sans-serif;
+	font-family: "Arial", sans-serif;
 	background-color: #f7f7f7;
 	margin: 0;
 	padding: 0;
@@ -152,6 +152,19 @@ footer ul li a {
 
 footer ul li a:hover {
 	color: #f39c12;
+}
+
+.back-button {
+	background-color: #f1f1f1;
+	border: none;
+	padding: 10px 20px;
+	cursor: pointer;
+	font-size: 16px;
+	margin: 20px 0;
+}
+
+.back-button:hover {
+	background-color: #ddd;
 }
 
 /* Responsive Design */

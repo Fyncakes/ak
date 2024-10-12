@@ -61,6 +61,18 @@ input[type="submit"]:hover {
 	color: #fff;
 }
 
+.back-button {
+	background-color: #f1f1f1;
+	border: none;
+	padding: 10px 20px;
+	cursor: pointer;
+	font-size: 16px;
+	margin-bottom: 20px;
+}
+
+.back-button:hover {
+	background-color: #ddd;
+}
 /* Background image animation */
 @keyframes changeBackground {
 	0% {

@@ -20,7 +20,7 @@
 							<li><a href="{{ url_for('about_us') }}">About</a></li>
 							<li><a href="{{ url_for('signup') }}">Signup</a></li>
 							<li>
-								<a href="#">
+								<a href="{{ url_for('checkout') }}">
 									<img
 										src="{{ url_for('static', filename='FynCakes/download.png') }}"
 										alt="Shopping Cart"
@@ -83,7 +83,6 @@
 
 				// Store the updated list in local storage
 				localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-
 			}
 
 			// Function to proceed to checkout

@@ -9,6 +9,10 @@
 	<body>
 		<div class="container">
 			<h1>Checkout</h1>
+
+			<!-- Back Button to go to the previous page -->
+			<button class="back-button" onclick="goBack()">Back</button>
+
 			<table>
 				<thead>
 					<tr>
@@ -23,24 +27,30 @@
 					<!-- Product items will be dynamically added here -->
 				</tbody>
 			</table>
+
 			<button class="confirm-button" onclick="confirmPurchase()">Confirm Purchase</button>
 		</div>
 
 		<script>
+			// Function to go back to the previous page
+			function goBack() {
+				window.history.back();
+			}
+
 			// Retrieve selected products from local storage
 			let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-		
+
 			// Function to display selected products in the table
 			function displaySelectedProducts() {
 				const productList = document.getElementById("productList");
-		
+
 				// Clear previous content
 				productList.innerHTML = "";
-		
+
 				// Iterate over selected products and add them to the table
 				selectedProducts.forEach((product, index) => {
 					const row = document.createElement("tr");
-		
+
 					row.innerHTML = `
 						<td>${product.name}</td>
 						<td><img class="product-image" src="${product.imageUrl}" alt="${product.name}" /></td>
@@ -48,18 +58,18 @@
 						<td>${product.description}</td>
 						<td><button class="delete-button" onclick="removeFromCart(${index})">Delete</button></td>
 					`;
-		
+
 					productList.appendChild(row);
 				});
 			}
-		
+
 			// Function to remove a product from the cart
 			function removeFromCart(index) {
 				const product = selectedProducts[index];
-		
+
 				// Remove the product at the given index from the array
 				selectedProducts.splice(index, 1);
-		
+
 				// Send request to the server to store deleted product information
 				fetch("/remove_from_cart", {
 					method: "POST",
@@ -68,26 +78,29 @@
 					},
 					body: JSON.stringify({ product: product }),
 				})
-				.then(response => response.json())
-				.then(data => {
-					if (data.success) {
-						// Update local storage with the new array
-						localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-						// Refresh the displayed product list
-						displaySelectedProducts();
-					} else {
-						alert("Error removing product from cart.");
-					}
-				})
-				.catch(error => {
-					console.error("Error:", error);
-				});
+					.then((response) => response.json())
+					.then((data) => {
+						if (data.success) {
+							// Update local storage with the new array
+							localStorage.setItem(
+								"selectedProducts",
+								JSON.stringify(selectedProducts)
+							);
+							// Refresh the displayed product list
+							displaySelectedProducts();
+						} else {
+							alert("Error removing product from cart.");
+						}
+					})
+					.catch((error) => {
+						console.error("Error:", error);
+					});
 			}
-		
+
 			window.onload = function () {
 				displaySelectedProducts();
 			};
-		
+
 			// Function to confirm purchase, send products to the server, and clear the cart
 			function confirmPurchase() {
 				// Send selected products to the server using Fetch API
@@ -98,22 +111,22 @@
 					},
 					body: JSON.stringify({ products: selectedProducts }),
 				})
-				.then((response) => response.json())
-				.then((data) => {
-					if (data.success) {
-						// Alert the user and clear the cart
-						alert("Purchase confirmed!");
-						localStorage.removeItem("selectedProducts");
-						// Redirect to customer page
-						window.location.href = "{{ url_for('customer') }}";
-					} else {
-						alert("Error processing purchase. Please try again.");
-					}
-				})
-				.catch((error) => {
-					console.error("Error:", error);
-				});
+					.then((response) => response.json())
+					.then((data) => {
+						if (data.success) {
+							// Alert the user and clear the cart
+							alert("Purchase confirmed!");
+							localStorage.removeItem("selectedProducts");
+							// Redirect to customer page
+							window.location.href = "{{ url_for('customer') }}";
+						} else {
+							alert("Error processing purchase. Please try again.");
+						}
+					})
+					.catch((error) => {
+						console.error("Error:", error);
+					});
 			}
-		</script>		
+		</script>
 	</body>
 </html>
