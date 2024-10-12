@@ -3,10 +3,12 @@ import pymongo
 import hashlib
 import os
 import uuid
+import matplotlib
+matplotlib.use('Agg')  # Use a non-interactive backend
 import matplotlib.pyplot as plt
 import io
 import calendar
-from flask import Flask, render_template, request, redirect, session, flash, url_for, jsonify, json, send_from_directory,Response
+from flask import Flask, render_template, request, redirect, session, flash, url_for, jsonify, json, send_from_directory, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from pymongo import MongoClient
@@ -32,6 +34,8 @@ cakes_collection = db['cakes']
 orders_collection = db['orders']  # Collection for orders
 customers_collection = db['customers']  # Collection for customer data
 logs_collection = db['logs']  # Collection for user logs
+purchased_products_collection = db['purchased_products']
+deleted_products_collection = db['deleted_products']
 
 # Initialize LoginManager
 login_manager = LoginManager()
@@ -169,25 +173,41 @@ def logout():
 def checkout():
     return render_template('CheckoutPage.html')
 
-# New route to handle confirmed purchase
+# Route to confirm purchase
 @app.route('/confirm_purchase', methods=['POST'])
 def confirm_purchase():
     data = request.json
     products = data.get('products', [])
+    
+    # Insert bought products into the purchased_products collection
+    for product in products:
+        purchased_products_collection.insert_one({
+            'name': product['name'],
+            'price': product['price'],
+            'description': product['description'],
+            'imageUrl': product['imageUrl'],
+            'purchase_date': datetime.now()
+        })
+    
+    return jsonify({'success': True})
 
-    if not products:
-        return jsonify({"success": False, "message": "No products in cart"}), 400
+# Route to remove product from cart and save in deleted_products collection
+@app.route('/remove_from_cart', methods=['POST'])
+def remove_from_cart():
+    data = request.json
+    product = data.get('product', {})
+    
+    # Insert deleted product into the deleted_products collection
+    deleted_products_collection.insert_one({
+        'name': product['name'],
+        'price': product['price'],
+        'description': product['description'],
+        'imageUrl': product['imageUrl'],
+        'delete_reason': 'User removed from cart',
+        'deleted_at': datetime.now()
+    })
 
-    # Create an order record
-    order = {
-        "products": products,
-        "status": "pending"  # You can add more fields like customer info, order date, etc.
-    }
-
-    # Insert the order into the MongoDB collection
-    orders_collection.insert_one(order)
-
-    return jsonify({"success": True})
+    return jsonify({'success': True})
 
 @app.route('/admin/sales-graph')
 @login_required
@@ -251,66 +271,58 @@ def sales_graph():
     return Response(buf, mimetype='image/png')
 
 
-# Admin dashboard to track performance, views, likes, and logs
+# Admin dashboard route
 @app.route('/admin/dashboard')
 @login_required  # Ensure only admin users can access this page
 def admin_dashboard():
-    # Calculate total sales and total orders
+    # Calculate total sales
     total_sales = 0
-    total_orders = orders_collection.count_documents({})  # Use count_documents() to count orders
+    total_orders = orders_collection.count_documents({})
 
-    # Find all orders to calculate total sales and most clicked product
-    orders = orders_collection.find({})
-    bought_products = []
-    
-    for order in orders:
-        for product in order['products']:
-            product_price = float(product['price'])
-            product_quantity = product.get('quantity', 1)  # Default to 1 if 'quantity' is missing
+    # Calculate total sales amount
+    sales_data = orders_collection.aggregate([
+        {"$unwind": "$products"},
+        {"$group": {"_id": None, "total_sales": {"$sum": "$products.price"}}}
+    ])
+    total_sales = next(sales_data, {}).get('total_sales', 0)
 
-            total_sales += product_price * product_quantity
-            # Add products to bought_products list
-            bought_products.append({
-                'name': product['name'],
-                'quantity': product_quantity,
-                'total_amount': product_price * product_quantity
-            })
-    
-    # Get most clicked products (use list to convert cursor to iterable)
-    most_clicked_products = list(cakes_collection.find().sort([("clicks", -1)]).limit(5))
+    # Calculate total views and likes (implement as per your data structure)
+    total_views = 0  # You may need to modify this based on how you track views
+    total_likes = 0  # You may need to modify this based on how you track likes
 
-    # Get most deleted products (use list to convert cursor)
-    deleted_orders = list(orders_collection.find({"status": "deleted"}))
-    most_deleted_product = None
-    if deleted_orders and deleted_orders[0]['products']:
-        most_deleted_product = cakes_collection.find_one({"_id": deleted_orders[0]['products'][0]['_id']})
+    # Get customer information
+    total_customers = customers_collection.count_documents({})
 
-    # Get total views and likes using aggregation pipelines
-    total_views_pipeline = [{"$group": {"_id": None, "total": {"$sum": "$views"}}}]
-    total_likes_pipeline = [{"$group": {"_id": None, "total": {"$sum": "$likes"}}}]
-    
-    total_views_result = list(cakes_collection.aggregate(total_views_pipeline))
-    total_likes_result = list(cakes_collection.aggregate(total_likes_pipeline))
+    # Get the most clicked product
+    most_clicked_product = db.products.find_one(sort=[('clicks', -1)])
 
-    # Extract total views and total likes from the result
-    total_views_value = total_views_result[0]['total'] if total_views_result else 0
-    total_likes_value = total_likes_result[0]['total'] if total_likes_result else 0
+    # Get the most deleted product
+    most_deleted_product = deleted_products_collection.find_one(sort=[('deleted_at', -1)])
+
+    # Get bought products
+    bought_products = list(purchased_products_collection.find())
+
+    # Get most clicked products
+    most_clicked_products = list(db.products.find(sort=[('clicks', -1)]).limit(5))
+
+    # Get deleted orders
+    deleted_orders = list(deleted_products_collection.find())
 
     # Get customer log details
-    customers = customers_collection.find({})
+    customers = list(customers_collection.find())
 
-    return render_template('adminDashboard.html', 
-                           total_sales=total_sales, 
-                           total_orders=total_orders, 
-                           most_clicked_product=most_clicked_products[0] if most_clicked_products else None,
+    return render_template('AdminDashboard.html',
+                           total_sales=total_sales,
+                           total_orders=total_orders,
+                           total_views=total_views,
+                           total_likes=total_likes,
+                           total_customers=total_customers,
+                           most_clicked_product=most_clicked_product,
                            most_deleted_product=most_deleted_product,
-                           total_views=total_views_value,
-                           total_likes=total_likes_value,
                            bought_products=bought_products,
                            most_clicked_products=most_clicked_products,
                            deleted_orders=deleted_orders,
                            customers=customers)
 
-# Run the Application
 if __name__ == '__main__':
-    app.run(host='localhost', port=2000, debug=True)
+    app.run(debug=True)

@@ -1,112 +1,176 @@
-/* Reset default margin and padding */
-body,
-h1,
-h2,
-p,
-ul,
-li {
+/* General Styles */
+body {
+	font-family: 'Arial', sans-serif;
+	background-color: #f7f7f7;
 	margin: 0;
 	padding: 0;
-}
-
-/* Basic styling */
-body {
-	font-family: Arial, sans-serif;
-	background-color: #f8f8f8;
 	color: #333;
 }
 
-.container {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: 20px;
-}
-
 header {
-	background-color: #0b0a0a;
-	padding: 10px 0;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	background-color: #080808;
+	color: white;
+	padding: 20px 0;
+	text-align: center;
 }
 
 header h1 {
-	font-size: 36px;
-	text-align: center;
-	margin-bottom: 10px;
-	color: #ff6f61; /* Custom brand color */
+	font-size: 2.5rem;
+	margin: 0;
 }
 
 nav ul {
-	list-style-type: none;
-	text-align: center;
+	list-style: none;
+	padding: 0;
 }
 
 nav ul li {
 	display: inline;
-	margin-right: 20px;
-}
-
-nav ul li:last-child {
-	margin-right: 0;
+	margin: 0 15px;
 }
 
 nav ul li a {
-	color: #fff;
+	color: white;
 	text-decoration: none;
-	font-weight: bold;
+	font-size: 1.1rem;
 }
 
-.container h2 {
-	font-size: 24px;
-	margin-bottom: 10px;
+nav ul li a:hover {
+	text-decoration: underline;
 }
 
-.container p {
-	font-size: 16px;
-	line-height: 1.5;
-	margin-bottom: 20px;
+.container {
+	width: 85%;
+	margin: auto;
+	padding: 50px 0;
 }
 
-footer {
+h2 {
+	font-size: 2rem;
+	margin-bottom: 30px;
 	text-align: center;
-	margin-top: 50px;
-	padding: 20px 0;
-	background-color: #333;
-	color: #fff;
+	color: #333;
 }
 
-footer p {
-	font-size: 14px;
-}
-/* Add this CSS code to your existing 'about.css' file */
-
+/* Team Section */
 #team {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	gap: 40px;
 	margin-bottom: 50px;
 }
 
 .team-member {
+	background-color: white;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	text-align: center;
-	margin-bottom: 30px;
+	padding: 30px;
+	width: 300px;
+	transition: transform 0.3s;
+}
+
+.team-member:hover {
+	transform: scale(1.05);
 }
 
 .team-member img {
 	border-radius: 50%;
-	width: 200px;
-	height: 200px;
+	width: 120px;
+	height: 120px;
+	object-fit: cover;
+	margin-bottom: 15px;
+}
+
+.team-member h3 {
+	font-size: 1.5rem;
+	color: #f39c12;
+}
+
+.team-member p {
+	font-size: 1rem;
+	line-height: 1.5;
 	margin-bottom: 10px;
+}
+
+/* Testimonials Section */
+#testimonials {
+	background-color: #f39c12;
+	color: white;
+	padding: 40px;
+	border-radius: 10px;
 }
 
 .testimonial {
-	background-color: #f9f9f9;
-	border-radius: 8px;
-	padding: 20px;
-	margin-bottom: 20px;
+	margin-bottom: 30px;
+	font-style: italic;
 }
 
 .testimonial p {
-	font-style: italic;
-	margin-bottom: 10px;
+	font-size: 1.1rem;
+	line-height: 1.6;
 }
 
 .customer-name {
+	font-size: 1rem;
 	font-weight: bold;
+	margin-top: 10px;
+	display: block;
+}
+
+/* Footer */
+footer {
+	background-color: #333;
+	color: white;
+	text-align: center;
+	padding: 20px 0;
+	margin-top: 50px;
+}
+
+footer p {
+	margin: 0;
+}
+
+footer ul {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	margin-top: 10px;
+}
+
+footer ul li {
+	margin: 0 10px;
+}
+
+footer ul li a {
+	color: white;
+	font-size: 1.2rem;
+	text-decoration: none;
+}
+
+footer ul li a:hover {
+	color: #f39c12;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	#team {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.team-member {
+		width: 100%;
+		margin-bottom: 20px;
+	}
+
+	footer ul {
+		flex-direction: column;
+	}
+
+	footer ul li {
+		margin-bottom: 10px;
+	}
 }
