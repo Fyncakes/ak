@@ -325,4 +325,4 @@ def admin_dashboard():
                            customers=customers)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='localhost', port=2000, debug=True)

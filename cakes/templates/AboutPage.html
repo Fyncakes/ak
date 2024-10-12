@@ -18,6 +18,9 @@
 			</nav>
 		</header>
 
+		<!-- Back Button to go to the previous page -->
+		<button class="back-button" onclick="goBack()">Back</button>
+
 		<div class="container">
 			<section id="team">
 				<h2>Meet Our Team</h2>
@@ -80,5 +83,12 @@
 				<li><a href="#">Twitter</a></li>
 			</ul>
 		</footer>
+
+		<script>
+			// Function to go back to the previous page
+			function goBack() {
+				window.history.back();
+			}
+		</script>
 	</body>
 </html>
