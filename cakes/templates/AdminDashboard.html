@@ -8,7 +8,11 @@
 	</head>
 	<body>
 		<div class="container">
-			<h1>Admin Dashboard - FynCakes</h1>
+			<!-- Header with Logout Button -->
+			<div class="header">
+				<h1>Admin Dashboard - FynCakes</h1>
+				<a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
+			</div>
 
 			<!-- Business Performance Overview -->
 			<div class="stats">
@@ -16,8 +20,15 @@
 					<h2>Business Performance</h2>
 					<p>Total Sales: ${{ total_sales }}</p>
 					<p>Total Orders: {{ total_orders }}</p>
-					<p>Most Clicked Product: {{ most_clicked_product }}</p>
-					<p>Most Deleted Product: {{ most_deleted_product }}</p>
+					<p>
+						Most Clicked Product: {{ most_clicked_product.name if most_clicked_product
+						else "No data" }} - {{ most_clicked_product.clicks if most_clicked_product
+						else "" }} clicks
+					</p>
+					<p>
+						Most Deleted Product: {{ most_deleted_product.name if most_deleted_product
+						else "No data" }}
+					</p>
 				</div>
 
 				<div class="card">
@@ -26,6 +37,8 @@
 					<p>Total Likes: {{ total_likes }}</p>
 				</div>
 			</div>
+
+			<!-- Sales Graph -->
 			<div class="card">
 				<h2>Sales Rate Per Month</h2>
 				<img
@@ -34,54 +47,63 @@
 					style="width: 100%; height: auto"
 				/>
 			</div>
-			<!-- Purchased Products & Most Clicked Products -->
-			<div class="stats">
-				<div class="card">
-					<h2>Bought Products</h2>
-					<table>
-						<thead>
-							<tr>
-								<th>Product</th>
-								<th>Quantity</th>
-								<th>Total Amount</th>
-							</tr>
-						</thead>
-						<tbody>
-							{% for product in bought_products %}
-							<tr>
-								<td>{{ product.name }}</td>
-								<td>{{ product.quantity }}</td>
-								<td>${{ product.total_amount }}</td>
-							</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
 
-				<div class="card">
-					<h2>Most Clicked Products</h2>
-					<table>
-						<thead>
-							<tr>
-								<th>Product</th>
-								<th>Clicks</th>
-							</tr>
-						</thead>
-						<tbody>
-							{% for product in most_clicked_products %}
-							<tr>
-								<td>{{ product.name }}</td>
-								<td>{{ product.clicks }}</td>
-							</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
+			<!-- Purchased Products -->
+			<div class="card">
+				<h2>Bought Products</h2>
+				{% if bought_products %}
+				<table>
+					<thead>
+						<tr>
+							<th>Product</th>
+							<th>Quantity</th>
+							<th>Total Amount</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for product in bought_products %}
+						<tr>
+							<td>{{ product.name }}</td>
+							<td>{{ product.quantity }}</td>
+							<td>${{ product.total_amount }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% else %}
+				<p>No products have been bought yet.</p>
+				{% endif %}
+			</div>
+
+			<!-- Most Clicked Products -->
+			<div class="card">
+				<h2>Most Clicked Products</h2>
+				{% if most_clicked_products %}
+				<table>
+					<thead>
+						<tr>
+							<th>Product</th>
+							<th>Clicks</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for product in most_clicked_products %}
+						<tr>
+							<td>{{ product.name }}</td>
+							<td>{{ product.clicks }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% else %}
+				<p>No products have been clicked yet.</p>
+				{% endif %}
 			</div>
 
 			<!-- Deleted Orders -->
 			<div class="card">
 				<h2>Deleted Orders</h2>
+				{% if deleted_orders %}
 				<table>
 					<thead>
 						<tr>
@@ -95,18 +117,25 @@
 						{% for order in deleted_orders %}
 						<tr>
 							<td>{{ order._id }}</td>
-							<td>{{ order.product_name }}</td>
+							<td>
+								{% for product in order.products %} {{ product.name }}<br />
+								{% endfor %}
+							</td>
 							<td>{{ order.reason }}</td>
 							<td>{{ order.deleted_at }}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
 				</table>
+				{% else %}
+				<p>No orders have been deleted yet.</p>
+				{% endif %}
 			</div>
 
 			<!-- Customer Log Details -->
 			<div class="card logs">
 				<h2>Customer Log Details</h2>
+				{% if customers %}
 				<table>
 					<thead>
 						<tr>
@@ -122,11 +151,14 @@
 							<td>{{ customer.name }}</td>
 							<td>{{ customer.email }}</td>
 							<td>{{ customer.last_login }}</td>
-							<td>{{ customer.actions }}</td>
+							<td>{{ customer.actions or "No recent actions" }}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
 				</table>
+				{% else %}
+				<p>No customer log data available.</p>
+				{% endif %}
 			</div>
 		</div>
 	</body>
