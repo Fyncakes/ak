@@ -71,12 +71,16 @@
 			// Function to add selected cake to cart
 			function addToCart(cakeName, imageUrl, price, description) {
 				// Create a product object and add it to the array
-				const product = {
-					name: cakeName,
-					imageUrl: imageUrl,
-					price: price,
-					description: description,
-				};
+				const products = [
+					{
+						name: "Cake Name",
+						price: 20,
+						description: "Delicious cake",
+						imageUrl: "url/to/image",
+						quantity: 2, // Make sure quantity is included
+					},
+					// ...other products
+				];
 
 				// Add the product to the existing array of products
 				selectedProducts.push(product);
