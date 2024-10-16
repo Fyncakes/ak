@@ -273,4 +273,4 @@ def admin_dashboard():
                            customers=customers)  # Pass customers to template
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=2000, debug=True)
+    app.run(host='localhost', debug=False)
