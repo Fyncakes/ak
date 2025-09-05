@@ -1,42 +1,173 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>FynCakes - Sign Up</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/login$signup.css') }}" />
-	</head>
-	<body>
-		<div class="container">
-			<h1>Sign Up</h1>
-			<button class="back-button" onclick="goBack()">Back</button>
+{% extends "base_auth.html" %}
 
-			<form action="{{ url_for('signup') }}" method="POST">
-				<label for="role">I am signing up as:</label>
-				<select id="role" name="role" required>
-					<option value="" disabled selected>Select your role</option>
-					<option value="customer">Customer</option>
-					<option value="admin">Admin</option>
-				</select>
+{% block title %}Sign Up{% endblock %}
 
-				<label for="name">Name:</label>
-				<input type="text" id="name" name="name" required />
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login$signup.css') }}">
+    <!-- Add Font Awesome for the eye icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Styles for the new password elements */
+        .password-wrapper {
+            position: relative;
+        }
 
-				<label for="email">Email:</label>
-				<input type="email" id="email" name="email" required />
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #888;
+        }
 
-				<label for="password">Password:</label>
-				<input type="password" id="password" name="password" required />
+        .password-strength-meter {
+            height: 5px;
+            width: 100%;
+            background-color: #eee;
+            border-radius: 5px;
+            margin-top: 5px;
+            display: flex;
+        }
 
-				<input type="submit" value="Sign Up" />
-			</form>
-		</div>
-		<div class="footer">&copy; 2024 FynCakes.co.ug</div>
+        .strength-bar {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s, background-color 0.3s;
+        }
 
-		<script>
-			function goBack() {
-				window.history.back();
-			}
-		</script>
-	</body>
-</html>
+        #strength-text {
+            margin-top: 5px;
+            font-size: 12px;
+            text-align: right;
+            height: 15px; /* Reserve space to prevent layout shift */
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Create an Account</h1>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }} <!-- CSRF Protection Token -->
+
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email(class="form-control") }}
+            {% if form.email.errors %}
+                <div class="errors">{% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <!-- NEW: Password field with toggle and strength meter -->
+        <div class="form-group">
+            {{ form.password.label }}
+            <div class="password-wrapper">
+                {{ form.password(class="form-control", id="password-field") }}
+                <i class="fas fa-eye password-toggle" id="toggle-password"></i>
+            </div>
+            <div class="password-strength-meter">
+                <div class="strength-bar" id="strength-bar"></div>
+            </div>
+            <div id="strength-text"></div>
+            {% if form.password.errors %}
+                <div class="errors">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <!-- NEW: Confirm Password field with toggle -->
+        <div class="form-group">
+            {{ form.confirm_password.label }}
+            <div class="password-wrapper">
+                {{ form.confirm_password(class="form-control", id="confirm-password-field") }}
+                <i class="fas fa-eye password-toggle" id="toggle-confirm-password"></i>
+            </div>
+            {% if form.confirm_password.errors %}
+                <div class="errors">{% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+    <div class="form-footer">
+        Already have an account? <a href="{{ url_for('routes.login') }}">Log In</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- Password Visibility Toggle ---
+    function setupPasswordToggle(inputId, toggleId) {
+        const passwordField = document.getElementById(inputId);
+        const togglePassword = document.getElementById(toggleId);
+
+        if (!passwordField || !togglePassword) return;
+
+        togglePassword.addEventListener('click', function () {
+            // toggle the type attribute
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            // toggle the eye slash icon
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Setup for both password fields
+    setupPasswordToggle('password-field', 'toggle-password');
+    setupPasswordToggle('confirm-password-field', 'toggle-confirm-password');
+
+
+    // --- Password Strength Meter ---
+    const passwordField = document.getElementById('password-field');
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+
+    if (passwordField) {
+        passwordField.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let feedbackText = "";
+            let color = "";
+
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+
+            switch (strength) {
+                case 0:
+                case 1:
+                    feedbackText = "";
+                    color = "#eee";
+                    break;
+                case 2:
+                    feedbackText = "Weak";
+                    color = "#dc3545"; // Red
+                    break;
+                case 3:
+                    feedbackText = "Medium";
+                    color = "#ffc107"; // Yellow
+                    break;
+                case 4:
+                    feedbackText = "Strong";
+                    color = "#28a745"; // Green
+                    break;
+                case 5:
+                    feedbackText = "Very Strong";
+                    color = "#17a2b8"; // Blue
+                    break;
+            }
+
+            strengthBar.style.width = (strength * 20) + '%';
+            strengthBar.style.backgroundColor = color;
+            strengthText.textContent = feedbackText;
+            strengthText.style.color = color;
+        });
+    }
+</script>
+{% endblock %}
+

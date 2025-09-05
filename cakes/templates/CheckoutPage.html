@@ -1,132 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>FynCakes - Checkout</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}" />
-	</head>
-	<body>
-		<div class="container">
-			<h1>Checkout</h1>
+{% extends "base.html" %}
 
-			<!-- Back Button to go to the previous page -->
-			<button class="back-button" onclick="goBack()">Back</button>
+{% block title %}Complete Your Order - FynCakes{% endblock %}
 
-			<table>
-				<thead>
-					<tr>
-						<th>Product</th>
-						<th>Image</th>
-						<th>Price</th>
-						<th>Description</th>
-						<th>Remove</th>
-					</tr>
-				</thead>
-				<tbody id="productList">
-					<!-- Product items will be dynamically added here -->
-				</tbody>
-			</table>
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}">
+{% endblock %}
 
-			<button class="confirm-button" onclick="confirmPurchase()">Confirm Purchase</button>
-		</div>
+{% block content %}
+<div class="checkout-container">
+    <h1 class="page-title">Complete Your Order</h1>
 
-		<script>
-			// Function to go back to the previous page
-			function goBack() {
-				window.history.back();
-			}
+    <div class="checkout-layout">
+        <!-- Column 1: Order Details & Payment Form -->
+        <div class="order-form-section">
+            <h3>1. Delivery Details</h3>
+            <div class="form-group">
+                <label for="delivery-date">Select Pickup/Delivery Date</label>
+                <input type="date" id="delivery-date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="phone-number">Mobile Money Phone Number (e.g., 0772123456)</label>
+                <input type="tel" id="phone-number" class="form-control" placeholder="Enter your MTN or Airtel number">
+            </div>
 
-			// Retrieve selected products from local storage
-			let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+            <h3>2. Payment Options</h3>
+            <div class="payment-options">
+                <div class="radio-option">
+                    <input type="radio" id="pay-deposit" name="payment-option" value="deposit" checked>
+                    <label for="pay-deposit">
+                        <strong>Pay 80% Deposit Now</strong>
+                        <span>Pay the rest on collection. (Only for orders at least 3 days in advance).</span>
+                    </label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="pay-full" name="payment-option" value="full">
+                    <label for="pay-full">
+                        <strong>Pay 100% Now</strong>
+                        <span>Required for same-day or next-day orders.</span>
+                    </label>
+                </div>
+            </div>
+        </div>
 
-			// Function to display selected products in the table
-			function displaySelectedProducts() {
-				const productList = document.getElementById("productList");
+        <!-- Column 2: Order Summary -->
+        <div class="order-summary">
+            <h3>Your Order</h3>
+            <div id="summary-items-list">
+                <!-- Summary items will be dynamically inserted here -->
+            </div>
+            <hr>
+            <div class="summary-line">
+                <span>Subtotal</span>
+                <span id="cart-subtotal">$0.00</span>
+            </div>
+            <div class="summary-line">
+                <strong>Amount to Pay Now</strong>
+                <strong id="amount-to-pay">$0.00</strong>
+            </div>
+            <div class="summary-line remaining" id="balance-due-line" style="display: none;">
+                <span>Balance Due on Collection</span>
+                <span id="balance-due">$0.00</span>
+            </div>
+            <button class="confirm-purchase-btn" onclick="placeOrder()">
+                <i class="fas fa-lock"></i> Place Order
+            </button>
+            <a href="{{ url_for('routes.customer') }}" class="continue-shopping-link">Back to Cakes</a>
+        </div>
+    </div>
+</div>
 
-				// Clear previous content
-				productList.innerHTML = "";
+<!-- Payment Processing Simulation Modal -->
+<div id="payment-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h4>Processing Payment...</h4>
+        <p>In a real application, a prompt would be sent to your phone. Please wait for the simulation to complete.</p>
+        <div class="spinner"></div>
+    </div>
+</div>
+{% endblock %}
 
-				// Iterate over selected products and add them to the table
-				selectedProducts.forEach((product, index) => {
-					const row = document.createElement("tr");
+{% block scripts %}
+<script>
+    let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+    let totalAmount = 0;
 
-					row.innerHTML = `
-						<td>${product.name}</td>
-						<td><img class="product-image" src="${product.imageUrl}" alt="${product.name}" /></td>
-						<td>$${product.price}</td>
-						<td>${product.description}</td>
-						<td><button class="delete-button" onclick="removeFromCart(${index})">Delete</button></td>
-					`;
+    function updateOrderSummary() {
+        const summaryList = document.getElementById("summary-items-list");
+        summaryList.innerHTML = "";
+        totalAmount = selectedProducts.reduce((total, product) => total + product.price, 0);
 
-					productList.appendChild(row);
-				});
-			}
+        selectedProducts.forEach(product => {
+            const item = document.createElement('div');
+            item.className = 'summary-item';
+            item.innerHTML = `<span>${product.name}</span><strong>$${product.price.toFixed(2)}</strong>`;
+            summaryList.appendChild(item);
+        });
 
-			// Function to remove a product from the cart
-			function removeFromCart(index) {
-				const product = selectedProducts[index];
+        document.getElementById("cart-subtotal").innerText = `$${totalAmount.toFixed(2)}`;
+        updateAmountToPay();
+    }
 
-				// Remove the product at the given index from the array
-				selectedProducts.splice(index, 1);
+    function updateAmountToPay() {
+        const paymentOption = document.querySelector('input[name="payment-option"]:checked').value;
+        const balanceDueLine = document.getElementById('balance-due-line');
+        let amountToPay = totalAmount;
+        let balanceDue = 0;
 
-				// Send request to the server to store deleted product information
-				fetch("/remove_from_cart", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ product: product }),
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						if (data.success) {
-							// Update local storage with the new array
-							localStorage.setItem(
-								"selectedProducts",
-								JSON.stringify(selectedProducts)
-							);
-							// Refresh the displayed product list
-							displaySelectedProducts();
-						} else {
-							alert("Error removing product from cart.");
-						}
-					})
-					.catch((error) => {
-						console.error("Error:", error);
-					});
-			}
+        if (paymentOption === 'deposit') {
+            amountToPay = totalAmount * 0.8;
+            balanceDue = totalAmount * 0.2;
+            balanceDueLine.style.display = 'flex';
+        } else {
+            balanceDueLine.style.display = 'none';
+        }
 
-			window.onload = function () {
-				displaySelectedProducts();
-			};
+        document.getElementById("amount-to-pay").innerText = `$${amountToPay.toFixed(2)}`;
+        document.getElementById("balance-due").innerText = `$${balanceDue.toFixed(2)}`;
+    }
 
-			// Function to confirm purchase, send products to the server, and clear the cart
-			function confirmPurchase() {
-				// Send selected products to the server using Fetch API
-				fetch("/confirm_purchase", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ products: selectedProducts }),
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						if (data.success) {
-							// Alert the user and clear the cart
-							alert("Purchase confirmed!");
-							localStorage.removeItem("selectedProducts");
-							// Redirect to customer page
-							window.location.href = "{{ url_for('customer') }}";
-						} else {
-							alert("Error processing purchase. Please try again.");
-						}
-					})
-					.catch((error) => {
-						console.error("Error:", error);
-					});
-			}
-		</script>
-	</body>
-</html>
+    function placeOrder() {
+        const deliveryDate = document.getElementById('delivery-date').value;
+        const phoneNumber = document.getElementById('phone-number').value;
+        const paymentOption = document.querySelector('input[name="payment-option"]:checked').value;
+
+        // --- Validation ---
+        if (selectedProducts.length === 0) {
+            alert("Your cart is empty!");
+            return;
+        }
+        if (!deliveryDate) {
+            alert("Please select a delivery date.");
+            return;
+        }
+        if (!phoneNumber || !/^(07)\d{8}$/.test(phoneNumber)) {
+            alert("Please enter a valid Ugandan mobile number (e.g., 0772123456).");
+            return;
+        }
+
+        const modal = document.getElementById('payment-modal');
+        modal.style.display = 'flex';
+
+        const orderData = {
+            products: selectedProducts,
+            totalAmount: totalAmount,
+            deliveryDate: deliveryDate,
+            phoneNumber: phoneNumber,
+            paymentOption: paymentOption,
+        };
+        
+        // --- SIMULATION ---
+        // In a real app, this is where you'd call your backend to trigger the payment API.
+        setTimeout(() => {
+            fetch("{{ url_for('routes.place_order') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                modal.style.display = 'none';
+                if (data.success) {
+                    alert(data.message);
+                    localStorage.removeItem("selectedProducts");
+                    window.location.href = "{{ url_for('routes.customer') }}"; // Or a 'my orders' page
+                } else {
+                    alert("There was an error placing your order. Please try again.");
+                }
+            })
+            .catch(error => {
+                modal.style.display = 'none';
+                console.error("Error:", error);
+            });
+        }, 3000); // Simulate a 3-second payment processing time
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set minimum date for date picker to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('delivery-date').setAttribute('min', today);
+
+        // Add event listeners for payment options
+        document.querySelectorAll('input[name="payment-option"]').forEach(radio => {
+            radio.addEventListener('change', updateAmountToPay);
+        });
+
+        updateOrderSummary();
+    });
+</script>
+{% endblock %}
+

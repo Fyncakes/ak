@@ -1,24 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>FynCakes - Login</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/login$signup.css') }}" />
-	</head>
-	<body>
-		<div class="container">
-			<h1>Login</h1>
-			<form action="{{ url_for('login') }}" method="POST">
-				<label for="email">Email:</label>
-				<input type="email" id="email" name="email" required />
+{% extends "base_auth.html" %}
 
-				<label for="password">Password:</label>
-				<input type="password" id="password" name="password" required />
+{% block title %}Login{% endblock %}
 
-				<input type="submit" value="Login" />
-			</form>
-		</div>
-		<div class="footer">&copy; 2024 FynCakes.co.ug</div>
-	</body>
-</html>
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login$signup.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Login</h1>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }} <!-- IMPORTANT: CSRF Protection Token -->
+
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email(class="form-control") }}
+            {% if form.email.errors %}
+                <div class="errors">
+                    {% for error in form.email.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.password.label }}
+            {{ form.password(class="form-control") }}
+             {% if form.password.errors %}
+                <div class="errors">
+                    {% for error in form.password.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+    <div class="form-footer">
+        Need an account? <a href="{{ url_for('routes.signup') }}">Sign Up</a>
+    </div>
+</div>
+{% endblock %}

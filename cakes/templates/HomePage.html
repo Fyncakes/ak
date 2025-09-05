@@ -1,159 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>FynCakes</title>
-		<style>
-			/* Reset default margin and padding */
-			body,
-			h1,
-			p {
-				margin: 0;
-				padding: 0;
-			}
-			/* Basic styling */
-			body {
-				font-family: Arial, sans-serif;
-				background-color: #f8f8f8;
-				color: #333;
-			}
-			.container {
-				max-width: 1200px;
-				margin: 0 auto;
-				padding: 20px;
-			}
-			header {
-				background-color: #0b0a0a;
-				padding: 10px 0;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-			}
-			header h1 {
-				font-size: 36px;
-				text-align: center;
-				margin-bottom: 10px;
-				color: #ff6f61; /* Custom brand color */
-			}
-			.hero-video {
-				position: relative;
-				height: 670px;
-				display: flex;
-				overflow: hidden;
-				justify-content: center;
-				align-items: center;
-			}
-			.hero-video video {
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				min-width: 100%;
-				min-height: 100%;
-				width: auto;
-				height: auto;
-				z-index: -1;
-			}
-			.hero-content {
-				position: relative;
-				z-index: 1;
-				text-align: center;
-				color: #fff;
-				padding: 50px;
-			}
-			.hero-content h2 {
-				font-size: 48px;
-				margin-bottom: 20px;
-			}
-			.cta-button {
-				background-color: #ff6f61; /* Custom brand color */
-				color: #fff;
-				padding: 12px 24px;
-				font-size: 18px;
-				text-decoration: none;
-				border-radius: 4px;
-				transition: background-color 0.3s;
-			}
-			.cta-button:hover {
-				background-color: #e05a4e; /* Darker shade of brand color on hover */
-			}
-			.feature-section {
-				display: flex;
-				justify-content: space-between;
-				margin-bottom: 30px;
-			}
-			.feature {
-				flex-basis: calc(33.33% - 20px); /* Adjust as needed */
-				padding: 20px;
-				background-color: #fff;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-				border-radius: 8px;
-			}
-			.feature h3 {
-				font-size: 24px;
-				margin-bottom: 10px;
-			}
-			.feature p {
-				font-size: 16px;
-				color: #666;
-			}
-			footer {
-				text-align: center;
-				margin-top: 50px;
-				padding: 20px 0;
-				background-color: #333;
-				color: #fff;
-			}
-			footer p {
-				font-size: 14px;
-			}
-		</style>
-	</head>
-	<body>
-		<header>
-			<div class="container">
-				<h1>FynCakes</h1>
-			</div>
-		</header>
+{% extends "base.html" %}
 
-		<div class="hero-video">
-			<video autoplay loop muted>
-				<source
-					src="{{ url_for('static', filename='FynCakes/CINEMATIC CAKE B ROLL - Markkinointivideo - Ira Bakes.mp4') }}"
-					type="video/mp4"
-				/>
+{% block title %}Welcome to FynCakes{% endblock %}
 
-				<!-- Replace 'cake-video.mp4' with your actual video file -->
-				Your browser does not support the video tag.
-			</video>
-			<div class="hero-content">
-				<h2>Welcome to Fyn Cakes</h2>
-				<a href="{{ url_for('customer') }}" class="cta-button">Explore Now</a>
-			</div>
-		</div>
+{% block head_extra %}
+    <style>
+        /* Styles specific to HomePage */
+        .hero-video {
+            position: relative;
+            height: 670px;
+            display: flex;
+            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+            margin-top: -20px; /* Adjust to align with header */
+        }
+        .hero-video video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: #fff;
+            padding: 50px;
+            background-color: rgba(0,0,0,0.4);
+            border-radius: 8px;
+        }
+        .hero-content h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            background-color: #ff6f61;
+            color: #fff;
+            padding: 12px 24px;
+            font-size: 18px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .cta-button:hover {
+            background-color: #e05a4e;
+        }
+        .feature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 20px;
+        }
+        .feature {
+            flex-basis: calc(33.33% - 20px);
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+{% endblock %}
 
-		<div id="features" class="container">
-			<h2>Our Features</h2>
-			<div class="feature-section">
-				<div class="feature">
-					<h3>Wide Variety</h3>
-					<p>Choose from a wide range of delicious cake flavors and designs.</p>
-				</div>
-				<div class="feature">
-					<h3>Customization</h3>
-					<p>Personalize your cake with custom messages, flavors, and decorations.</p>
-				</div>
-				<div class="feature">
-					<h3>Special Occasions</h3>
-					<p>
-						Celebrate special moments with our specially crafted cakes for every
-						occasion.
-					</p>
-				</div>
-			</div>
-		</div>
+{% block content %}
+<div class="hero-video">
+    <video autoplay loop muted>
+        <source src="{{ url_for('static', filename='FynCakes/CINEMATIC CAKE B ROLL - Markkinointivideo - Ira Bakes.mp4') }}" type="video/mp4" />
+        Your browser does not support the video tag.
+    </video>
+    <div class="hero-content">
+        <h2>Welcome to FynCakes</h2>
+        <a href="{{ url_for('routes.customer') }}" class="cta-button">Explore Now</a>
+    </div>
+</div>
 
-		<footer>
-			<p>&copy; 2024 Fyn Cakes. All rights reserved.</p>
-		</footer>
-	</body>
-</html>
+<div id="features">
+    <h2>Our Features</h2>
+    <div class="feature-section">
+        <div class="feature">
+            <h3>Wide Variety</h3>
+            <p>Choose from a wide range of delicious cake flavors and designs.</p>
+        </div>
+        <div class="feature">
+            <h3>Customization</h3>
+            <p>Personalize your cake with custom messages, flavors, and decorations.</p>
+        </div>
+        <div class="feature">
+            <h3>Special Occasions</h3>
+            <p>Celebrate special moments with our specially crafted cakes for every occasion.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

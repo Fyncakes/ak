@@ -1,154 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Admin Dashboard - FynCakes</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
-	</head>
-	<body>
-		<div class="container">
-			<div class="header">
-				<h1>Admin Dashboard - FynCakes</h1>
-				<a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
-			</div>
+{% extends "base.html" %}
 
-			<div class="stats">
-				<div class="card">
-					<h2>Business Performance</h2>
-					<p>Total Sales: ${{ total_sales }}</p>
-					<p>Total Orders: {{ total_orders }}</p>
-					<p>
-						Most Clicked Product: {{ most_clicked_product.name if most_clicked_product
-						else "No data" }} - {{ most_clicked_product.clicks if most_clicked_product
-						else "" }} clicks
-					</p>
-					<p>
-						Most Deleted Product: {{ most_deleted_product.name if most_deleted_product
-						else "No data" }}
-					</p>
-				</div>
+{% block title %}Admin Dashboard{% endblock %}
 
-				<div class="card">
-					<h2>Website Interactions</h2>
-					<p>Total Views: {{ total_views }}</p>
-					<p>Total Likes: {{ total_likes }}</p>
-				</div>
-			</div>
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
 
-			<div class="card">
-				<h2>Bought Products</h2>
-				{% if bought_products %}
-				<table>
-					<thead>
-						<tr>
-							<th>Product</th>
-							<th>Quantity</th>
-							<th>Total Amount</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for product in bought_products %}
-						<tr>
-							<td>{{ product.name }}</td>
-							<td>{{ product.quantity }}</td>
-							<td>${{ product.total_amount }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				{% else %}
-				<p>No products have been bought yet.</p>
-				{% endif %}
-			</div>
+{% block content %}
+<div class="header">
+    <h1>Admin Dashboard</h1>
+    <a href="{{ url_for('routes.upload') }}" class="admin-action-btn">Upload New Cake</a>
+</div>
 
-			<div class="card">
-				<h2>Most Clicked Products</h2>
-				{% if most_clicked_products %}
-				<table>
-					<thead>
-						<tr>
-							<th>Product</th>
-							<th>Clicks</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for product in most_clicked_products %}
-						<tr>
-							<td>{{ product.name }}</td>
-							<td>{{ product.clicks }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				{% else %}
-				<p>No products have been clicked yet.</p>
-				{% endif %}
-			</div>
+<div class="stats">
+    <div class="card">
+        <h2>Business Performance</h2>
+        <p>Total Sales: ${{ total_sales }}</p>
+        <p>Total Orders: {{ total_orders }}</p>
+    </div>
+    <div class="card">
+         <h2>Customer Base</h2>
+        <p>Total Customers: {{ total_customers }}</p>
+    </div>
+</div>
 
-			<div class="card">
-				<h2>Deleted Orders</h2>
-				{% if deleted_orders %}
-				<table>
-					<thead>
-						<tr>
-							<th>Order ID</th>
-							<th>Product</th>
-							<th>Deleted Reason</th>
-							<th>Date Deleted</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for order in deleted_orders %}
-						<tr>
-							<td>{{ order._id }}</td>
-							<td>
-								{% for product in order.products %} {{ product.name }}<br />
-								{% endfor %}
-							</td>
-							<td>{{ order.reason }}</td>
-							<td>{{ order.date_deleted }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				{% else %}
-				<p>No orders have been deleted.</p>
-				{% endif %}
-			</div>
-
-			<!-- Customer Log Details -->
-			<div class="card logs">
-				<h2>Customer Log Details</h2>
-				{% if customers %}
-				<table>
-					<thead>
-						<tr>
-							<th>Name</th>
-							<th>Email</th>
-							<th>Role</th>
-							<!-- Add Role column -->
-							<th>Last Login</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for customer in customers %}
-						<tr>
-							<td>{{ customer.name }}</td>
-							<td>{{ customer.email }}</td>
-							<td>{{ customer.role }}</td>
-							<!-- Display the role -->
-							<td>{{ customer.last_login }}</td>
-							<td>{{ customer.actions or "No recent actions" }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-				{% else %}
-				<p>No customer log data available.</p>
-				{% endif %}
-			</div>
-		</div>
-	</body>
-</html>
+<div class="card">
+    <h2>Customer Log Details</h2>
+    {% if customers %}
+    <table>
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Last Login</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.email }}</td>
+                <td>{{ customer.get('role', 'customer') }}</td>
+                <td>{{ customer.last_login }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No customer log data available.</p>
+    {% endif %}
+</div>
+{% endblock %}

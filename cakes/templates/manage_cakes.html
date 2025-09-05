@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Cakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Manage Cakes</h1>
+    <a href="{{ url_for('routes.admin_dashboard') }}" class="admin-action-btn">Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <h2>All Cake Products</h2>
+    {% if cakes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cake in cakes %}
+            <tr>
+                <td><img src="{{ cake.image }}" alt="{{ cake.name }}" width="80"></td>
+                <td>{{ cake.name }}</td>
+                <td>${{ "%.2f"|format(cake.price) }}</td>
+                <td class="actions">
+                    <!-- Edit Button -->
+                    <a href="{{ url_for('routes.edit_cake', cake_id=cake._id) }}" class="btn-edit">Edit</a>
+                    
+                    <!-- Delete Form & Button -->
+                    <form action="{{ url_for('routes.delete_cake', cake_id=cake._id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this cake?');" style="display:inline;">
+                        <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No cakes have been uploaded yet. <a href="{{ url_for('routes.upload') }}">Upload one now</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

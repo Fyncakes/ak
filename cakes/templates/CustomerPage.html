@@ -1,99 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>FynCakes - Customer Page</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}" />
-		<header>
-			<div class="container">
-				<!-- Logo and navigation -->
-				<div class="navbar">
-					<!-- Logo -->
-					<!-- <div class="logo">
-						<img src="/path/to/logo.png" alt="FynCakes Logo" />
-					</div> -->
-					<!-- Navigation links -->
-					<nav class="nav-links">
-						<ul>
-							<li><a href="{{ url_for('home') }}">Home</a></li>
-							<li><a href="{{ url_for('about_us') }}">About</a></li>
-							<li><a href="{{ url_for('signup') }}">Signup</a></li>
-							<li>
-								<a href="{{ url_for('checkout') }}">
-									<img
-										src="{{ url_for('static', filename='FynCakes/download.png') }}"
-										alt="Shopping Cart"
-									/>
-								</a>
-							</li>
-						</ul>
-					</nav>
-				</div>
-			</div>
-		</header>
-	</head>
-	<body>
-		<div class="container">
-			<h2>Our Cakes</h2>
-			<div class="cake-container">
-				{% for cake in cakes %}
-				<div class="cake">
-					<img src="{{ cake['image'] }}" alt="{{ cake['name'] }}" />
-					<div class="cake-content">
-						<h3>{{ cake['name'] }}</h3>
-						<p>{{ cake['description'] }}</p>
-						<p class="price">$ {{ cake['price'] }}</p>
-						<button
-							class="order-button"
-							onclick="addToCart('{{ cake['name'] }}', '{{ cake['image'] }}', {{ cake['price'] }}, '{{ cake['description'] }}')"
-						>
-							Add to Cart
-						</button>
-					</div>
-				</div>
-				{% endfor %}
-			</div>
-		</div>
+{% extends "base.html" %}
 
-		<div class="checkout-button">
-			<button onclick="proceedToCheckout()">Proceed to Checkout</button>
-		</div>
+{% block title %}Our Cakes{% endblock %}
 
-		<footer>
-			<p>&copy; 2024 FynCakes. All rights reserved.</p>
-		</footer>
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
+    <style>
+        /* New styles to create a responsive 4-column grid */
+        .cake-container {
+            /* On large screens (desktops), show 4 columns */
+            grid-template-columns: repeat(4, 1fr);
+        }
 
-		<script>
-			// Retrieve stored products if any exist, or initialize an empty array
-			let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+        /* For smaller screens */
+        @media (max-width: 1200px) {
+            .cake-container {
+                /* On medium screens (laptops/tablets), show 3 columns */
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
 
-			// Function to add selected cake to cart
-			function addToCart(cakeName, imageUrl, price, description) {
-				// Create a product object and add it to the array
-				const products = [
-					{
-						name: "Cake Name",
-						price: 20,
-						description: "Delicious cake",
-						imageUrl: "url/to/image",
-						quantity: 2, // Make sure quantity is included
-					},
-					// ...other products
-				];
+        @media (max-width: 900px) {
+            .cake-container {
+                /* On smaller tablets, show 2 columns */
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-				// Add the product to the existing array of products
-				selectedProducts.push(product);
+        @media (max-width: 600px) {
+            .cake-container {
+                /* On mobile phones, show 1 column */
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
 
-				// Store the updated list in local storage
-				localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-			}
+{% block content %}
+<div class="customer-container">
+    <h1 class="page-title">Our Cakes</h1>
 
-			// Function to proceed to checkout
-			function proceedToCheckout() {
-				// Redirect to checkout page
-				window.location.href = "{{ url_for('checkout') }}";
-			}
-		</script>
-	</body>
-</html>
+    <div class="cake-container">
+        {% for cake in cakes %}
+        <div class="cake-card">
+            <div class="cake-card-image">
+                <img src="{{ cake.image }}" alt="{{ cake.name }}">
+            </div>
+            <div class="cake-card-content">
+                <h3>{{ cake.name }}</h3>
+                <p>{{ cake.description }}</p>
+                <p class="price">${{ "%.2f"|format(cake.price) }}</p>
+                <button
+                    class="order-button"
+                    data-name="{{ cake.name }}"
+                    data-image="{{ cake.image }}"
+                    data-price="{{ cake.price }}"
+                    data-description="{{ cake.description }}"
+                    onclick="addToCart(this)"
+                >
+                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-cakes-message">
+            <h2>Our bakers are busy!</h2>
+            <p>There are currently no cakes available. Please check back soon!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Retrieve stored products if any exist, or initialize an empty array
+    let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+
+    // Function to add a selected cake to the cart
+    function addToCart(button) {
+        // Create a new product object by reading the data attributes from the button
+        const product = {
+            name: button.dataset.name,
+            price: parseFloat(button.dataset.price),
+            description: button.dataset.description,
+            imageUrl: button.dataset.image
+        };
+
+        // Add the new product object to our selectedProducts array
+        selectedProducts.push(product);
+
+        // Store the updated array in local storage
+        localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+
+        // Give the user feedback
+        alert(`'${product.name}' has been added to your cart!`);
+        
+        // Optional: Update a cart counter in the nav if you have one
+    }
+</script>
+{% endblock %}
+

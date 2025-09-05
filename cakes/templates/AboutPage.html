@@ -1,94 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>About Us - FynCakes</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}" />
-	</head>
-	<body>
-		<header>
-			<h1>About Us</h1>
-			<nav>
-				<ul>
-					<li><a href="{{ url_for('home') }}">Home</a></li>
-					<li><a href="{{ url_for('signup') }}">Signup</a></li>
-					<!-- Add other navigation links here -->
-				</ul>
-			</nav>
-		</header>
+{% extends "base.html" %}
 
-		<!-- Back Button to go to the previous page -->
-		<button class="back-button" onclick="goBack()">Back</button>
+{% block title %}About Us{% endblock %}
 
-		<div class="container">
-			<section id="team">
-				<h2>Meet Our Team</h2>
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}" />
+{% endblock %}
 
-				<div class="team-member">
-					<img
-						src="{{ url_for('static', filename='FynCakes/profile.img2.jpg') }}"
-						alt="John Doe"
-					/>
-					<h3>John Doe</h3>
-					<p>Head Baker</p>
-					<p>
-						With over 10 years of experience in baking, John brings creativity and
-						passion to every cake he bakes. His attention to detail ensures that each
-						cake is a work of art.
-					</p>
-				</div>
+{% block content %}
+<button class="back-button" onclick="window.history.back()">Back</button>
 
-				<div class="team-member">
-					<img
-						src="{{ url_for('static', filename='FynCakes/profile.img2.jpg') }}"
-						alt="Jane Smith"
-					/>
-					<h3>Jane Smith</h3>
-					<p>Marketing Manager</p>
-					<p>
-						Jane is dedicated to spreading the word about FynCakes and connecting with
-						our valued customers. Her enthusiasm and customer-focused approach drive our
-						marketing efforts.
-					</p>
-				</div>
-			</section>
+<section id="team">
+    <h2>Meet Our Team</h2>
+    <div class="team-member">
+        <img src="{{ url_for('static', filename='FynCakes/profile.img2.jpg') }}" alt="John Doe"/>
+        <h3>John Doe</h3>
+        <p>Head Baker</p>
+        <p>With over 10 years of experience, John brings creativity and passion to every cake he bakes.</p>
+    </div>
+    <div class="team-member">
+        <img src="{{ url_for('static', filename='FynCakes/profile.img2.jpg') }}" alt="Jane Smith"/>
+        <h3>Jane Smith</h3>
+        <p>Marketing Manager</p>
+        <p>Jane is dedicated to spreading the word about FynCakes and connecting with our valued customers.</p>
+    </div>
+</section>
 
-			<section id="testimonials">
-				<h2>Customer Testimonials</h2>
-
-				<div class="testimonial">
-					<p>
-						"Absolutely delicious cakes! The attention to detail and the flavors are
-						amazing. Highly recommend FynCakes for any occasion!"
-					</p>
-					<p class="customer-name">- Sarah Johnson</p>
-				</div>
-
-				<div class="testimonial">
-					<p>
-						"FynCakes made my wedding day extra special with their beautiful and
-						delicious wedding cake. Thank you for the wonderful experience!"
-					</p>
-					<p class="customer-name">- Michael Davis</p>
-				</div>
-			</section>
-		</div>
-
-		<footer>
-			<p>&copy; 2024 FynCakes. All rights reserved.</p>
-			<ul>
-				<li><a href="#">Facebook</a></li>
-				<li><a href="#">Instagram</a></li>
-				<li><a href="#">Twitter</a></li>
-			</ul>
-		</footer>
-
-		<script>
-			// Function to go back to the previous page
-			function goBack() {
-				window.history.back();
-			}
-		</script>
-	</body>
-</html>
+<section id="testimonials">
+    <h2>Customer Testimonials</h2>
+    <div class="testimonial">
+        <p>"Absolutely delicious cakes! The attention to detail and the flavors are amazing."</p>
+        <p class="customer-name">- Sarah Johnson</p>
+    </div>
+    <div class="testimonial">
+        <p>"FynCakes made my wedding day extra special with their beautiful and delicious wedding cake."</p>
+        <p class="customer-name">- Michael Davis</p>
+    </div>
+</section>
+{% endblock %}

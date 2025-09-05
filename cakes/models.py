@@ -1,15 +1,21 @@
-from database import db
+# cakes/models.py
 
-class User(db.Model):
-    """
-    User model representing a user in the application.
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
+from flask_login import UserMixin
 
-    def __init__(self, username, email, password):
-        self.username = username
-        self.email = email
-        self.password = password
+class User(UserMixin):
+    """
+    User model for Flask-Login.
+    It takes a user document from MongoDB as input.
+    """
+    def __init__(self, user_data):
+        self.user_data = user_data
+        self.email = user_data.get('email')
+        self.password = user_data.get('password')
+        self.role = user_data.get('role', 'customer')
+
+    def get_id(self):
+        """
+        Required by Flask-Login. Returns a unique ID for the user.
+        We use the email address as the unique ID.
+        """
+        return str(self.email)
