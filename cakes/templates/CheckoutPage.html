@@ -46,7 +46,7 @@
         <div class="order-summary">
             <h3>Your Order</h3>
             <div id="summary-items-list">
-                <!-- Summary items will be dynamically inserted here -->
+                <!-- JS will populate this with items from the cart -->
             </div>
             <hr>
             <div class="summary-line">
@@ -64,7 +64,7 @@
             <button class="confirm-purchase-btn" onclick="placeOrder()">
                 <i class="fas fa-lock"></i> Place Order
             </button>
-            <a href="{{ url_for('routes.customer') }}" class="continue-shopping-link">Back to Cakes</a>
+            <a href="{{ url_for('routes.cart') }}" class="continue-shopping-link">Back to Cart</a>
         </div>
     </div>
 </div>
@@ -81,15 +81,15 @@
 
 {% block scripts %}
 <script>
-    let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+    const checkoutCart = JSON.parse(sessionStorage.getItem("checkoutCart")) || [];
     let totalAmount = 0;
 
     function updateOrderSummary() {
         const summaryList = document.getElementById("summary-items-list");
         summaryList.innerHTML = "";
-        totalAmount = selectedProducts.reduce((total, product) => total + product.price, 0);
+        totalAmount = checkoutCart.reduce((total, product) => total + product.price, 0);
 
-        selectedProducts.forEach(product => {
+        checkoutCart.forEach(product => {
             const item = document.createElement('div');
             item.className = 'summary-item';
             item.innerHTML = `<span>${product.name}</span><strong>$${product.price.toFixed(2)}</strong>`;
@@ -106,7 +106,7 @@
         let amountToPay = totalAmount;
         let balanceDue = 0;
 
-        if (paymentOption === 'deposit') {
+        if (paymentOption === 'deposit' && totalAmount > 0) {
             amountToPay = totalAmount * 0.8;
             balanceDue = totalAmount * 0.2;
             balanceDueLine.style.display = 'flex';
@@ -123,9 +123,9 @@
         const phoneNumber = document.getElementById('phone-number').value;
         const paymentOption = document.querySelector('input[name="payment-option"]:checked').value;
 
-        // --- Validation ---
-        if (selectedProducts.length === 0) {
-            alert("Your cart is empty!");
+        if (checkoutCart.length === 0) {
+            alert("Your cart is empty! Please add items before placing an order.");
+            window.location.href = "{{ url_for('routes.customer') }}";
             return;
         }
         if (!deliveryDate) {
@@ -141,46 +141,45 @@
         modal.style.display = 'flex';
 
         const orderData = {
-            products: selectedProducts,
+            products: checkoutCart,
             totalAmount: totalAmount,
             deliveryDate: deliveryDate,
             phoneNumber: phoneNumber,
             paymentOption: paymentOption,
         };
         
-        // --- SIMULATION ---
-        // In a real app, this is where you'd call your backend to trigger the payment API.
-        setTimeout(() => {
-            fetch("{{ url_for('routes.place_order') }}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(orderData),
-            })
-            .then(response => response.json())
-            .then(data => {
+        // --- Step 1: Place the Order ---
+        fetch("{{ url_for('routes.place_order') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // --- Step 2 (THE FIX): If order is successful, clear the cart ---
+                fetch("{{ url_for('routes.clear_cart') }}", { method: 'POST' })
+                    .then(() => {
+                        modal.style.display = 'none';
+                        alert(data.message); // Show success message from the order
+                        sessionStorage.removeItem('checkoutCart'); // Clear temporary storage
+                        window.location.href = "{{ url_for('routes.customer') }}"; // Redirect
+                    });
+            } else {
                 modal.style.display = 'none';
-                if (data.success) {
-                    alert(data.message);
-                    localStorage.removeItem("selectedProducts");
-                    window.location.href = "{{ url_for('routes.customer') }}"; // Or a 'my orders' page
-                } else {
-                    alert("There was an error placing your order. Please try again.");
-                }
-            })
-            .catch(error => {
-                modal.style.display = 'none';
-                console.error("Error:", error);
-            });
-        }, 3000); // Simulate a 3-second payment processing time
+                alert("There was an error placing your order. Please try again.");
+            }
+        })
+        .catch(error => {
+            modal.style.display = 'none';
+            console.error("Error:", error);
+        });
     }
 
-    // Initialize page
     document.addEventListener('DOMContentLoaded', () => {
-        // Set minimum date for date picker to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('delivery-date').setAttribute('min', today);
 
-        // Add event listeners for payment options
         document.querySelectorAll('input[name="payment-option"]').forEach(radio => {
             radio.addEventListener('change', updateAmountToPay);
         });

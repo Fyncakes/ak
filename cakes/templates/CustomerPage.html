@@ -1,37 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Our Cakes{% endblock %}
+{% block title %}Our Cakes - FynCakes{% endblock %}
 
 {% block head_extra %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
     <style>
-        /* New styles to create a responsive 4-column grid */
-        .cake-container {
-            /* On large screens (desktops), show 4 columns */
-            grid-template-columns: repeat(4, 1fr);
+        /* This ensures your 4-column grid layout is active */
+        .cake-container { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 1.5rem; 
         }
-
-        /* For smaller screens */
-        @media (max-width: 1200px) {
-            .cake-container {
-                /* On medium screens (laptops/tablets), show 3 columns */
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 900px) {
-            .cake-container {
-                /* On smaller tablets, show 2 columns */
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .cake-container {
-                /* On mobile phones, show 1 column */
-                grid-template-columns: 1fr;
-            }
-        }
+        @media (max-width: 1200px) { .cake-container { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px) { .cake-container { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .cake-container { grid-template-columns: 1fr; } }
     </style>
 {% endblock %}
 
@@ -73,12 +55,9 @@
 
 {% block scripts %}
 <script>
-    // Retrieve stored products if any exist, or initialize an empty array
-    let selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-
-    // Function to add a selected cake to the cart
-    function addToCart(button) {
-        // Create a new product object by reading the data attributes from the button
+    // This new function sends the product data to our secure backend route.
+    async function addToCart(button) {
+        // Step 1: Create a product object from the button's data attributes.
         const product = {
             name: button.dataset.name,
             price: parseFloat(button.dataset.price),
@@ -86,16 +65,26 @@
             imageUrl: button.dataset.image
         };
 
-        // Add the new product object to our selectedProducts array
-        selectedProducts.push(product);
+        // Step 2: Send this product data to our new '/cart/add' backend endpoint.
+        const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(product)
+        });
 
-        // Store the updated array in local storage
-        localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-
-        // Give the user feedback
-        alert(`'${product.name}' has been added to your cart!`);
-        
-        // Optional: Update a cart counter in the nav if you have one
+        // Step 3: Give feedback to the user and update the cart counter in the nav bar.
+        if (response.ok) {
+            alert(`'${product.name}' has been added to your cart!`);
+            
+            // Get the current number from the counter, add 1, and update it.
+            const cartCounter = document.getElementById('cart-count');
+            const currentCount = parseInt(cartCounter.innerText);
+            updateCartCounter(currentCount + 1); // updateCartCounter is the global function from base.html
+        } else {
+            alert("Could not add item to cart. Please try again.");
+        }
     }
 </script>
 {% endblock %}

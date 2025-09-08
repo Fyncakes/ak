@@ -1,6 +1,7 @@
 # cakes/__init__.py
 
 import os
+import certifi 
 from flask import Flask
 from flask_login import LoginManager
 from pymongo import MongoClient
@@ -12,8 +13,8 @@ login_manager.login_message_category = 'info' # Optional: for better flash messa
 
 # Initialize MongoDB client
 # We will use environment variables for this later, but for now, this is fine.
-mongo_uri = "mongodb://localhost:27017/"
-client = MongoClient(mongo_uri)
+mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/fyncakes')
+client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
 db = client.fyncakes
 
 def create_app():
@@ -24,7 +25,7 @@ def create_app():
 
     # --- Configuration ---
     # Load secret key from environment variable for security
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-super-secret-key-for-dev')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
     
     # Configure upload folder and allowed extensions
     # Note: UPLOAD_FOLDER should be an absolute path for reliability

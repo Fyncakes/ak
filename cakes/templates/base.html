@@ -22,7 +22,7 @@
                     {% if current_user.role == 'admin' %}
                         <a href="{{ url_for('routes.admin_dashboard') }}">Admin</a>
                     {% endif %}
-                     <a href="{{ url_for('routes.checkout') }}">Cart</a>
+                     <a href="{{ url_for('routes.cart') }}">Cart</a>
                     <a href="{{ url_for('routes.logout') }}">Logout</a>
                 {% else %}
                     <a href="{{ url_for('routes.login') }}">Login</a>

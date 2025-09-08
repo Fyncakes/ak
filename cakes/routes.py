@@ -66,7 +66,7 @@ def checkout():
 
 # --- Authentication Routes ---
 
-@routes_bp.route('/signup', methods=['GET', 'POST'])
+
 @routes_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
@@ -389,4 +389,66 @@ def place_order():
 def cart():
     """Renders the shopping cart page."""
     return render_template('CartPage.html')
+
+@routes_bp.route('/cart/items', methods=['GET'])
+@login_required
+def get_cart_items():
+    """Fetches the cart items for the currently logged-in user from the database."""
+    # Find all documents in the 'carts' collection that belong to this user
+    cart_items = list(db.carts.find({'user_email': current_user.email}))
+    
+    # MongoDB's _id is a special object; we must convert it to a string to send it over the internet
+    for item in cart_items:
+        item['_id'] = str(item['_id'])
+        
+    return jsonify(cart_items)
+
+@routes_bp.route('/cart/add', methods=['POST'])
+@login_required
+def add_to_cart_db():
+    """Adds a product to the user's cart in the database."""
+    product_data = request.get_json()
+    
+    # Create a new document to insert into our 'carts' collection
+    cart_item = {
+        'user_email': current_user.email, # Link this item to the logged-in user
+        'name': product_data.get('name'),
+        'price': product_data.get('price'),
+        'description': product_data.get('description'),
+        'imageUrl': product_data.get('imageUrl')
+    }
+    
+    db.carts.insert_one(cart_item)
+    
+    return jsonify({'success': True, 'message': 'Item added to cart.'})
+
+@routes_bp.route('/cart/remove/<item_id>', methods=['POST'])
+@login_required
+def remove_from_cart_db(item_id):
+    """Removes an item from the user's cart in the database using its unique ID."""
+    # For security, we ensure we only delete an item if the _id matches AND it belongs to the current user
+    result = db.carts.delete_one({'_id': ObjectId(item_id), 'user_email': current_user.email})
+    
+    if result.deleted_count == 1:
+        return jsonify({'success': True, 'message': 'Item removed from cart.'})
+    else:
+        # This will happen if the item doesn't exist or the user tries to delete an item that isn't theirs
+        return jsonify({'success': False, 'message': 'Item not found or unauthorized.'}), 404
+
+# (Add this new route to the end of your routes.py file)
+
+@routes_bp.route('/cart/clear', methods=['POST'])
+@login_required
+def clear_cart():
+    """Deletes all cart items for the currently logged-in user from the database."""
+    try:
+        db.carts.delete_many({'user_email': current_user.email})
+        return jsonify({'success': True, 'message': 'Cart cleared.'})
+    except Exception as e:
+        print(f"Error clearing cart: {e}")
+        return jsonify({'success': False, 'message': 'Failed to clear cart.'}), 500
+
+
+
+
 

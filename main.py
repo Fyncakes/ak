@@ -1,4 +1,6 @@
 # main.py
+from dotenv import load_dotenv
+load_dotenv()
 
 from cakes import create_app
 
