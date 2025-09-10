@@ -1,96 +1,84 @@
-/* Hides the main nav and footer on login page */
-.main-header, .main-footer {
-    display: none;
-}
+/* --- Root Variables Inherited from main.css --- */
 
+/* --- Auth Page Container --- */
 body.auth-page {
-    padding-top: 0; /* Remove padding for fixed header */
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background: url('/static/FynCakes/gettyimages-1288873262-612x612.jpg') no-repeat center center/cover;
-    position: relative;
+    min-height: 100vh;
+    padding: 1rem;
+    background: url('/static/FynCakes/gettyimages-1288873262-612x612.jpg') no-repeat center center;
+    background-size: cover;
 }
 
-.auth-page::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5); /* Dark overlay */
-}
-
-.form-container {
-    position: relative;
-    z-index: 2;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 3rem;
-    border-radius: var(--border-radius);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.auth-card {
     width: 100%;
     max-width: 450px;
-    text-align: center;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.form-container h1 {
+.auth-card h2 {
+    text-align: center;
     margin-top: 0;
     margin-bottom: 2rem;
-    font-size: 2.5rem;
+    font-size: 2rem;
 }
 
+/* --- Form Group Styling (Ensures Vertical Layout) --- */
 .form-group {
     margin-bottom: 1.5rem;
-    text-align: left;
 }
 
 .form-group label {
-    display: block;
+    display: block; /* Stacks label above input */
     margin-bottom: 0.5rem;
-    font-weight: 600;
+    font-weight: 500;
 }
 
-.form-control {
+.form-group input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: 1rem;
 }
 
-.btn {
+.password-wrapper {
+    position: relative;
+}
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #999;
+}
+
+.auth-button {
     width: 100%;
-    padding: 15px;
+    padding: 1rem;
     background-color: var(--primary-color);
-    color: white;
+    color: var(--light-color);
     border: none;
     border-radius: var(--border-radius);
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease;
+}
+.auth-button:hover {
+    background-color: #B71C1C;
 }
 
-.btn:hover {
-    background-color: #d03340;
-}
-
-.form-footer {
+.auth-links {
+    text-align: center;
     margin-top: 1.5rem;
 }
 
-.form-footer a {
-    color: var(--primary-color);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-/* Errors */
-.errors span {
-    color: var(--primary-color);
-    font-size: 0.9rem;
-    display: block;
-    margin-top: 5px;
-}

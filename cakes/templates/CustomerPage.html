@@ -3,25 +3,27 @@
 {% block title %}Our Cakes - FynCakes{% endblock %}
 
 {% block head_extra %}
+    <!-- All styling is now handled by the external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
-    <style>
-        /* This ensures your 4-column grid layout is active */
-        .cake-container { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 1.5rem; 
-        }
-        @media (max-width: 1200px) { .cake-container { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 900px) { .cake-container { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .cake-container { grid-template-columns: 1fr; } }
-    </style>
 {% endblock %}
 
 {% block content %}
-<div class="customer-container">
+<!--
+We pass data from the server to JavaScript using data-* attributes on this container.
+This is a clean and safe way to avoid the syntax errors.
+-->
+<div class="customer-container" 
+     id="customer-container-data"
+     data-current-page="{{ current_page }}"
+     data-total-pages="{{ total_pages }}"
+     data-login-url="{{ url_for('routes.login', next=request.path) }}"
+     data-add-to-cart-url="{{ url_for('routes.add_to_cart_db') }}">
+
     <h1 class="page-title">Our Cakes</h1>
 
-    <div class="cake-container">
+    <!-- The container where cakes are displayed -->
+    <div class="cake-container" id="cake-container">
+        <!-- Initially populated with the first page of cakes from the server -->
         {% for cake in cakes %}
         <div class="cake-card">
             <div class="cake-card-image">
@@ -43,21 +45,102 @@
                 </button>
             </div>
         </div>
-        {% else %}
-        <div class="no-cakes-message">
-            <h2>Our bakers are busy!</h2>
-            <p>There are currently no cakes available. Please check back soon!</p>
-        </div>
         {% endfor %}
     </div>
+
+    <!-- Message shown if no cakes exist at all -->
+    {% if not cakes %}
+    <div class="no-cakes-message">
+        <h2>Our bakers are busy!</h2>
+        <p>There are currently no cakes available. Please check back soon!</p>
+    </div>
+    {% endif %}
+
+    <!-- "Load More" button container. The display is now controlled by a class. -->
+    <div class="load-more-container {% if current_page >= total_pages %}hidden{% endif %}" id="load-more-container">
+        <button class="load-more-btn" id="load-more-btn">Load More Cakes</button>
+        <div class="loader" id="loader" style="display: none;"></div>
+    </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- This script block contains the page's functional logic -->
 <script>
-    // This new function sends the product data to our secure backend route.
+    // THE FIX: We safely read the data from our container's `dataset` property.
+    const dataContainer = document.getElementById('customer-container-data');
+    let currentPage = parseInt(dataContainer.dataset.currentPage);
+    const totalPages = parseInt(dataContainer.dataset.totalPages);
+    const loginUrl = dataContainer.dataset.loginUrl;
+    const addToCartUrl = dataContainer.dataset.addToCartUrl;
+
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loader = document.getElementById('loader');
+    const container = document.getElementById('cake-container');
+    const loadMoreContainer = document.getElementById('load-more-container');
+
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', async () => {
+            currentPage++;
+            
+            loader.style.display = 'block';
+            loadMoreBtn.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/get_cakes?page=${currentPage}`);
+                const newCakes = await response.json();
+
+                if (newCakes.length > 0) {
+                    newCakes.forEach(cake => {
+                        const cakeCardHTML = `
+                        <div class="cake-card">
+                            <div class="cake-card-image">
+                                <img src="${cake.image}" alt="${cake.name}">
+                            </div>
+                            <div class="cake-card-content">
+                                <h3>${cake.name}</h3>
+                                <p>${cake.description}</p>
+                                <p class="price">$${parseFloat(cake.price).toFixed(2)}</p>
+                                <button
+                                    class="order-button"
+                                    data-name="${cake.name}"
+                                    data-image="${cake.image}"
+                                    data-price="${cake.price}"
+                                    data-description="${cake.description}"
+                                    onclick="addToCart(this)"
+                                >
+                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', cakeCardHTML);
+                    });
+                }
+                
+                if (currentPage >= totalPages) {
+                    loadMoreContainer.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Failed to load more cakes:', error);
+            } finally {
+                loader.style.display = 'none';
+                if (currentPage < totalPages) {
+                    loadMoreBtn.style.display = 'block';
+                }
+            }
+        });
+    }
+
     async function addToCart(button) {
-        // Step 1: Create a product object from the button's data attributes.
+        if (!window.isUserAuthenticated) {
+            alert("Please log in or create an account to add items to your cart.");
+            window.location.href = loginUrl; // Use the variable
+            return;
+        }
+
         const product = {
             name: button.dataset.name,
             price: parseFloat(button.dataset.price),
@@ -65,23 +148,17 @@
             imageUrl: button.dataset.image
         };
 
-        // Step 2: Send this product data to our new '/cart/add' backend endpoint.
-        const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+        const response = await fetch(addToCartUrl, { // Use the variable
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(product)
         });
-
-        // Step 3: Give feedback to the user and update the cart counter in the nav bar.
+        
         if (response.ok) {
             alert(`'${product.name}' has been added to your cart!`);
-            
-            // Get the current number from the counter, add 1, and update it.
             const cartCounter = document.getElementById('cart-count');
             const currentCount = parseInt(cartCounter.innerText);
-            updateCartCounter(currentCount + 1); // updateCartCounter is the global function from base.html
+            updateCartCounter(currentCount + 1);
         } else {
             alert("Could not add item to cart. Please try again.");
         }

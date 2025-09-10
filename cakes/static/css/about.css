@@ -1,189 +1,150 @@
-/* General Styles */
-body {
-	font-family: "Arial", sans-serif;
-	background-color: #f7f7f7;
-	margin: 0;
-	padding: 0;
-	color: #333;
+/* --- Main Container & Header --- */
+.about-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
 }
 
-header {
-	background-color: #080808;
-	color: white;
-	padding: 20px 0;
-	text-align: center;
+.about-header {
+    text-align: center;
+    margin-bottom: 3rem;
 }
 
-header h1 {
-	font-size: 2.5rem;
-	margin: 0;
+.about-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
 }
 
-nav ul {
-	list-style: none;
-	padding: 0;
+.subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-nav ul li {
-	display: inline;
-	margin: 0 15px;
+/* --- Team Section --- */
+.team-section {
+    margin-bottom: 4rem;
 }
 
-nav ul li a {
-	color: white;
-	text-decoration: none;
-	font-size: 1.1rem;
+.team-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1rem;
 }
 
-nav ul li a:hover {
-	text-decoration: underline;
-}
-
-.container {
-	width: 85%;
-	margin: auto;
-	padding: 50px 0;
-}
-
-h2 {
-	font-size: 2rem;
-	margin-bottom: 30px;
-	text-align: center;
-	color: #333;
-}
-
-/* Team Section */
-#team {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-around;
-	gap: 40px;
-	margin-bottom: 50px;
+.team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
 }
 
 .team-member {
-	background-color: white;
-	border-radius: 10px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	text-align: center;
-	padding: 30px;
-	width: 300px;
-	transition: transform 0.3s;
+    background-color: var(--light-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .team-member:hover {
-	transform: scale(1.05);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
 }
 
 .team-member img {
-	border-radius: 50%;
-	width: 120px;
-	height: 120px;
-	object-fit: cover;
-	margin-bottom: 15px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    border: 4px solid var(--primary-color);
 }
 
 .team-member h3 {
-	font-size: 1.5rem;
-	color: #f39c12;
+    margin-bottom: 0.25rem;
+    font-size: 1.5rem;
+}
+
+.team-member h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 500;
 }
 
 .team-member p {
-	font-size: 1rem;
-	line-height: 1.5;
-	margin-bottom: 10px;
+    line-height: 1.7;
+    color: #555;
 }
 
-/* Testimonials Section */
-#testimonials {
-	background-color: #f39c12;
-	color: white;
-	padding: 40px;
-	border-radius: 10px;
+/* --- Philosophy Section --- */
+.philosophy-section {
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding: 4rem 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.philosophy-content h2 {
+    font-size: 2.5rem;
+    color: var(--light-color);
+    margin-top: 0;
+}
+
+.philosophy-content p {
+    font-size: 1.1rem;
+    max-width: 700px;
+    margin: 1rem auto 0 auto;
+    line-height: 1.8;
+}
+
+/* --- Testimonials Section --- */
+.testimonials-section {
+    text-align: center;
+}
+
+.testimonials-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
 }
 
 .testimonial {
-	margin-bottom: 30px;
-	font-style: italic;
+    max-width: 650px;
+    margin: 0 auto 2rem auto;
 }
 
-.testimonial p {
-	font-size: 1.1rem;
-	line-height: 1.6;
+.testimonial blockquote {
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #555;
+    margin: 0;
+    padding: 1.5rem;
+    border-left: 5px solid var(--primary-color);
+    background-color: var(--light-color);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
 }
 
-.customer-name {
-	font-size: 1rem;
-	font-weight: bold;
-	margin-top: 10px;
-	display: block;
+.testimonial cite {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+    color: var(--dark-color);
 }
 
-/* Footer */
-footer {
-	background-color: #333;
-	color: white;
-	text-align: center;
-	padding: 20px 0;
-	margin-top: 50px;
-}
-
-footer p {
-	margin: 0;
-}
-
-footer ul {
-	list-style: none;
-	padding: 0;
-	display: flex;
-	justify-content: center;
-	margin-top: 10px;
-}
-
-footer ul li {
-	margin: 0 10px;
-}
-
-footer ul li a {
-	color: white;
-	font-size: 1.2rem;
-	text-decoration: none;
-}
-
-footer ul li a:hover {
-	color: #f39c12;
-}
-
-.back-button {
-	background-color: #f1f1f1;
-	border: none;
-	padding: 10px 20px;
-	cursor: pointer;
-	font-size: 16px;
-	margin: 20px 0;
-}
-
-.back-button:hover {
-	background-color: #ddd;
-}
-
-/* Responsive Design */
+/* --- Responsive Adjustments for Mobile and Tablet --- */
 @media (max-width: 768px) {
-	#team {
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.team-member {
-		width: 100%;
-		margin-bottom: 20px;
-	}
-
-	footer ul {
-		flex-direction: column;
-	}
-
-	footer ul li {
-		margin-bottom: 10px;
-	}
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .about-header h1 { font-size: 2.5rem; }
+    .team-section h2, .philosophy-content h2, .testimonials-section h2 { font-size: 2rem; }
 }
+
