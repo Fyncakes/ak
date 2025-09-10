@@ -1,161 +1,121 @@
-/* Inherit from the main design system */
-@import url('main.css');
+/* --- Root Variables Inherited from main.css --- */
 
+/* --- Page Body Styling --- */
+/* This adds a background image to the page, making the white form stand out. */
+body {
+    background: url('/static/FynCakes/gettyimages-1288873262-612x612.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* --- Main Container & Layout --- */
 .checkout-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: var(--light-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    max-width: var(--max-width);
+    margin: 0 auto;
 }
 
 .page-title {
     text-align: center;
     font-size: 2.5rem;
-    color: var(--dark-color);
     margin-bottom: 2rem;
+    color: var(--light-color); /* Change title to white to be visible on the new background */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Add shadow for readability */
 }
 
-/* Main layout for checkout content */
 .checkout-layout {
     display: grid;
-    grid-template-columns: 2fr 1fr; /* 2/3 for items, 1/3 for summary */
+    grid-template-columns: 1.5fr 1fr; /* Two columns on desktop */
     gap: 2rem;
+    align-items: flex-start;
 }
 
-/* --- Final Table Styles for Cart Items --- */
-.cart-items-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.cart-items-table thead th {
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    text-align: left;
-    padding: 1rem;
-    border-bottom: 2px solid var(--dark-color);
-    color: var(--dark-color);
-}
-
-.cart-items-table tbody td {
-    padding: 1rem;
-    border-bottom: 1px solid #e0e0e0;
-    vertical-align: middle; /* This is key for vertical alignment */
-}
-
-/* Column specific alignment and widths */
-.cart-items-table .col-product { width: 60%; }
-.cart-items-table .col-price { width: 20%; text-align: center; }
-.cart-items-table .col-action { width: 20%; text-align: right; }
-
-
-.cart-item-info {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-/* --- This is the key fix for image consistency --- */
-.cart-item-info img {
-    width: 80px;         /* Set a fixed width */
-    height: 80px;        /* Set a fixed height */
-    object-fit: cover;   /* This crops the image to fit, no stretching */
+/* This is the main change: adding a translucent white background */
+.order-form-section, .order-summary {
+    background-color: rgba(255, 255, 255, 0.92); /* Translucent white */
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    padding: 2rem;
     border-radius: var(--border-radius);
-    background-color: #f0f0f0; /* Adds a background for images that are loading or transparent */
+    box-shadow: var(--box-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border for depth */
 }
 
-.cart-item-info h4 {
-    margin: 0;
-    font-size: 1.1rem;
+.order-form-section h3, .order-summary h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Form Group Styling (Ensures Vertical Layout by Default) --- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+.form-group label {
+    display: block;
     font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
 }
 
-.item-price {
-    font-weight: 600;
-    font-size: 1.1rem;
+/* --- Payment & Summary Styles --- */
+.payment-options {
+    margin-bottom: 1.5rem;
 }
 
-.remove-item-btn {
-    background-color: var(--primary-color);
-    color: var(--light-color);
-    border: none;
-    padding: 0.6rem 1.2rem;
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     cursor: pointer;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.remove-item-btn:hover {
-    background-color: #d03340; /* Darker red on hover */
-}
-
-
-/* Styling for the order summary box */
-.order-summary {
-    background-color: var(--secondary-color);
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    align-self: flex-start; /* Aligns summary to the top */
-}
-
-.order-summary h3 {
-    font-size: 1.5rem;
-    margin-top: 0;
-    border-bottom: 2px solid var(--accent-color);
-    padding-bottom: 0.5rem;
-}
-
-.summary-line {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.1rem;
     margin-bottom: 1rem;
 }
+.radio-option:has(input:checked) {
+    border-color: var(--primary-color);
+    background-color: #fff8f8;
+}
+.radio-option span {
+    color: #666;
+    font-size: 0.9rem;
+}
 
-#cart-total {
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: var(--primary-color);
+.summary-item, .summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+.summary-line.total {
+    font-size: 1.4rem;
+    margin-top: 1rem;
 }
 
 .confirm-purchase-btn {
     width: 100%;
     padding: 1rem;
-    font-size: 1.2rem;
-    font-weight: 600;
+    background-color: #2E7D32; /* Green for confirm */
     color: var(--light-color);
-    background-color: #28a745; /* Green for confirm */
     border: none;
     border-radius: var(--border-radius);
+    font-size: 1.2rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-
 .confirm-purchase-btn:hover {
-    background-color: #218838;
+    background-color: #1B5E20; /* Darker green */
 }
 
 .continue-shopping-link {
     display: block;
     text-align: center;
-    margin-top: 1.5rem;
-    color: var(--dark-color);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.continue-shopping-link:hover {
+    margin-top: 1rem;
     color: var(--primary-color);
-}
-
-/* Responsive adjustments for smaller screens */
-@media (max-width: 900px) {
-    .checkout-layout {
-        grid-template-columns: 1fr; /* Stack items and summary */
-    }
 }
 

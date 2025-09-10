@@ -2,28 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <!-- This meta tag is ESSENTIAL for responsive design -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}FynCakes{% endblock %}</title>
-    <!-- We will use a professional Google Font for a better look -->
+    
+    <!-- Professional Google Font & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <!-- A block for extra head elements on specific pages -->
     {% block head_extra %}{% endblock %}
 </head>
 <body>
     <header class="main-header">
         <nav class="navbar">
             <a href="{{ url_for('routes.home') }}" class="nav-brand">FynCakes</a>
-
-            <!-- Mobile Menu Button (Hamburger) -->
             <button class="nav-toggle" id="nav-toggle" aria-label="toggle navigation">
                 <span class="hamburger"></span>
             </button>
-
-            <!-- Main Navigation Links -->
             <div class="nav-menu" id="nav-menu">
                 <a href="{{ url_for('routes.home') }}" class="nav-link">Home</a>
                 <a href="{{ url_for('routes.customer') }}" class="nav-link">Our Cakes</a>
@@ -32,8 +32,6 @@
                     <a href="{{ url_for('routes.admin_dashboard') }}" class="nav-link">Admin</a>
                 {% endif %}
             </div>
-
-            <!-- User Actions (Cart, Login/Logout) -->
             <div class="nav-actions">
                 <a href="{{ url_for('routes.cart') }}" class="nav-link cart-link" aria-label="Shopping Cart">
                     <i class="fas fa-shopping-cart"></i>
@@ -59,14 +57,46 @@
             {% endif %}
         {% endwith %}
         
+        <!-- Main content from child templates will be injected here -->
         {% block content %}{% endblock %}
     </main>
 
+    <!-- NEW: Enhanced & Professional Footer -->
     <footer class="main-footer">
-        <p>&copy; 2025 FynCakes. All rights reserved.</p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>FynCakes</h4>
+                <p>Crafting Kampala's most delicious cakes with love and passion. From our family to yours.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{{ url_for('routes.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('routes.customer') }}">Our Cakes</a></li>
+                    <li><a href="{{ url_for('routes.about_us') }}">About Us</a></li>
+                    <li><a href="{{ url_for('routes.terms_of_service') }}">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact & Connect</h4>
+                <ul>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:fyncakes@gmail.com">fyncakes@gmail.com</a></li>
+                    <li><i class="fab fa-whatsapp"></i> <a href="https://whatsapp.com/channel/0029VbA3JDC0gcfS8j3tMW2t" target="_blank">Join our WhatsApp Channel</a></li>
+                    <li><i class="fas fa-phone"></i> Orders: 0758 449 390</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+             &copy; <span id="current-year"></span> FynCakes. All rights reserved.
+        </div>
     </footer>
 
-    <!-- Global JavaScript -->
+    <!-- NEW: Floating WhatsApp Support Widget -->
+    <a href="https://wa.me/256751082492" class="whatsapp-support-widget" target="_blank" aria-label="Chat with us on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Global JavaScript Logic -->
     <script>
         // --- Mobile Navigation Toggle Logic ---
         const navToggle = document.getElementById('nav-toggle');
@@ -78,7 +108,7 @@
                 navToggle.classList.toggle('active');
             });
         }
-
+        
         // --- Global Cart Counter Update Function ---
         function updateCartCounter(count) {
             const cartCounter = document.getElementById('cart-count');
@@ -87,20 +117,17 @@
                 cartCounter.style.display = count > 0 ? 'flex' : 'none';
             }
         }
-
-        // --- Fetch initial cart count on page load ---
+        
+        // --- Scripts to run when the page is fully loaded ---
         document.addEventListener('DOMContentLoaded', () => {
-            // This is the definitive fix. We pass server-side data to JavaScript
-            // by attaching it to the window object. This keeps the script syntax clean.
-            const isUserAuthenticated = window.isUserAuthenticated;
-            const getCartUrl = window.getCartUrl;
+            // Set the current year in the footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
 
-            if (isUserAuthenticated && getCartUrl) {
-                fetch(getCartUrl)
+            // Fetch initial cart count if the user is logged in
+            if (window.isUserAuthenticated) {
+                fetch(window.getCartUrl)
                     .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch'))
-                    .then(data => {
-                        updateCartCounter(data.length);
-                    })
+                    .then(data => updateCartCounter(data.length))
                     .catch(error => console.error('Error fetching cart count:', error));
             } else {
                 updateCartCounter(0);
@@ -108,7 +135,7 @@
         });
     </script>
     
-    <!-- This block safely injects server data into the window object -->
+    <!-- This block safely injects server-side data into global JavaScript variables -->
     {% if current_user.is_authenticated %}
     <script>
         window.isUserAuthenticated = true;
@@ -120,7 +147,8 @@
         window.getCartUrl = null;
     </script>
     {% endif %}
-
+    
+    <!-- A block for extra scripts on specific pages -->
     {% block scripts %}{% endblock %}
 </body>
 </html>

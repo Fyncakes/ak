@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/legal.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="legal-container">
+    <h1>Terms of Service</h1>
+    <p class="last-updated">Last Updated: September 10, 2025</p>
+
+    <section>
+        <h2>1. Introduction</h2>
+        <p>Welcome to FynCakes ("we," "our," or "us"). These Terms of Service ("Terms") govern your use of our website and the purchase of our products and services. By accessing our site and placing an order, you agree to be bound by these Terms.</p>
+    </section>
+
+    <section>
+        <h2>2. Orders and Payment</h2>
+        <p>All orders are subject to acceptance and availability. When you place an order, you will receive a confirmation email with payment instructions. Your order is not confirmed until the required payment has been received. We reserve the right to refuse or cancel any order for any reason.</p>
+    </section>
+
+    <section>
+        <h2>3. Cancellations and Refunds</h2>
+        <p>Cancellations must be made at least 72 hours before the scheduled pickup or delivery date to be eligible for a partial refund. No refunds will be provided for cancellations made within 72 hours of the delivery date. Custom orders are non-refundable.</p>
+    </section>
+
+    <section>
+        <h2>4. Real-Time Support</h2>
+        <p>We offer real-time customer support via our WhatsApp service. By contacting our support team at <strong>0751 082 492</strong>, you agree to communicate in a respectful manner. This service is for inquiries related to our products and your orders. We reserve the right to block users who abuse this service.</p>
+        <p><strong>Disclaimer:</strong> While we strive to provide immediate assistance, response times may vary. For urgent matters, please call us directly.</p>
+    </section>
+    
+    <section>
+        <h2>5. Limitation of Liability</h2>
+        <p>To the fullest extent permitted by law, FynCakes shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly.</p>
+        <p><strong>Note:</strong> This is a sample Terms of Service. It is strongly recommended that you consult with a legal professional to draft a policy that is compliant with local laws and specific to your business needs.</p>
+    </section>
+
+</div>
+{% endblock %}
+

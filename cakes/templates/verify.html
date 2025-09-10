@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Verify Your Email{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Verify Your Email</h2>
+        <p>We've sent a 6-digit verification code to <strong>{{ email }}</strong>. Please enter it below to complete your registration.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="verification_code">Verification Code</label>
+                <input type="text" id="verification_code" name="verification_code" required maxlength="6" pattern="\d{6}" title="Please enter the 6-digit code.">
+            </div>
+            
+            <button type="submit" class="auth-button">Verify Account</button>
+        </form>
+        <div class="auth-links">
+            <p>Didn't receive the code? <a href="{{ url_for('routes.signup') }}">Sign up again</a>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

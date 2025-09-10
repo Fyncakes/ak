@@ -5,6 +5,7 @@ import certifi
 from flask import Flask
 from flask_login import LoginManager
 from pymongo import MongoClient
+from flask_mail import Mail
 
 # Initialize LoginManager
 login_manager = LoginManager()
@@ -16,6 +17,7 @@ login_manager.login_message_category = 'info' # Optional: for better flash messa
 mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/fyncakes')
 client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
 db = client.fyncakes
+mail = Mail()
 
 def create_app():
     """
@@ -32,9 +34,19 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'FynCakes')
     app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png', 'gif'}
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB upload limit
+    
+     # --- Email Server Configuration ---
+    # These will be loaded from your .env file
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT'))
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
 
     # --- Initialize Extensions ---
     login_manager.init_app(app)
+    mail.init_app(app) # Initialize Flask-Mail with the app
 
     # --- User Loader for Flask-Login ---
     from .models import User  # Import here to avoid circular import issues

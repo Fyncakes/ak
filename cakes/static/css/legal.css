@@ -1,0 +1,67 @@
+/* This stylesheet is for legal pages like Terms of Service and Privacy Policy.
+    It inherits all the base styles and variables from main.css.
+*/
+
+/* --- Main Content Container --- */
+.legal-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background-color: var(--light-color);
+    padding: 2rem 3rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    line-height: 1.8;
+}
+
+/* --- Headings and Text Styling --- */
+.legal-container h1 {
+    text-align: center;
+    margin-top: 0;
+    color: var(--primary-color);
+    font-size: 2.5rem;
+}
+
+.legal-container h2 {
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.last-updated {
+    text-align: center;
+    color: #888;
+    margin-top: -1rem;
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.legal-container p {
+    margin-bottom: 1rem;
+}
+
+.legal-container strong {
+    color: var(--dark-color);
+}
+
+/* --- Section Spacing --- */
+.legal-container section {
+    margin-bottom: 1.5rem;
+}
+
+/* --- Responsive Adjustments for Mobile --- */
+@media (max-width: 576px) {
+    .legal-container {
+        padding: 1.5rem;
+    }
+
+    .legal-container h1 {
+        font-size: 2rem;
+    }
+
+    .legal-container h2 {
+        font-size: 1.5rem;
+    }
+}
+

@@ -1,39 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}About Us{% endblock %}
+{% block title %}About FynCakes{% endblock %}
 
 {% block head_extra %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
 {% endblock %}
 
 {% block content %}
-<button class="back-button" onclick="window.history.back()">Back</button>
+<div class="about-container">
 
-<section id="team">
-    <h2>Meet Our Team</h2>
-    <div class="team-member">
-        <img src="{{ url_for('static', filename='FynCakes/profile.img2.jpg') }}" alt="John Doe"/>
-        <h3>John Doe</h3>
-        <p>Head Baker</p>
-        <p>With over 10 years of experience, John brings creativity and passion to every cake he bakes.</p>
+    <div class="about-header">
+        <h1>Where Passion Meets Perfection</h1>
+        <p class="subtitle">FynCakes isn't just a bakery; it's the culmination of a family's dream to bring joy to Kampala, one delicious, handcrafted cake at a time.</p>
     </div>
-    <div class="team-member">
-        <img src="{{ url_for('static', filename='FynCakes/profile.img2.jpg') }}" alt="Jane Smith"/>
-        <h3>Jane Smith</h3>
-        <p>Marketing Manager</p>
-        <p>Jane is dedicated to spreading the word about FynCakes and connecting with our valued customers.</p>
-    </div>
-</section>
 
-<section id="testimonials">
-    <h2>Customer Testimonials</h2>
-    <div class="testimonial">
-        <p>"Absolutely delicious cakes! The attention to detail and the flavors are amazing."</p>
-        <p class="customer-name">- Sarah Johnson</p>
-    </div>
-    <div class="testimonial">
-        <p>"FynCakes made my wedding day extra special with their beautiful and delicious wedding cake."</p>
-        <p class="customer-name">- Michael Davis</p>
-    </div>
-</section>
+    <section id="team" class="team-section">
+        <h2>Meet The Founders</h2>
+        <div class="team-grid">
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='FynCakes/profil.img1.jpeg') }}" alt="Ms. Fatima Kolyanga"/>
+                <h3>Ms. Fatima Kolyanga (Mrs. Kola)</h3>
+                <h4>Co-Founder & Head Baker</h4>
+                <p>Fatima is the heart and soul of our kitchen. With a profound knowledge of the science of baking and an artist's eye for detail, she transforms simple ingredients into breathtaking works of art. Her creations are more than just desserts; they are the centerpiece of your celebrations, crafted with love and an unwavering commitment to flavour and quality.</p>
+            </div>
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='FynCakes/MG_9195.jpeg') }}" alt="Mr. Aron Kolyanga"/>
+                <h3>Mr. Aron Kolyanga (Mr. Kola)</h3>
+                <h4>Co-Founder & IT Manager</h4>
+                <p>Aron is the technical genius who ensures your online experience with FynCakes is as smooth and delightful as our buttercream. As our IT Support Team Manager, he masterfully blends his passion for technology with the family's love for baking, creating a seamless digital storefront that brings our finest creations directly to you.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="philosophy-section">
+        <div class="philosophy-content">
+            <h2>Our Philosophy</h2>
+            <p>We believe that every cake tells a story. From birthdays and weddings to simple moments of joy, our creations are designed to be memorable. We are committed to using only the finest locally-sourced ingredients, ensuring every bite is fresh, authentic, and delicious. At FynCakes, we don't just sell cakes—we craft experiences.</p>
+        </div>
+    </section>
+
+    <section id="testimonials" class="testimonials-section">
+        <h2>What Our Customers Say</h2>
+        <div class="testimonial">
+            <blockquote>"Absolutely delicious cakes! The attention to detail and the flavors are amazing. FynCakes is our go-to for every family celebration."</blockquote>
+            <cite>- Sarah Johnson</cite>
+        </div>
+        <div class="testimonial">
+            <blockquote>"FynCakes made our wedding day extra special with the most beautiful and delicious cake. Thank you for the wonderful experience and impeccable service!"</blockquote>
+            <cite>- Michael Davis</cite>
+        </div>
+    </section>
+
+</div>
 {% endblock %}
+
