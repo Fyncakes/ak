@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}FynCakes - Handcrafted Cakes in Kampala{% endblock %}
+{% block title %}FynCakes - Cakes {% endblock %}
 
 {% block head_extra %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
@@ -14,7 +14,7 @@
 <section class="hero-section">
     <div class="hero-video-container">
         <!-- Make sure the video file 'fyncakes.mp4' is in your static/FynCakes folder -->
-        <video autoplay loop muted playsinline poster="{{ url_for('static', filename='FynCakes/fyncakes.mp4') }}">
+        <video autoplay loop muted playsinline poster="{{ url_for('static', filename='FynCakes/gettyimages-547421170-612x612.jpg') }}">
             <source src="{{ url_for('static', filename='FynCakes/fyncakes.mp4') }}" type="video/mp4" />
             Your browser does not support the video tag.
         </video>
