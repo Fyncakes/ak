@@ -428,8 +428,8 @@ def register_class():
             <p><strong>Total Course Fee:</strong> $120.00</p>
             <p>To confirm your registration, please send a 50% deposit of <strong>$60.00</strong> via Mobile Money to:</p>
             <ul style="list-style: none; padding: 0;">
-                <li><strong>MTN Mobile Money:</strong> +256 758 449390 </li>
-                <li><strong>Airtel Money:</strong> 0755 987 654</li>
+                <li><strong>MTN Mobile Money:</strong> +256 785 210393 </li>
+                <li><strong>Airtel Money:</strong> +256 758 449390 </li>
             </ul>
             <p>The remaining balance is due one week before the class starts. We will send a reminder.</p>
             <p>Thanks,<br>The FynCakes Team</p>
