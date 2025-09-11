@@ -1,4 +1,4 @@
-/* --- Main Page Container --- */
+/* --- Main Page Container & Title --- */
 .customer-container {
     max-width: var(--max-width);
     margin: 0 auto;
@@ -11,7 +11,7 @@
     margin-bottom: 2rem;
 }
 
-/* --- Responsive Cake Grid --- */
+/* --- Responsive Cake Grid Layout --- */
 .cake-container { 
     display: grid; 
     grid-template-columns: repeat(4, 1fr); 
@@ -35,18 +35,18 @@
 
 .cake-card-image {
     width: 100%;
-    aspect-ratio: 1 / 1; /* Creates a perfect square for the image container */
+    aspect-ratio: 1 / 1; /* Creates a perfect square for the image area */
 }
 .cake-card-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures the image covers the square without distortion */
+    object-fit: cover; /* Ensures the image covers the area without distortion */
 }
 
 .cake-card-content {
     padding: 1.5rem;
     text-align: center;
-    flex-grow: 1;
+    flex-grow: 1; /* Allows this content area to fill the available card height */
     display: flex;
     flex-direction: column;
 }
@@ -57,7 +57,6 @@
 }
 .cake-card-content p {
     margin-bottom: 1rem;
-    /* THE FIX: We remove flex-grow from the paragraph... */
     color: #666;
 }
 .cake-card-content .price {
@@ -81,25 +80,23 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    /* ...AND THE FIX: We add margin-top: auto here to push the button to the bottom. */
+    /* This is the key fix that pushes the button to the bottom, ensuring all buttons in a row are aligned. */
     margin-top: auto;
 }
 .order-button:hover {
     background-color: #B71C1C;
 }
 
-/* --- Load More Button & Loader Styles --- */
+/* --- "Load More" Button & Loader Styles --- */
 .load-more-container {
-    text-align: center; /* This centers the button */
+    text-align: center;
     padding: 2rem 0;
 }
 .load-more-container.hidden {
     display: none;
 }
-
-/* THIS IS THE FIX: The background-color is now set to the primary brand color. */
 .load-more-btn {
-    background-color: var(--primary-color); /* Changed from --dark-color */
+    background-color: var(--primary-color);
     color: var(--light-color);
     border: none;
     padding: 0.8rem 2.5rem;
@@ -109,9 +106,8 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-/* THIS IS THE FIX: The hover color is now a darker red. */
 .load-more-btn:hover {
-    background-color: #B71C1C; /* Changed from #455A64 */
+    background-color: #B71C1C;
 }
 .loader {
     border: 5px solid var(--grey-color);
@@ -120,23 +116,23 @@
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
-    margin: auto; /* Helps with centering if needed */
+    margin: auto;
 }
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* --- Message for when no cakes are available --- */
+/* --- Message for When No Cakes Are Available --- */
 .no-cakes-message {
-    grid-column: 1 / -1; /* Make this message span all columns of the grid */
+    grid-column: 1 / -1; /* Makes this message span all columns of the grid */
     text-align: center;
     padding: 4rem 1rem;
     background-color: var(--light-color);
     border-radius: var(--border-radius);
 }
 
-/* --- Responsive Media Queries for the Grid --- */
+/* --- Responsive Media Queries for Mobile & Tablet --- */
 @media (max-width: 1200px) { 
     .cake-container { grid-template-columns: repeat(3, 1fr); } 
 }

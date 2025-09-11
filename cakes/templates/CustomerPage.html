@@ -3,14 +3,14 @@
 {% block title %}Our Cakes - FynCakes{% endblock %}
 
 {% block head_extra %}
-    <!-- All styling is now handled by the external CSS file -->
+    <!-- All styling is now correctly handled by the external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
 {% endblock %}
 
 {% block content %}
 <!--
-We pass data from the server to JavaScript using data-* attributes on this container.
-This is a clean and safe way to avoid the syntax errors.
+THE FIX: We pass data from the server to JavaScript using data-* attributes.
+This is a clean and safe way to avoid syntax errors.
 -->
 <div class="customer-container" 
      id="customer-container-data"
@@ -48,7 +48,7 @@ This is a clean and safe way to avoid the syntax errors.
         {% endfor %}
     </div>
 
-    <!-- Message shown if no cakes exist at all -->
+    <!-- Message shown if no cakes have been uploaded yet -->
     {% if not cakes %}
     <div class="no-cakes-message">
         <h2>Our bakers are busy!</h2>
@@ -56,7 +56,7 @@ This is a clean and safe way to avoid the syntax errors.
     </div>
     {% endif %}
 
-    <!-- "Load More" button container. The display is now controlled by a class. -->
+    <!-- The "Load More" button container. The display is now controlled by a class. -->
     <div class="load-more-container {% if current_page >= total_pages %}hidden{% endif %}" id="load-more-container">
         <button class="load-more-btn" id="load-more-btn">Load More Cakes</button>
         <div class="loader" id="loader" style="display: none;"></div>
@@ -88,6 +88,7 @@ This is a clean and safe way to avoid the syntax errors.
             loadMoreBtn.style.display = 'none';
 
             try {
+                // Fetch the next page of cakes from our API
                 const response = await fetch(`/api/get_cakes?page=${currentPage}`);
                 const newCakes = await response.json();
 
@@ -119,6 +120,7 @@ This is a clean and safe way to avoid the syntax errors.
                     });
                 }
                 
+                // Hide the button if we've reached the last page
                 if (currentPage >= totalPages) {
                     loadMoreContainer.style.display = 'none';
                 }
@@ -134,7 +136,9 @@ This is a clean and safe way to avoid the syntax errors.
         });
     }
 
+    // THE FIX: Use the JavaScript variables that hold the URLs.
     async function addToCart(button) {
+        // We use the global variable from base.html to check login status
         if (!window.isUserAuthenticated) {
             alert("Please log in or create an account to add items to your cart.");
             window.location.href = loginUrl; // Use the variable
@@ -157,7 +161,8 @@ This is a clean and safe way to avoid the syntax errors.
         if (response.ok) {
             alert(`'${product.name}' has been added to your cart!`);
             const cartCounter = document.getElementById('cart-count');
-            const currentCount = parseInt(cartCounter.innerText);
+            // Safely parse the current count, defaulting to 0 if it's not a number
+            const currentCount = parseInt(cartCounter.innerText) || 0;
             updateCartCounter(currentCount + 1);
         } else {
             alert("Could not add item to cart. Please try again.");

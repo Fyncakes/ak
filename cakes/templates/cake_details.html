@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cake.name }} - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cake_details.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <div class="product-main-layout">
+        <!-- Main Image Gallery -->
+        <div class="product-gallery">
+            <img src="{{ cake.image }}" alt="{{ cake.name }}" class="main-product-image">
+        </div>
+
+        <!-- Product Details & Actions -->
+        <div class="product-info">
+            <h1>{{ cake.name }}</h1>
+            <p class="price">${{ "%.2f"|format(cake.price) }}</p>
+            <p class="description">{{ cake.description }}</p>
+            
+            <button
+                class="add-to-cart-btn"
+                data-name="{{ cake.name }}"
+                data-image="{{ cake.image }}"
+                data-price="{{ cake.price }}"
+                data-description="{{ cake.description }}"
+                onclick="addToCart(this)"
+            >
+                <i class="fas fa-shopping-cart"></i> Add to Cart
+            </button>
+        </div>
+    </div>
+
+    <!-- Related Products Section -->
+    {% if related_cakes %}
+    <div class="related-products-section">
+        <h2 class="section-title">Related Products</h2>
+        <div class="related-products-grid">
+            {% for related_cake in related_cakes %}
+            <a href="{{ url_for('routes.cake_details', cake_id=related_cake._id) }}" class="related-product-link">
+                <div class="related-product-card">
+                    <img src="{{ related_cake.image }}" alt="{{ related_cake.name }}">
+                    <h3>{{ related_cake.name }}</h3>
+                    <p>${{ "%.2f"|format(related_cake.price) }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // The addToCart logic is the same as on the customer page
+    async function addToCart(button) {
+        if (!window.isUserAuthenticated) {
+            alert("Please log in or create an account to add items to your cart.");
+            window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+            return;
+        }
+
+        const product = {
+            name: button.dataset.name,
+            price: parseFloat(button.dataset.price),
+            description: button.dataset.description,
+            imageUrl: button.dataset.image
+        };
+
+        const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(product)
+        });
+        
+        if (response.ok) {
+            alert(`'${product.name}' has been added to your cart!`);
+            const cartCounter = document.getElementById('cart-count');
+            const currentCount = parseInt(cartCounter.innerText);
+            updateCartCounter(currentCount + 1);
+        } else {
+            alert("Could not add item to cart. Please try again.");
+        }
+    }
+</script>
+{% endblock %}

@@ -101,6 +101,18 @@ def terms_of_service():
     """Renders the Terms of Service page."""
     return render_template('terms_of_service.html')
 
+@routes_bp.route('/cake/<cake_id>')
+def cake_details(cake_id):
+    """Renders the detailed page for a single cake."""
+    try:
+        cake = db.cakes.find_one_or_404({'_id': ObjectId(cake_id)})
+        related_cakes = list(db.cakes.find({'_id': {'$ne': ObjectId(cake_id)}}).limit(3))
+        
+        return render_template('cake_details.html', cake=cake, related_cakes=related_cakes)
+    except Exception:
+        flash('Sorry, that cake could not be found.', 'danger')
+        return redirect(url_for('routes.customer'))
+
 
 # =============================================================================
 # AUTHENTICATION ROUTES
