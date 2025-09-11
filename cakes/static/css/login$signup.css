@@ -15,7 +15,8 @@ body.auth-page {
 .auth-card {
     width: 100%;
     max-width: 450px;
-    background-color: rgba(255, 255, 255, 0.95);
+    /* Increased opacity for better contrast */
+    background-color: rgba(255, 255, 255, 0.95); 
     backdrop-filter: blur(10px);
     padding: 2.5rem;
     border-radius: var(--border-radius);
@@ -28,17 +29,25 @@ body.auth-page {
     margin-top: 0;
     margin-bottom: 2rem;
     font-size: 2rem;
+    color: var(--dark-color);
 }
 
-/* --- Form Group Styling (Ensures Vertical Layout) --- */
+/* --- Form Group Styling --- */
 .form-group {
     margin-bottom: 1.5rem;
 }
 
+/* THIS IS THE DEFINITIVE FIX:
+    The text is now darker, bolder, and has a shadow for maximum readability.
+*/
 .form-group label {
-    display: block; /* Stacks label above input */
+    display: block;
     margin-bottom: 0.5rem;
-    font-weight: 500;
+    font-weight: 600; /* Bolder text */
+    color: #212121; /* A very dark, high-contrast color */
+    font-size: 1rem;
+    /* This shadow "lifts" the text from the background */
+    text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .form-group input {
@@ -80,5 +89,9 @@ body.auth-page {
 .auth-links {
     text-align: center;
     margin-top: 1.5rem;
+}
+.auth-links a {
+    color: var(--primary-color);
+    font-weight: 600;
 }
 

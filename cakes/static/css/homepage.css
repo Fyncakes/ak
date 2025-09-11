@@ -1,14 +1,14 @@
 /* --- HERO SECTION STYLES --- */
 .hero-section {
     position: relative;
-    height: 70vh; /* 70% of the viewport height */
-    min-height: 450px; /* Ensures a minimum height on tall, narrow screens */
+    height: 70vh;
+    min-height: 450px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: var(--light-color);
-    overflow: hidden; /* This is important to contain the video element */
+    overflow: hidden;
 }
 
 .hero-video-container {
@@ -23,7 +23,7 @@
 .hero-video-container video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* This makes the video cover the entire area without being stretched or distorted */
+    object-fit: cover;
 }
 
 .hero-overlay {
@@ -32,12 +32,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* A dark overlay to ensure the text on top is readable */
-    z-index: 2; /* Sits on top of the video */
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2;
 }
 
 .hero-content {
-    position: relative; /* To appear above the overlay */
+    position: relative;
     z-index: 3;
     padding: 1rem;
 }
@@ -67,7 +67,7 @@
 }
 
 .cta-button:hover {
-    background-color: #B71C1C; /* Darker red */
+    background-color: #B71C1C;
     transform: translateY(-3px);
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
@@ -85,7 +85,6 @@
     margin-bottom: 3rem;
     position: relative;
 }
-/* Adds a decorative underline */
 .section-title::after {
     content: '';
     position: absolute;
@@ -109,6 +108,10 @@
     color: inherit;
 }
 
+/* THIS IS THE FIX:
+    These updated styles directly address the user's feedback by making the cards
+    more visually distinct and engaging.
+*/
 .feature-card {
     background: var(--light-color);
     padding: 2.5rem 2rem;
@@ -116,7 +119,8 @@
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     transition: all 0.3s ease;
-    height: 100%;
+    height: 100%; 
+    border-top: 4px solid var(--primary-color); /* Adds a colored accent line */
 }
 
 .feature-card:hover {
@@ -125,9 +129,21 @@
 }
 
 .feature-icon {
-    font-size: 3rem;
-    color: var(--primary-color);
+    font-size: 2.5rem; 
+    color: var(--light-color);
+    background-color: var(--primary-color); /* Gives the icon a colored background */
+    width: 70px;
+    height: 70px;
+    border-radius: 50%; /* Makes the background circular */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1); /* Makes the icon slightly larger on hover */
 }
 
 .feature-card h3 {
@@ -166,7 +182,7 @@
     transition: all 0.3s ease;
 }
 .cta-button-alt:hover {
-    background-color: #FF8F00; /* Darker orange */
+    background-color: #FF8F00;
     transform: translateY(-3px);
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
