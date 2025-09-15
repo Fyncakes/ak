@@ -1,27 +1,35 @@
-/* --- Root Variables Inherited from main.css --- */
+/*
+    ========================================
+    Authentication Stylesheet (login$signup.css)
+    ========================================
+    This file styles the Login, Sign Up, and Verify Email pages.
+*/
 
-/* --- Auth Page Container --- */
+
+/* --- Auth Page Container & Background --- */
 body.auth-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 1rem;
-    background: url('/static/FynCakes/gettyimages-1288873262-612x612.jpg') no-repeat center center;
+    padding: 2rem 1rem;
+    background-color: var(--grey-color); /* Fallback color */
+    background-image: url('/static/FynCakes/gettyimages-1288873262-612x612.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
     background-size: cover;
 }
 
+
+/* --- Main Form Card --- */
 .auth-card {
     width: 100%;
-    max-width: 450px;
-    /* Increased opacity for better contrast */
-    background-color: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(10px);
+    max-width: 500px;
+    background-color: var(--light-color); /* Solid white background for max readability */
     padding: 2.5rem;
     border-radius: var(--border-radius);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: var(--box-shadow);
 }
 
 .auth-card h2 {
@@ -32,32 +40,38 @@ body.auth-page {
     color: var(--dark-color);
 }
 
+
 /* --- Form Group Styling --- */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
-/* THIS IS THE DEFINITIVE FIX:
-    The text is now darker, bolder, and has a shadow for maximum readability.
-*/
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: 600; /* Bolder text */
-    color: #212121; /* A very dark, high-contrast color */
-    font-size: 1rem;
-    /* This shadow "lifts" the text from the background */
-    text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    color: var(--dark-color);
+    font-size: 0.9rem;
 }
 
-.form-group input {
+.form-group .form-control {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: 1rem;
+    font-family: var(--font-main);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.form-group .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+}
+
+
+/* --- Specific Form Elements --- */
 .password-wrapper {
     position: relative;
 }
@@ -70,6 +84,31 @@ body.auth-page {
     color: #999;
 }
 
+.form-group-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+.form-group-checkbox label {
+    margin-bottom: 0;
+    font-weight: 400;
+}
+.form-group-checkbox a {
+    color: var(--primary-color);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.error-text {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+
+/* --- Buttons & Links --- */
 .auth-button {
     width: 100%;
     padding: 1rem;

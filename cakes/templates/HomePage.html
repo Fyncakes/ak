@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}FynCakes - Cakes {% endblock %}
+{% block title %}FynCakes - Handcrafted Cakes in Kampala{% endblock %}
 
 {% block head_extra %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
@@ -9,11 +9,10 @@
 {% block content %}
 <!--
     HERO SECTION
-    This section is now updated to include the video background.
 -->
 <section class="hero-section">
     <div class="hero-video-container">
-        <!-- Make sure the video file 'fyncakes.mp4' is in your static/FynCakes folder -->
+        <!-- The video is hosted externally to prevent server crashes -->
         <video autoplay loop muted playsinline poster="{{ url_for('static', filename='FynCakes/gettyimages-547421170-612x612.jpg') }}">
             <source src="{{ url_for('static', filename='FynCakes/fyncakes.mp4') }}" type="video/mp4" />
             Your browser does not support the video tag.
@@ -29,11 +28,11 @@
 
 <!--
     FEATURES SECTION
-    This section remains the same with the improved styling.
 -->
 <section class="features-container">
     <h2 class="section-title">Our Commitment to Quality</h2>
     <div class="features-grid">
+        <!-- Online Class Card -->
         <a href="{{ url_for('routes.learning_class') }}" class="feature-card-link">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -41,22 +40,24 @@
                 <p>Join our 3-week course to turn your passion into professional skill. Click to learn more!</p>
             </div>
         </a>
+        <!-- Custom Creations Card -->
         <div class="feature-card">
             <div class="feature-icon"><i class="fas fa-magic"></i></div>
             <h3>Custom Creations</h3>
             <p>Personalize your cake with custom messages, flavors, and decorations for any occasion.</p>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-gift"></i></div>
-            <h3>Special Occasions</h3>
-            <p>Celebrate life's special moments with our beautifully crafted cakes for every event.</p>
-        </div>
+        <a href="{{ url_for('routes.wedding_gallery') }}" class="feature-card-link">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-ring"></i></div>
+                <h3>Wedding & Special Occasions</h3>
+                <p>Let us craft the perfect centerpiece for your most memorable events. Explore our wedding gallery.</p>
+            </div>
+        </a>
     </div>
 </section>
 
 <!--
     CALL TO ACTION (CTA) SECTION
-    This section also remains the same.
 -->
 <section class="cta-section">
     <h2>Ready for a Taste of Perfection?</h2>

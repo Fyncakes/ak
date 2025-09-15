@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Wedding Cake Gallery - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="gallery-container">
+    <div class="gallery-header">
+        <h1>Wedding Cake Showcase</h1>
+        <p class="subtitle">Crafting the centerpiece for your special day. Explore our collection of bespoke wedding cakes.</p>
+    </div>
+
+    {% if cakes %}
+    <div class="gallery-grid">
+        {% for cake in cakes %}
+        <!-- Each image links to that cake's specific detail page -->
+        <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="gallery-item">
+            <img src="{{ cake.image }}" alt="{{ cake.name }}">
+            <div class="gallery-item-overlay">
+                <h3>{{ cake.name }}</h3>
+                <span>View Details</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-items-message">
+        <p>Our wedding cake gallery is currently being updated. Please check back soon!</p>
+    </div>
+    {% endif %}
+
+    <!-- Consultation Call to Action Section -->
+    <section class="consultation-cta">
+        <h2>Ready to Design Your Dream Cake?</h2>
+        <p>We offer personalized consultations to create a wedding cake that perfectly matches your vision. Contact us today to schedule your appointment and cake tasting.</p>
+        <div class="contact-info">
+            <p><i class="fas fa-envelope"></i> <a href="mailto:fyncakes1@gmail.com">fyncakes1@gmail.com</a></p>
+            <p><i class="fas fa-phone"></i> Call us at: 0758 449 390</p>
+        </div>
+        <a href="https://wa.me/256751082492" class="cta-button" target="_blank">
+            <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+        </a>
+    </section>
+
+</div>
+{% endblock %}

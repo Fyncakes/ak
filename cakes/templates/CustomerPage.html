@@ -9,120 +9,135 @@
 
 {% block content %}
 <!--
-THE FIX: We pass data from the server to JavaScript using data-* attributes.
-This is a clean and safe way to avoid syntax errors.
+THE FIX: We pass data from the server to JavaScript using data-* attributes
+on this main container. This is a clean and safe way to avoid syntax errors.
 -->
 <div class="customer-container" 
      id="customer-container-data"
      data-current-page="{{ current_page }}"
      data-total-pages="{{ total_pages }}"
-     data-login-url="{{ url_for('routes.login', next=request.path) }}"
-     data-add-to-cart-url="{{ url_for('routes.add_to_cart_db') }}">
+     data-selected-category="{{ selected_category or '' }}">
 
-    <h1 class="page-title">Our Cakes</h1>
+    <h1 class="page-title">
+        <!-- The page title will now dynamically change based on the selected category -->
+        {% if selected_category %}{{ selected_category }}{% else %}Our Cakes{% endif %}
+    </h1>
 
-    <!-- The container where cakes are displayed -->
-    <div class="cake-container" id="cake-container">
-        <!-- Initially populated with the first page of cakes from the server -->
-        {% for cake in cakes %}
-        <div class="cake-card">
-            <div class="cake-card-image">
-                <img src="{{ cake.image }}" alt="{{ cake.name }}">
+    <div class="shop-layout">
+        <!-- CATEGORY SIDEBAR -->
+        <aside class="category-sidebar">
+            <h3>Categories</h3>
+            <ul class="category-list">
+                <li class="{% if not selected_category %}active{% endif %}">
+                    <a href="{{ url_for('routes.customer') }}">All Cakes</a>
+                </li>
+                {% for category in categories %}
+                <li class="{% if category == selected_category %}active{% endif %}">
+                    <a href="{{ url_for('routes.customer', category=category) }}">{{ category }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <!-- PRODUCT GRID -->
+        <main>
+            <div class="product-grid" id="product-grid">
+                {% if cakes %}
+                    {% for cake in cakes %}
+                    <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="cake-card-link">
+                        <div class="cake-card">
+                            <div class="cake-card-image">
+                                <img src="{{ cake.image }}" alt="{{ cake.name }}">
+                            </div>
+                            <div class="cake-card-content">
+                                <h3>{{ cake.name }}</h3>
+                                <p>{{ cake.description }}</p>
+                                <p class="price">${{ "%.2f"|format(cake.price) }}</p>
+                                <div class="order-button-wrapper">
+                                    <span class="order-button">
+                                        <i class="fas fa-search-plus"></i> View Details
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-cakes-message">
+                        <h2>No cakes found in this category.</h2>
+                        <p>Try selecting another category or view <a href="{{ url_for('routes.customer') }}">all our cakes</a>.</p>
+                    </div>
+                {% endif %}
             </div>
-            <div class="cake-card-content">
-                <h3>{{ cake.name }}</h3>
-                <p>{{ cake.description }}</p>
-                <p class="price">${{ "%.2f"|format(cake.price) }}</p>
-                <button
-                    class="order-button"
-                    data-name="{{ cake.name }}"
-                    data-image="{{ cake.image }}"
-                    data-price="{{ cake.price }}"
-                    data-description="{{ cake.description }}"
-                    onclick="addToCart(this)"
-                >
-                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                </button>
+
+            <!-- 
+                This uses a conditional 'hidden' class, which is a clean and reliable method.
+            -->
+            <div class="see-more-container {% if current_page >= total_pages %}hidden{% endif %}" id="see-more-container">
+                <button class="see-more-btn" id="see-more-btn">See More</button>
+                <div class="loader" id="loader" style="display: none;"></div>
             </div>
-        </div>
-        {% endfor %}
+        </main>
     </div>
-
-    <!-- Message shown if no cakes have been uploaded yet -->
-    {% if not cakes %}
-    <div class="no-cakes-message">
-        <h2>Our bakers are busy!</h2>
-        <p>There are currently no cakes available. Please check back soon!</p>
-    </div>
-    {% endif %}
-
-    <!-- The "Load More" button container. The display is now controlled by a class. -->
-    <div class="load-more-container {% if current_page >= total_pages %}hidden{% endif %}" id="load-more-container">
-        <button class="load-more-btn" id="load-more-btn">Load More Cakes</button>
-        <div class="loader" id="loader" style="display: none;"></div>
-    </div>
-
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- This script block contains the page's functional logic -->
 <script>
-    // THE FIX: We safely read the data from our container's `dataset` property.
+    // THE FIX: We now safely read the data from our container's `dataset` property.
     const dataContainer = document.getElementById('customer-container-data');
     let currentPage = parseInt(dataContainer.dataset.currentPage);
     const totalPages = parseInt(dataContainer.dataset.totalPages);
-    const loginUrl = dataContainer.dataset.loginUrl;
-    const addToCartUrl = dataContainer.dataset.addToCartUrl;
+    const selectedCategory = dataContainer.dataset.selectedCategory;
 
-    const loadMoreBtn = document.getElementById('load-more-btn');
+    const seeMoreBtn = document.getElementById('see-more-btn');
     const loader = document.getElementById('loader');
-    const container = document.getElementById('cake-container');
-    const loadMoreContainer = document.getElementById('load-more-container');
+    const container = document.getElementById('product-grid');
+    const seeMoreContainer = document.getElementById('see-more-container');
 
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', async () => {
+    if (seeMoreBtn) {
+        seeMoreBtn.addEventListener('click', async () => {
             currentPage++;
             
             loader.style.display = 'block';
-            loadMoreBtn.style.display = 'none';
+            seeMoreBtn.style.display = 'none';
 
             try {
-                // Fetch the next page of cakes from our API
-                const response = await fetch(`/api/get_cakes?page=${currentPage}`);
+                let apiUrl = `/api/get_cakes?page=${currentPage}`;
+                if (selectedCategory) {
+                    apiUrl += `&category=${encodeURIComponent(selectedCategory)}`;
+                }
+
+                const response = await fetch(apiUrl);
                 const newCakes = await response.json();
 
                 if (newCakes.length > 0) {
                     newCakes.forEach(cake => {
                         const cakeCardHTML = `
-                        <div class="cake-card">
-                            <div class="cake-card-image">
-                                <img src="${cake.image}" alt="${cake.name}">
+                        <a href="${cake.url}" class="cake-card-link">
+                            <div class="cake-card">
+                                <div class="cake-card-image">
+                                    <img src="${cake.image}" alt="${cake.name}">
+                                </div>
+                                <div class="cake-card-content">
+                                    <h3>${cake.name}</h3>
+                                    <p>${cake.description}</p>
+                                    <p class="price">$${parseFloat(cake.price).toFixed(2)}</p>
+                                    <div class="order-button-wrapper">
+                                        <span class="order-button">
+                                            <i class="fas fa-search-plus"></i> View Details
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="cake-card-content">
-                                <h3>${cake.name}</h3>
-                                <p>${cake.description}</p>
-                                <p class="price">$${parseFloat(cake.price).toFixed(2)}</p>
-                                <button
-                                    class="order-button"
-                                    data-name="${cake.name}"
-                                    data-image="${cake.image}"
-                                    data-price="${cake.price}"
-                                    data-description="${cake.description}"
-                                    onclick="addToCart(this)"
-                                >
-                                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                                </button>
-                            </div>
-                        </div>
+                        </a>
                         `;
                         container.insertAdjacentHTML('beforeend', cakeCardHTML);
                     });
                 }
                 
-                // Hide the button if we've reached the last page
                 if (currentPage >= totalPages) {
-                    loadMoreContainer.style.display = 'none';
+                    seeMoreContainer.style.display = 'none';
                 }
 
             } catch (error) {
@@ -130,43 +145,10 @@ This is a clean and safe way to avoid syntax errors.
             } finally {
                 loader.style.display = 'none';
                 if (currentPage < totalPages) {
-                    loadMoreBtn.style.display = 'block';
+                    seeMoreBtn.style.display = 'block';
                 }
             }
         });
-    }
-
-    // THE FIX: Use the JavaScript variables that hold the URLs.
-    async function addToCart(button) {
-        // We use the global variable from base.html to check login status
-        if (!window.isUserAuthenticated) {
-            alert("Please log in or create an account to add items to your cart.");
-            window.location.href = loginUrl; // Use the variable
-            return;
-        }
-
-        const product = {
-            name: button.dataset.name,
-            price: parseFloat(button.dataset.price),
-            description: button.dataset.description,
-            imageUrl: button.dataset.image
-        };
-
-        const response = await fetch(addToCartUrl, { // Use the variable
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(product)
-        });
-        
-        if (response.ok) {
-            alert(`'${product.name}' has been added to your cart!`);
-            const cartCounter = document.getElementById('cart-count');
-            // Safely parse the current count, defaulting to 0 if it's not a number
-            const currentCount = parseInt(cartCounter.innerText) || 0;
-            updateCartCounter(currentCount + 1);
-        } else {
-            alert("Could not add item to cart. Please try again.");
-        }
     }
 </script>
 {% endblock %}

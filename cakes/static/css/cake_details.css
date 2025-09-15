@@ -1,24 +1,37 @@
+/*
+    ========================================
+    Product Detail Page Stylesheet (cake_details.css)
+    ========================================
+    This file styles the individual product page, including the main
+    product layout and the "Related Products" section.
+*/
+
+/* --- Main Container --- */
 .product-container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
 }
 
+/* --- Main Product Layout (Two-column grid) --- */
 .product-main-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
     align-items: flex-start;
+    margin-bottom: 4rem;
 }
 
-/* --- Product Gallery --- */
+/* --- Product Image Gallery --- */
 .product-gallery .main-product-image {
     width: 100%;
+    aspect-ratio: 1 / 1; /* Ensures the image container is a perfect square */
+    object-fit: cover; /* Makes the image fill the container without distortion */
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
 }
 
-/* --- Product Info --- */
+/* --- Product Information --- */
 .product-info h1 {
     font-size: 2.5rem;
     margin-top: 0;
@@ -33,6 +46,7 @@
 .product-info .description {
     font-size: 1.1rem;
     line-height: 1.8;
+    color: #555;
     margin-bottom: 2rem;
 }
 .add-to-cart-btn {
@@ -52,18 +66,19 @@
 .add-to-cart-btn:hover {
     background-color: #B71C1C;
     transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* --- Related Products Section --- */
+/* --- "Related Products" Section --- */
 .related-products-section {
     margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border-color);
 }
 .section-title {
     text-align: center;
-    font-size: 2rem;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 1rem;
+    font-size: 2.2rem;
+    margin-bottom: 2.5rem;
 }
 .related-products-grid {
     display: grid;
@@ -97,13 +112,20 @@
     font-size: 1.2rem;
     margin-bottom: 0.5rem;
 }
+.related-product-card p {
+    font-weight: 500;
+    color: var(--primary-color);
+}
 
-/* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
+/* --- Responsive Adjustments for Mobile & Tablet --- */
+@media (max-width: 992px) {
     .product-main-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Stack the main columns vertically */
     }
+}
+@media (max-width: 768px) {
     .product-info h1 {
         font-size: 2rem;
     }
 }
+

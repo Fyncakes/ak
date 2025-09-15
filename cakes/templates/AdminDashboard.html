@@ -1,52 +1,85 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Admin Dashboard - FynCakes{% endblock %}
 
 {% block head_extra %}
+    <!-- Link to the dedicated stylesheet for the admin section -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
 {% endblock %}
 
 {% block content %}
-<div class="header">
-    <h1>Admin Dashboard</h1>
-    <a href="{{ url_for('routes.manage_cakes') }}" class="admin-action-btn">Uploaded Cakes</a>
-</div>
-
-<div class="stats">
-    <div class="card">
-        <h2>Business Performance</h2>
-        <p>Total Sales: ${{ total_sales }}</p>
-        <p>Total Orders: {{ total_orders }}</p>
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <div class="admin-actions">
+            <a href="{{ url_for('routes.upload') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Upload Cake
+            </a>
+            <a href="{{ url_for('routes.manage_cakes') }}" class="btn btn-secondary">
+                <i class="fas fa-tasks"></i> Manage Cakes
+            </a>
+        </div>
     </div>
-    <div class="card">
-         <h2>Customer Base</h2>
-        <p>Total Customers: {{ total_customers }}</p>
-    </div>
-</div>
 
-<div class="card">
-    <h2>Customer Log Details</h2>
-    {% if customers %}
-    <table>
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Last Login</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for customer in customers %}
-            <tr>
-                <td>{{ customer.email }}</td>
-                <td>{{ customer.get('role', 'customer') }}</td>
-                <td>{{ customer.last_login }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No customer log data available.</p>
-    {% endif %}
+    <!-- Main Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Sales</h3>
+            <span class="stat-number">${{ "%.2f"|format(total_sales) }}</span>
+            <span class="stat-description">From all completed orders</span>
+        </div>
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <span class="stat-number">{{ total_orders }}</span>
+            <span class="stat-description">Across all customers</span>
+        </div>
+        <div class="stat-card">
+            <h3>Total Customers</h3>
+            <span class="stat-number">{{ total_customers }}</span>
+            <span class="stat-description">Registered on the platform</span>
+        </div>
+    </div>
+
+    <!-- 
+        THIS IS THE UPGRADED CUSTOMER DETAILS CARD.
+        It now includes a "Status" column to show the new badge.
+    -->
+    <div class="content-card">
+        <h2>Recent Customer Activity</h2>
+        {% if customers %}
+        <div class="table-responsive-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Registered On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td data-label="Name">{{ customer.first_name }} {{ customer.last_name }}</td>
+                        <td data-label="Email">{{ customer.email }}</td>
+                        <td data-label="Status">
+                            <!-- This logic checks the 'is_student' field from our new query -->
+                            {% if customer.is_student %}
+                                <span class="badge student-badge">Student</span>
+                            {% else %}
+                                <span class="badge customer-badge">Customer</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Registered On">{{ customer._id.generation_time.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No customer log data available.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
+

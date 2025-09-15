@@ -1,4 +1,13 @@
-/* --- Main Page Container & Title --- */
+/*
+    ========================================
+    Customer Page Stylesheet (customer.css)
+    ========================================
+    This file styles the main filterable product gallery, including the
+    category sidebar, the product grid, and the "See More" button.
+*/
+
+
+/* --- Main Container & Layout --- */
 .customer-container {
     max-width: var(--max-width);
     margin: 0 auto;
@@ -11,14 +20,71 @@
     margin-bottom: 2rem;
 }
 
-/* --- Responsive Cake Grid Layout --- */
-.cake-container { 
+.shop-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr; /* Sidebar and main content area */
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+
+/* --- Category Sidebar --- */
+.category-sidebar {
+    background-color: var(--light-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    position: sticky; /* Makes the sidebar stay in place on scroll */
+    top: 100px; /* Offset from the fixed navbar */
+}
+
+.category-sidebar h3 {
+    margin-top: 0;
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+}
+
+.category-list li a {
+    display: block;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: var(--dark-color);
+    border-radius: var(--border-radius);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-weight: 500;
+}
+
+.category-list li a:hover {
+    background-color: var(--grey-color);
+}
+
+.category-list li.active a {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+
+
+/* --- Product Grid --- */
+.product-grid { 
     display: grid; 
-    grid-template-columns: repeat(4, 1fr); 
+    grid-template-columns: repeat(3, 1fr); /* 3 columns in the main content area */
     gap: 1.5rem; 
 }
 
+
 /* --- Cake Card Styling --- */
+.cake-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex; /* Ensures the card within the link takes full height */
+}
 .cake-card {
     background-color: var(--light-color);
     border-radius: var(--border-radius);
@@ -27,26 +93,28 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    height: 100%; /* Ensures cards in a row have the same height */
 }
-.cake-card:hover {
+.cake-card-link:hover .cake-card {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.12);
 }
 
 .cake-card-image {
     width: 100%;
-    aspect-ratio: 1 / 1; /* Creates a perfect square for the image area */
+    aspect-ratio: 1 / 1;
 }
 .cake-card-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures the image covers the area without distortion */
+    object-fit: cover;
 }
 
 .cake-card-content {
     padding: 1.5rem;
     text-align: center;
-    flex-grow: 1; /* Allows this content area to fill the available card height */
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
@@ -66,6 +134,9 @@
     margin-bottom: 1.5rem;
 }
 
+.order-button-wrapper {
+    margin-top: auto; /* Pushes the button to the bottom */
+}
 .order-button {
     background-color: var(--primary-color);
     color: var(--light-color);
@@ -74,28 +145,22 @@
     font-size: 1rem;
     font-weight: 500;
     border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: background-color 0.3s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    /* This is the key fix that pushes the button to the bottom, ensuring all buttons in a row are aligned. */
-    margin-top: auto;
-}
-.order-button:hover {
-    background-color: #B71C1C;
 }
 
-/* --- "Load More" Button & Loader Styles --- */
-.load-more-container {
-    text-align: center;
+
+/* --- "See More" Button & Loader Styles --- */
+.see-more-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 2rem 0;
 }
-.load-more-container.hidden {
-    display: none;
-}
-.load-more-btn {
+
+.see-more-btn {
     background-color: var(--primary-color);
     color: var(--light-color);
     border: none;
@@ -106,9 +171,11 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-.load-more-btn:hover {
+
+.see-more-btn:hover {
     background-color: #B71C1C;
 }
+
 .loader {
     border: 5px solid var(--grey-color);
     border-top: 5px solid var(--primary-color);
@@ -116,30 +183,39 @@
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
-    margin: auto;
 }
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
+
 /* --- Message for When No Cakes Are Available --- */
 .no-cakes-message {
     grid-column: 1 / -1; /* Makes this message span all columns of the grid */
     text-align: center;
-    padding: 4rem 1rem;
-    background-color: var(--light-color);
-    border-radius: var(--border-radius);
+    padding: 3rem;
 }
 
-/* --- Responsive Media Queries for Mobile & Tablet --- */
-@media (max-width: 1200px) { 
-    .cake-container { grid-template-columns: repeat(3, 1fr); } 
+
+/* --- Responsive Adjustments for Mobile & Tablet --- */
+@media (max-width: 992px) {
+    .shop-layout {
+        grid-template-columns: 1fr; /* Stack sidebar on top of products */
+    }
+    .category-sidebar {
+        position: static; /* Remove sticky positioning on smaller screens */
+        margin-bottom: 2rem;
+    }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
-@media (max-width: 900px) { 
-    .cake-container { grid-template-columns: repeat(2, 1fr); } 
-}
-@media (max-width: 600px) { 
-    .cake-container { grid-template-columns: 1fr; } 
+
+@media (max-width: 576px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
 }
 

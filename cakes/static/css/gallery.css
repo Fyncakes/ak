@@ -1,0 +1,156 @@
+.gallery-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.gallery-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.gallery-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.gallery-grid {
+    display: grid;
+    /* This rule makes the grid automatically responsive */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    aspect-ratio: 1 / 1.2; /* Taller images for a gallery feel */
+    color: var(--light-color);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+.gallery-item-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    z-index: 2;
+    transform: translateY(30%);
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.gallery-item:hover .gallery-item-overlay {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.gallery-item-overlay h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+/* Consultation CTA Section */
+.consultation-cta {
+    text-align: center;
+    background-color: var(--light-color);
+    padding: 3rem 1.5rem;
+    margin-top: 4rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.consultation-cta h2 {
+    font-size: 2rem;
+    margin-top: 0;
+}
+
+.contact-info {
+    margin: 1.5rem 0;
+    font-size: 1.1rem;
+}
+.contact-info p {
+    margin: 0.5rem 0;
+}
+.contact-info a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.cta-button {
+    background-color: #25D366; /* WhatsApp Green */
+    color: var(--light-color);
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.cta-button:hover {
+    background-color: #128C7E;
+    transform: translateY(-3px);
+}
+
+/*
+========================================
+    NEW RESPONSIVE ADJUSTMENTS
+========================================
+*/
+
+/* --- For Tablets and Smaller --- */
+@media (max-width: 768px) {
+    .gallery-header h1 {
+        font-size: 2.5rem; /* Make the main title smaller */
+    }
+
+    .consultation-cta h2 {
+        font-size: 1.8rem; /* Make the CTA title smaller */
+    }
+}
+
+/* --- For Mobile Phones --- */
+@media (max-width: 576px) {
+    .gallery-grid {
+        /* On small phones, reduce the minimum size to allow 1 or 2 columns */
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    .gallery-header h1 {
+        font-size: 2rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .consultation-cta {
+        padding: 2rem 1rem;
+    }
+}
+
