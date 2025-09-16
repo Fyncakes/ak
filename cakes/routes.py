@@ -21,11 +21,13 @@ from flask_login import login_user, login_required, current_user, logout_user
 from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from itsdangerous import URLSafeTimedSerializer # Added for password reset
 
 # --- Local Application Imports ---
 from . import db, mail
 from .models import User
-from .forms import SignupForm, LoginForm
+# THIS IS THE CORRECTED LINE
+from .forms import SignupForm, LoginForm, RequestResetForm, ResetPasswordForm
 
 
 # --- Blueprint Configuration ---
@@ -103,10 +105,7 @@ def customer():
         query['category'] = selected_category
     
     if search_query:
-        query['$or'] = [
-            {'name': {'$regex': search_query, '$options': 'i'}},
-            {'description': {'$regex': search_query, '$options': 'i'}}
-        ]
+        query['name'] = {'$regex': f'^{search_query}', '$options': 'i'}
 
     total_cakes = db.cakes.count_documents(query)
     initial_cakes = list(db.cakes.find(query).limit(CAKES_PER_PAGE))
@@ -309,6 +308,66 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('routes.login'))
 
+def get_reset_token(user_email, expires_sec=1800):
+    """Generates a secure, timed token."""
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return s.dumps(user_email, salt='password-reset-salt')
+
+def verify_reset_token(token, expires_sec=1800):
+    """Verifies the reset token and returns the user's email."""
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        user_email = s.loads(token, salt='password-reset-salt', max_age=expires_sec)
+    except Exception:
+        return None
+    return user_email
+
+@routes_bp.route('/reset_password', methods=['GET', 'POST'])
+def request_reset():
+    """Handles the request for a password reset link."""
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.home'))
+    
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user_data = db.users.find_one({'email': form.email.data})
+        if user_data:
+            token = get_reset_token(user_data['email'])
+            msg = Message('Password Reset Request for FynCakes', 
+                          recipients=[user_data['email']])
+            msg.body = f'''To reset your password, visit the following link:
+{url_for('routes.reset_password', token=token, _external=True)}
+
+If you did not make this request, simply ignore this email and no changes will be made.
+This link will expire in 30 minutes.
+'''
+            mail.send(msg)
+        
+        flash('If an account with that email exists, a password reset link has been sent.', 'info')
+        return redirect(url_for('routes.login'))
+        
+    return render_template('request_reset.html', form=form)
+
+@routes_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    """Handles the actual password reset."""
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.home'))
+        
+    user_email = verify_reset_token(token)
+    if user_email is None:
+        flash('That is an invalid or expired token. Please try again.', 'warning')
+        return redirect(url_for('routes.request_reset'))
+        
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = generate_password_hash(form.password.data)
+        db.users.update_one({'email': user_email}, {'$set': {'password': hashed_password}})
+        flash('Your password has been updated! You are now able to log in.', 'success')
+        return redirect(url_for('routes.login'))
+        
+    return render_template('reset_password.html', form=form)
+
 
 # =============================================================================
 # ADMIN PANEL ROUTES
@@ -453,10 +512,7 @@ def get_cakes_api():
         query['category'] = category
         
     if search_query:
-        query['$or'] = [
-            {'name': {'$regex': search_query, '$options': 'i'}},
-            {'description': {'$regex': search_query, '$options': 'i'}}
-        ]
+        query['name'] = {'$regex': f'^{search_query}', '$options': 'i'}
 
     cakes_cursor = db.cakes.find(query).skip(skip).limit(CAKES_PER_PAGE)
     cakes_list = []
@@ -495,7 +551,7 @@ def add_to_cart_db():
 @login_required
 def remove_from_cart_db(item_id):
     """API endpoint to remove an item from the user's cart."""
-    db.carts.delete_one({'_id': ObjectId(item_id), 'user_email': current_user.email})
+    db.cakes.delete_one({'_id': ObjectId(item_id), 'user_email': current_user.email})
     return jsonify({'success': True})
 
 @routes_bp.route('/cart/clear', methods=['POST'])
