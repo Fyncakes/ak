@@ -134,3 +134,21 @@ body.auth-page {
     font-weight: 600;
 }
 
+
+/* ========================================
+    NEW: MOBILE RESPONSIVE STYLES
+   ======================================== */
+@media (max-width: 576px) {
+    body.auth-page {
+        padding: 1rem; /* Less padding on the body for small screens */
+    }
+
+    .auth-card {
+        padding: 1.5rem; /* Reduce padding inside the card */
+    }
+
+    .auth-card h2 {
+        font-size: 1.75rem; /* Make the title slightly smaller */
+        margin-bottom: 1.5rem;
+    }
+}
