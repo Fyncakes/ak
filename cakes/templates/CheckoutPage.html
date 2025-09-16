@@ -69,14 +69,14 @@
             checkoutCart.forEach(product => {
                 const item = document.createElement('div');
                 item.className = 'summary-item';
-                item.innerHTML = `<span>${product.name}</span><strong>$${product.price.toFixed(2)}</strong>`;
+                item.innerHTML = `<span>${product.name}</span><strong>$Shs{product.price.toFixed(2)}</strong>`;
                 summaryList.appendChild(item);
             });
         } else {
              summaryList.innerHTML = "<p>Your cart is empty.</p>";
         }
         
-        document.getElementById("cart-total").innerText = `$${totalAmount.toFixed(2)}`;
+        document.getElementById("cart-total").innerText = `$Shs{totalAmount.toFixed(2)}`;
     }
 
     async function placeOrder() {

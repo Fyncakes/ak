@@ -27,7 +27,7 @@
 
             <div class="form-group">
                 <label for="cake-price">Price (UGX)</label>
-                <input type="number" id="cake-price" name="cake_price" step="100" value="{{ cake.price }}" class="form-control" required>
+                <input type="number" id="cake-price" name="cake_price" value="{{ cake.price }}" class="form-control" step="100" min="0" placeholder="e.g., 50000" required>
             </div>
             
             <div class="form-group">
