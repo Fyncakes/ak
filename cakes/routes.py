@@ -627,7 +627,7 @@ def register_class():
         'student_name': student_name,
         'student_phone': student_phone,
         'registration_date': datetime.now(),
-        'course_fee': 300,000,
+        'course_fee': 300000,
         'amount_paid': 0,
         'payment_status': 'pending_deposit',
         'has_access': False
