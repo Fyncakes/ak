@@ -18,21 +18,21 @@
         {% if selected_category %}{{ selected_category }}{% elif search_query %}Results for "{{ search_query }}"{% else %}Our Cakes{% endif %}
     </h1>
 
-    <div class="shop-layout">
-        <aside class="category-sidebar">
-            <h3>Categories</h3>
-            <ul class="category-list">
-                <li class="{% if not selected_category %}active{% endif %}">
-                    <a href="{{ url_for('routes.customer') }}">All Cakes</a>
-                </li>
-                {% for category in categories %}
-                <li class="{% if category == selected_category %}active{% endif %}">
-                    <a href="{{ url_for('routes.customer', category=category) }}">{{ category }}</a>
-                </li>
-                {% endfor %}
-            </ul>
-        </aside>
+    <div class="category-dropdown-container">
+        <label for="category-select">Select a Category:</label>
+        <select id="category-select" class="category-dropdown" onchange="window.location.href=this.value;">
+            <option value="{{ url_for('routes.customer') }}" {% if not selected_category %}selected{% endif %}>
+                All Cakes
+            </option>
+            {% for category in categories %}
+            <option value="{{ url_for('routes.customer', category=category) }}" {% if category == selected_category %}selected{% endif %}>
+                {{ category }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
 
+    <div class="shop-layout">
         <main>
             <form action="{{ url_for('routes.customer') }}" method="GET" class="search-bar-container">
                 <input type="search" name="q" class="search-input" placeholder="Search for cakes..." value="{{ search_query or '' }}">
@@ -85,7 +85,7 @@
     let currentPage = parseInt(dataContainer.dataset.currentPage);
     const totalPages = parseInt(dataContainer.dataset.totalPages);
     const selectedCategory = dataContainer.dataset.selectedCategory;
-    const searchQuery = dataContainer.dataset.searchQuery; // Get the search query
+    const searchQuery = dataContainer.dataset.searchQuery;
 
     const seeMoreBtn = document.getElementById('see-more-btn');
     const loader = document.getElementById('loader');
@@ -100,7 +100,6 @@
             seeMoreBtn.style.display = 'none';
 
             try {
-                // UPDATED: API URL now includes category and search query
                 let apiUrl = `/api/get_cakes?page=${currentPage}`;
                 if (selectedCategory) {
                     apiUrl += `&category=${encodeURIComponent(selectedCategory)}`;
