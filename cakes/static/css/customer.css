@@ -154,33 +154,46 @@
 /* --- NEW: Search Bar Styles --- */
 .search-bar-container {
     display: flex;
-    margin-bottom: 2rem;
+    align-items: center;
+    max-width: 500px; /* This keeps the search bar "short" */
+    margin: 0 auto 2rem auto; /* This centers it on the page */
+    
+    background-color: #fff;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    overflow: hidden; /* Ensures the button fits neatly inside */
+    border-radius: 50px; /* Creates the rounded "pill" shape */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); /* Adds a subtle shadow */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+/* This is the cool part: the border turns red when you click inside */
+.search-bar-container:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .search-input {
-    flex-grow: 1; /* Allows the input to take up all available space */
+    flex-grow: 1;
     border: none;
-    padding: 0.75rem 1rem;
+    outline: none;
+    padding: 0.75rem 1.25rem;
     font-size: 1rem;
-    outline: none; /* Removes the default browser outline on focus */
+    background-color: transparent;
 }
 
 .search-button {
-    background-color: var(--primary-color);
+    background-color: var(--primary-color); /* Keeps the red color */
     color: var(--light-color);
     border: none;
     padding: 0 1.25rem;
     cursor: pointer;
+    align-self: stretch; /* Makes the button fill the container's height */
     transition: background-color 0.2s ease;
 }
 
 .search-button:hover {
-    background-color: #B71C1C; /* A darker shade of your primary color */
+    background-color: #B71C1C; /* A darker red for the hover effect */
 }
-
 
 /* --- "See More" Button & Loader Styles --- */
 .see-more-container {
