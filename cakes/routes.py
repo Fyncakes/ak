@@ -597,7 +597,7 @@ def place_order():
             <p>Your order #{order_id} has been received and is awaiting payment.</p>
             <h3>Order Summary</h3>
             <ul>{product_list_html}</ul>
-            <p><strong>Total Amount: ${total_amount:.2f}</strong></p>
+            <p><strong>Total Amount: Shs{total_amount:.2f}</strong></p>
             <h3>Next Steps: Payment</h3>
             <p>Please send the total amount via Mobile Money to <strong>0772 123 456</strong> using your Order ID <strong>({order_id})</strong> as the reason.</p>
         </div>
@@ -627,7 +627,7 @@ def register_class():
         'student_name': student_name,
         'student_phone': student_phone,
         'registration_date': datetime.now(),
-        'course_fee': 120.00,
+        'course_fee': 300,000,
         'amount_paid': 0,
         'payment_status': 'pending_deposit',
         'has_access': False
@@ -639,7 +639,7 @@ def register_class():
         msg.html = f"""
         <div style="font-family: sans-serif;">
             <h1>Your Spot is Reserved, {student_name}!</h1>
-            <p>To complete your registration, please send a 50% deposit of <strong>$60.00</strong> via Mobile Money to <strong>0772 123 456</strong>.</p>
+            <p>To complete your registration, please send a 50% deposit of <strong>Shs150,000</strong> via Mobile Money to <strong>0758 449 390</strong>.</p>
         </div>
         """
         mail.send(msg)
