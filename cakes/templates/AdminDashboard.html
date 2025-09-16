@@ -3,7 +3,6 @@
 {% block title %}Admin Dashboard - FynCakes{% endblock %}
 
 {% block head_extra %}
-    <!-- Link to the dedicated stylesheet for the admin section -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
 {% endblock %}
 
@@ -21,29 +20,30 @@
         </div>
     </div>
 
-    <!-- Main Statistics Grid -->
     <div class="stats-grid">
         <div class="stat-card">
             <h3>Total Sales</h3>
             <span class="stat-number">${{ "%.2f"|format(total_sales) }}</span>
             <span class="stat-description">From all completed orders</span>
         </div>
+
         <div class="stat-card">
             <h3>Total Orders</h3>
-            <span class="stat-number">{{ total_orders }}</span>
+            <a href="{{ url_for('routes.manage_orders') }}">
+                <span class="stat-number">{{ total_orders }}</span>
+            </a>
             <span class="stat-description">Across all customers</span>
         </div>
+
         <div class="stat-card">
             <h3>Total Customers</h3>
-            <span class="stat-number">{{ total_customers }}</span>
+            <a href="{{ url_for('routes.manage_users') }}">
+                <span class="stat-number">{{ total_customers }}</span>
+            </a>
             <span class="stat-description">Registered on the platform</span>
         </div>
     </div>
 
-    <!-- 
-        THIS IS THE UPGRADED CUSTOMER DETAILS CARD.
-        It now includes a "Status" column to show the new badge.
-    -->
     <div class="content-card">
         <h2>Recent Customer Activity</h2>
         {% if customers %}
@@ -63,7 +63,6 @@
                         <td data-label="Name">{{ customer.first_name }} {{ customer.last_name }}</td>
                         <td data-label="Email">{{ customer.email }}</td>
                         <td data-label="Status">
-                            <!-- This logic checks the 'is_student' field from our new query -->
                             {% if customer.is_student %}
                                 <span class="badge student-badge">Student</span>
                             {% else %}
@@ -82,4 +81,3 @@
     </div>
 </div>
 {% endblock %}
-

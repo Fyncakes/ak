@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Manage Orders</h1>
+        <div class="admin-actions">
+            <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary">
+                 Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <h2>All Customer Orders</h2>
+        
+        {% if orders %}
+        <div class="table-responsive-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Email</th>
+                        <th>Order Date</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td data-label="Order ID">{{ order.order_id }}</td>
+                        <td data-label="Customer Email">{{ order.customer_email }}</td>
+                        <td data-label="Order Date">{{ order.order_placed_at.strftime('%Y-%m-%d') }}</td>
+                        <td data-label="Total Price">${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td data-label="Status">
+                            <span class="badge customer-badge">{{ order.order_status }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No orders have been placed yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

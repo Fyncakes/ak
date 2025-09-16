@@ -1,3 +1,9 @@
+/*
+    ========================================
+    Manage Cakes Stylesheet
+    ========================================
+*/
+
 /* --- Main Admin Container & Header --- */
 .admin-container {
     max-width: 1200px;
@@ -57,7 +63,7 @@
 }
 
 .table-responsive-wrapper {
-    overflow-x: auto; /* Allows horizontal scrolling if absolutely needed on small desktops */
+    overflow-x: auto;
 }
 
 /* --- Products Table Styling --- */
@@ -106,17 +112,15 @@
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
+    text-decoration: none; /* Added for consistency */
+    font-size: 0.9rem; /* Added for consistency */
 }
 .btn-edit { background-color: #0277BD; } /* Blue for edit */
 .btn-delete { background-color: var(--primary-color); } /* Red for delete */
 
-
-/*
-========================================
-    RESPONSIVE DESIGN FOR MOBILE
-========================================
-*/
-
+/* ========================================
+    IMPROVED RESPONSIVE STYLES FOR MOBILE
+   ======================================== */
 @media (max-width: 768px) {
     /* Hide the table headers on mobile */
     .products-table thead {
@@ -136,27 +140,33 @@
         overflow: hidden;
     }
 
+    /* KEY CHANGE: From Flexbox to Block Layout */
     .products-table td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-align: right;
-        padding: 0.75rem 1rem;
+        display: block; /* Stacks label and value */
+        text-align: left; /* Aligns content to the left */
+        padding: 0.75rem 1rem 1rem;
         border-bottom: 1px solid var(--border-color);
     }
+    
     .products-table td:last-child {
         border-bottom: none;
     }
 
-    /* Use the 'data-label' from the HTML to create pseudo-headers */
+    /* KEY CHANGE: Style the Label as a Sub-heading */
     .products-table td::before {
         content: attr(data-label);
+        display: block;
         font-weight: 600;
-        text-align: left;
-        margin-right: 1rem;
+        font-size: 0.8rem;
+        color: #555;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem; /* Space between label and value */
     }
 
-    .products-table td.actions-cell {
-        justify-content: flex-end;
+    /* Special handling for the actions cell to keep buttons side-by-side */
+    .products-table .actions-cell {
+        /* This applies to the content *inside* the td, below the "Actions" label */
+        display: flex;
+        gap: 0.75rem;
     }
 }

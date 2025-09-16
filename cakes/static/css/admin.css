@@ -97,6 +97,21 @@
     font-size: 0.9rem;
 }
 
+/* --- NEW: Styling for the clickable numbers in stat cards --- */
+.stat-card a {
+    text-decoration: none; /* Removes the default underline */
+}
+
+.stat-card a .stat-number {
+    color: var(--dark-color); /* Ensures the number has its original color */
+    transition: color 0.2s ease-in-out;
+}
+
+.stat-card a:hover .stat-number {
+    color: var(--primary-color); /* Changes number color on hover for feedback */
+    text-decoration: underline; /* Adds an underline on hover */
+}
+
 
 /* --- Main Content Card (for tables, etc.) --- */
 .content-card {
@@ -133,7 +148,7 @@
 }
 
 
-/* --- NEW BADGE STYLES for Customer/Student Status --- */
+/* --- Badge Styles for Customer/Student Status --- */
 .badge {
     padding: 0.25em 0.6em;
     font-size: 0.75rem;
@@ -155,44 +170,71 @@
 }
 
 
-/* --- Responsive Adjustments for Mobile --- */
+/* ========================================
+    IMPROVED RESPONSIVE STYLES FOR MOBILE
+    ========================================
+*/
 @media (max-width: 768px) {
-    /* Hide table headers on mobile */
+    /* Give the main content card some space from the header on mobile */
+    .content-card {
+        margin-top: 1.5rem;
+    }
+    
+    /* Hide the original table headers */
     .admin-table thead {
         display: none;
     }
 
-    /* Transform table rows into a card-like display */
-    .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+    /* Make table elements stack vertically */
+    .admin-table, 
+    .admin-table tbody, 
+    .admin-table tr, 
+    .admin-table td {
         display: block;
         width: 100%;
     }
 
+    /* Style each table row as a distinct "card" */
     .admin-table tr {
         margin-bottom: 1rem;
         border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
         overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
+    /*
+     * KEY CHANGE: From Flexbox to Block Layout
+     * This stacks the label and value vertically.
+    */
     .admin-table td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        text-align: right;
+        display: block; /* CHANGED: No longer flex */
+        padding: 0.75rem 1rem 1rem; /* Adjusted padding for stacked layout */
         border-bottom: 1px solid var(--border-color);
+        text-align: left; /* Ensures all content aligns left */
     }
+
     .admin-table td:last-child { 
         border-bottom: none; 
     }
 
-    /* Use the 'data-label' from the HTML to create pseudo-headers */
+    /*
+     * KEY CHANGE: Style the Label as a Sub-heading
+     * This makes the label appear on top of its value.
+    */
     .admin-table td::before {
         content: attr(data-label);
+        display: block; /* Makes the label take up its own line */
         font-weight: 600;
-        text-align: left;
-        margin-right: 1rem;
+        font-size: 0.8rem; /* Made label text slightly smaller */
+        color: #555;
+        text-transform: uppercase; /* Makes it look more like a label */
+        margin-bottom: 0.25rem; /* Adds space between label and value */
+    }
+
+    /* Ensure badges have enough space */
+    .admin-table .badge {
+        /* No longer need margin-left: auto */
+        display: inline-block; /* Ensures badge styles apply correctly */
     }
 }
-

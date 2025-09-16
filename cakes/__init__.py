@@ -9,11 +9,10 @@ from flask_mail import Mail
 
 # Initialize LoginManager
 login_manager = LoginManager()
-login_manager.login_view = 'routes.login' # Tells LoginManager where to redirect non-logged-in users
-login_manager.login_message_category = 'info' # Optional: for better flash messages
+login_manager.login_view = 'routes.login'
+login_manager.login_message_category = 'info'
 
 # Initialize MongoDB client
-# We will use environment variables for this later, but for now, this is fine.
 mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/fyncakes')
 client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
 db = client.fyncakes
@@ -26,17 +25,17 @@ def create_app():
     app = Flask(__name__)
 
     # --- Configuration ---
-    # Load secret key from environment variable for security
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
     
     # Configure upload folder and allowed extensions
-    # Note: UPLOAD_FOLDER should be an absolute path for reliability
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'FynCakes')
-    app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png', 'gif'}
-    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB upload limit
+    upload_path = os.path.join(app.root_path, 'static', 'cake_uploads')
+    app.config['UPLOAD_FOLDER'] = upload_path
+    os.makedirs(upload_path, exist_ok=True) # This creates the folder if it doesn't exist
     
-     # --- Email Server Configuration ---
-    # These will be loaded from your .env file
+    app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    
+    # --- Email Server Configuration ---
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
     app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT'))
     app.config['MAIL_USE_TLS'] = True
@@ -46,21 +45,19 @@ def create_app():
 
     # --- Initialize Extensions ---
     login_manager.init_app(app)
-    mail.init_app(app) # Initialize Flask-Mail with the app
+    mail.init_app(app)
 
     # --- User Loader for Flask-Login ---
-    from .models import User  # Import here to avoid circular import issues
+    from .models import User
     
     @login_manager.user_loader
     def load_user(user_email):
         user_data = db.users.find_one({'email': user_email})
         if user_data:
-            # We pass the entire user document to the User object now
             return User(user_data)
         return None
 
     # --- Register Blueprints ---
-    # Blueprints organize our routes into distinct modules.
     from .routes import routes_bp
     app.register_blueprint(routes_bp)
 

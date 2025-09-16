@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Manage Users</h1>
+        <div class="admin-actions">
+            <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <h2>All Registered Users</h2>
+        {% if users %}
+        <div class="table-responsive-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Registered On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td data-label="Name">{{ user.get('first_name', '') }} {{ user.get('last_name', '') }}</td>
+                        
+                        <td data-label="Email">{{ user.email }}</td>
+                        <td data-label="Status">
+                            {% if user.is_student %}
+                                <span class="badge student-badge">Student</span>
+                            {% else %}
+                                <span class="badge customer-badge">Customer</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td data-label="Registered On">{{ user._id.generation_time.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No users have registered yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

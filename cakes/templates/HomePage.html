@@ -7,12 +7,8 @@
 {% endblock %}
 
 {% block content %}
-<!--
-    HERO SECTION
--->
 <section class="hero-section">
     <div class="hero-video-container">
-        <!-- The video is hosted externally to prevent server crashes -->
         <video autoplay loop muted playsinline poster="{{ url_for('static', filename='FynCakes/gettyimages-547421170-612x612.jpg') }}">
             <source src="{{ url_for('static', filename='FynCakes/fyncakes.mp4') }}" type="video/mp4" />
             Your browser does not support the video tag.
@@ -26,13 +22,10 @@
     </div>
 </section>
 
-<!--
-    FEATURES SECTION
--->
 <section class="features-container">
     <h2 class="section-title">Our Commitment to Quality</h2>
     <div class="features-grid">
-        <!-- Online Class Card -->
+        
         <a href="{{ url_for('routes.learning_class') }}" class="feature-card-link">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -40,12 +33,15 @@
                 <p>Join our 3-week course to turn your passion into professional skill. Click to learn more!</p>
             </div>
         </a>
-        <!-- Custom Creations Card -->
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-magic"></i></div>
-            <h3>Custom Creations</h3>
-            <p>Personalize your cake with custom messages, flavors, and decorations for any occasion.</p>
-        </div>
+
+        <a href="{{ url_for('routes.tasting_events') }}" class="feature-card-link">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-magic"></i></div>
+                <h3>Cake Tasting & Design</h3>
+                <p>Your vision, our craft. Join our exclusive tasting events to discover unique flavors and design the custom cake of your dreams.</p>
+            </div>
+        </a>
+        
         <a href="{{ url_for('routes.wedding_gallery') }}" class="feature-card-link">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-ring"></i></div>
@@ -53,12 +49,10 @@
                 <p>Let us craft the perfect centerpiece for your most memorable events. Explore our wedding gallery.</p>
             </div>
         </a>
+
     </div>
 </section>
 
-<!--
-    CALL TO ACTION (CTA) SECTION
--->
 <section class="cta-section">
     <h2>Ready for a Taste of Perfection?</h2>
     <p>Browse our gallery of delicious, handcrafted cakes and find the perfect centerpiece for your next celebration.</p>
@@ -66,4 +60,3 @@
 </section>
 
 {% endblock %}
-

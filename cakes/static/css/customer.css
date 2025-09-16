@@ -151,6 +151,36 @@
     gap: 0.5rem;
 }
 
+/* --- NEW: Search Bar Styles --- */
+.search-bar-container {
+    display: flex;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden; /* Ensures the button fits neatly inside */
+}
+
+.search-input {
+    flex-grow: 1; /* Allows the input to take up all available space */
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    outline: none; /* Removes the default browser outline on focus */
+}
+
+.search-button {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    border: none;
+    padding: 0 1.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+    background-color: #B71C1C; /* A darker shade of your primary color */
+}
+
 
 /* --- "See More" Button & Loader Styles --- */
 .see-more-container {

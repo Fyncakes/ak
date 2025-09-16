@@ -3,28 +3,22 @@
 {% block title %}Our Cakes - FynCakes{% endblock %}
 
 {% block head_extra %}
-    <!-- All styling is now correctly handled by the external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
 {% endblock %}
 
 {% block content %}
-<!--
-THE FIX: We pass data from the server to JavaScript using data-* attributes
-on this main container. This is a clean and safe way to avoid syntax errors.
--->
 <div class="customer-container" 
      id="customer-container-data"
      data-current-page="{{ current_page }}"
      data-total-pages="{{ total_pages }}"
-     data-selected-category="{{ selected_category or '' }}">
+     data-selected-category="{{ selected_category or '' }}"
+     data-search-query="{{ search_query or '' }}">
 
     <h1 class="page-title">
-        <!-- The page title will now dynamically change based on the selected category -->
-        {% if selected_category %}{{ selected_category }}{% else %}Our Cakes{% endif %}
+        {% if selected_category %}{{ selected_category }}{% elif search_query %}Results for "{{ search_query }}"{% else %}Our Cakes{% endif %}
     </h1>
 
     <div class="shop-layout">
-        <!-- CATEGORY SIDEBAR -->
         <aside class="category-sidebar">
             <h3>Categories</h3>
             <ul class="category-list">
@@ -39,8 +33,14 @@ on this main container. This is a clean and safe way to avoid syntax errors.
             </ul>
         </aside>
 
-        <!-- PRODUCT GRID -->
         <main>
+            <form action="{{ url_for('routes.customer') }}" method="GET" class="search-bar-container">
+                <input type="search" name="q" class="search-input" placeholder="Search for cakes..." value="{{ search_query or '' }}">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
             <div class="product-grid" id="product-grid">
                 {% if cakes %}
                     {% for cake in cakes %}
@@ -64,15 +64,12 @@ on this main container. This is a clean and safe way to avoid syntax errors.
                     {% endfor %}
                 {% else %}
                     <div class="no-cakes-message">
-                        <h2>No cakes found in this category.</h2>
-                        <p>Try selecting another category or view <a href="{{ url_for('routes.customer') }}">all our cakes</a>.</p>
+                        <h2>No cakes found.</h2>
+                        <p>Try clearing your search or selecting another category. View <a href="{{ url_for('routes.customer') }}">all our cakes</a>.</p>
                     </div>
                 {% endif %}
             </div>
 
-            <!-- 
-                This uses a conditional 'hidden' class, which is a clean and reliable method.
-            -->
             <div class="see-more-container {% if current_page >= total_pages %}hidden{% endif %}" id="see-more-container">
                 <button class="see-more-btn" id="see-more-btn">See More</button>
                 <div class="loader" id="loader" style="display: none;"></div>
@@ -84,11 +81,11 @@ on this main container. This is a clean and safe way to avoid syntax errors.
 
 {% block scripts %}
 <script>
-    // THE FIX: We now safely read the data from our container's `dataset` property.
     const dataContainer = document.getElementById('customer-container-data');
     let currentPage = parseInt(dataContainer.dataset.currentPage);
     const totalPages = parseInt(dataContainer.dataset.totalPages);
     const selectedCategory = dataContainer.dataset.selectedCategory;
+    const searchQuery = dataContainer.dataset.searchQuery; // Get the search query
 
     const seeMoreBtn = document.getElementById('see-more-btn');
     const loader = document.getElementById('loader');
@@ -103,9 +100,13 @@ on this main container. This is a clean and safe way to avoid syntax errors.
             seeMoreBtn.style.display = 'none';
 
             try {
+                // UPDATED: API URL now includes category and search query
                 let apiUrl = `/api/get_cakes?page=${currentPage}`;
                 if (selectedCategory) {
                     apiUrl += `&category=${encodeURIComponent(selectedCategory)}`;
+                }
+                if (searchQuery) {
+                    apiUrl += `&q=${encodeURIComponent(searchQuery)}`;
                 }
 
                 const response = await fetch(apiUrl);
@@ -152,4 +153,3 @@ on this main container. This is a clean and safe way to avoid syntax errors.
     }
 </script>
 {% endblock %}
-

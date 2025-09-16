@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Cake Tasting Events - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tasting_events.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+{% endblock %}
+
+{% block content %}
+<div class="tasting-container">
+    <div class="breadcrumb-nav">
+        <a href="{{ url_for('routes.customer') }}" class="back-link">
+            Back to All Cakes
+        </a>
+    </div>
+
+    <div class="tasting-hero">
+        <h1>Experience the Flavor</h1>
+        <p class="subtitle">Join our exclusive cake tasting event to discover the perfect centerpiece for your special occasion.</p>
+    </div>
+
+    <div class="dates-section">
+        <h2>Upcoming Tasting Saturdays</h2>
+        <div class="dates-grid">
+            {% if dates %}
+                {% for date in dates %}
+                <div class="date-card">
+                    <div class="month">{{ date.strftime('%b') }}</div>
+                    <div class="day">{{ date.strftime('%d') }}</div>
+                    <div class="year">{{ date.strftime('%Y') }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>New dates for next month will be announced soon!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="expect-section">
+        <h2>What to Expect</h2>
+        <div class="expect-grid">
+            <div class="expect-item">
+                <i class="fas fa-utensils"></i>
+                <h3>Diverse Flavors</h3>
+                <p>Sample a curated selection of our most popular cake flavors and fillings.</p>
+            </div>
+            <div class="expect-item">
+                <i class="fas fa-comments"></i>
+                <h3>Expert Consultation</h3>
+                <p>Discuss your vision, theme, and preferences with our head baker.</p>
+            </div>
+            <div class="expect-item">
+                <i class="fas fa-calendar-check"></i>
+                <h3>Book Your Occasion</h3>
+                <p>Secure your date and finalize the details for your dream cake.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="gallery-section">
+        <h2>A Glimpse of Our Creations</h2>
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                {% if slide_images %}
+                    {% for image_url in slide_images %}
+                    <div class="swiper-slide">
+                        <img src="{{ image_url }}" alt="Cake tasting sample">
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+        {% if not slide_images %}
+            <p>Our gallery of tasting cakes is coming soon!</p>
+        {% endif %}
+    </div>
+
+    <div class="cta-section">
+        <h2>Ready to Find Your Perfect Cake?</h2>
+        <p>Spots are limited. Contact us today to reserve your place at our next tasting event.</p>
+        <a href="https://wa.me/256751082492?text=Hi%20FynCakes,%20I'm%20interested%20in%20reserving%20a%20spot%20for%20an%20upcoming%20Cake%20Tasting%20Saturday.%20Please%20let%20me%20know%20the%20next%20steps.%20Thank%20you!" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+            Reserve Your Spot
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    const swiper = new Swiper('.swiper', {
+        // Optional parameters
+        loop: true,
+        slidesPerView: 1,
+        spaceBetween: 20,
+        
+        // NEW: Autoplay configuration
+        autoplay: {
+          delay: 2500, // Time in ms between slides (2.5 seconds)
+          disableOnInteraction: false, // Autoplay will resume after manual interaction
+        },
+        
+        // Responsive breakpoints
+        breakpoints: {
+            768: { slidesPerView: 2, },
+            1024: { slidesPerView: 3, }
+        },
+
+        // If we need pagination
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+
+        // Navigation arrows
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+    });
+</script>
+{% endblock %}

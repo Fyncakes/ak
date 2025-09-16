@@ -12,6 +12,34 @@
     margin: 2rem auto;
     padding: 0 1rem;
 }
+/* --- Breadcrumb Navigation --- */
+.breadcrumb-nav {
+    /* Adds space below the button */
+    margin-bottom: 2rem; 
+}
+
+.back-link {
+    display: inline-flex; /* Aligns the icon and text neatly on one line */
+    align-items: center; /* Vertically centers the icon with the text */
+    gap: 0.75rem; /* Creates space between the arrow icon and the text */
+
+    background-color: #6c757d; /* A professional, neutral grey */
+    color: #fff; /* White text and icon */
+    
+    padding: 0.75rem 1.5rem; /* Sets the button's size (height and width) */
+    border-radius: 8px; /* Rounds the corners of the button */
+    border: none; /* Removes any default border */
+    
+    font-weight: 500;
+    text-decoration: none; /* Removes the default underline from the link */
+    
+    transition: background-color 0.2s ease-in-out; /* Adds a smooth hover effect */
+    cursor: pointer;
+}
+
+.back-link:hover {
+    background-color: #5a6268; /* Makes the button slightly darker on hover */
+}
 
 /* --- Main Product Layout (Two-column grid) --- */
 .product-main-layout {

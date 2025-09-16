@@ -34,7 +34,7 @@
                 <label for="cake-category">Category</label>
                 <select id="cake-category" name="cake_category" class="form-control" required>
                     <option value="" disabled {% if not cake.category %}selected{% endif %}>Select a category...</option>
-                    {% set categories = ["Ready Cake", "Mousse & Cheesecake", "Mini Cake", "Wedding Cake"] %}
+                    {% set categories = ["Ready Cake", "Orange Cake", "Vanilla Cake","Bread","Cookies","chocolate cakes", "Wedding Cake"] %}
                     {% for category in categories %}
                         <option value="{{ category }}" {% if category == cake.get('category') %}selected{% endif %}>
                             {{ category }}

@@ -31,6 +31,10 @@ from .forms import SignupForm, LoginForm
 # --- Blueprint Configuration ---
 routes_bp = Blueprint('routes', __name__)
 
+# --- Centralized Constants for easy management ---
+CAKES_PER_PAGE = 8
+CATEGORIES = ["Ready Cake", "Orange Cake", "Vanilla Cake","Bread","Cookies","chocolate cakes", "Wedding Cake"]
+
 
 # =============================================================================
 # HELPER FUNCTIONS & DECORATORS
@@ -51,6 +55,28 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def _get_users_with_student_status(limit=None):
+    """
+    Fetches users with the 'customer' role and enriches them with an 'is_student' flag.
+    - limit (int, optional): The maximum number of users to return.
+    """
+    pipeline = [
+        {'$match': {'role': 'customer'}},
+        {'$sort': {'_id': -1}}
+    ]
+    if limit:
+        pipeline.append({'$limit': limit})
+    
+    pipeline.extend([
+        {'$lookup': {
+            'from': 'students', 'localField': 'email',
+            'foreignField': 'user_email', 'as': 'student_info'
+        }},
+        {'$addFields': {'is_student': {'$gt': [{'$size': '$student_info'}, 0]}}}
+    ])
+    
+    return list(db.users.aggregate(pipeline))
+
 
 # =============================================================================
 # PAGE RENDERING ROUTES (Public & User-facing)
@@ -68,25 +94,29 @@ def about_us():
 
 @routes_bp.route('/customer')
 def customer():
-    """
-    Renders the main product listing page with category filtering and pagination.
-    """
-    PER_PAGE = 8 # We will show 8 cakes per page (two full rows)
-    categories = ["Ready Cake", "Mousse & Cheesecake", "Mini Cake", "Wedding Cake"]
+    """Renders the main product listing page with filtering, searching, and pagination."""
     selected_category = request.args.get('category')
+    search_query = request.args.get('q', '').strip()
     
     query = {}
-    if selected_category and selected_category in categories:
-        query = {'category': selected_category}
+    if selected_category and selected_category in CATEGORIES:
+        query['category'] = selected_category
+    
+    if search_query:
+        query['$or'] = [
+            {'name': {'$regex': search_query, '$options': 'i'}},
+            {'description': {'$regex': search_query, '$options': 'i'}}
+        ]
 
     total_cakes = db.cakes.count_documents(query)
-    initial_cakes = list(db.cakes.find(query).limit(PER_PAGE))
-    total_pages = math.ceil(total_cakes / PER_PAGE)
+    initial_cakes = list(db.cakes.find(query).limit(CAKES_PER_PAGE))
+    total_pages = math.ceil(total_cakes / CAKES_PER_PAGE)
     
     return render_template('CustomerPage.html', 
                            cakes=initial_cakes, 
-                           categories=categories,
+                           categories=CATEGORIES,
                            selected_category=selected_category,
+                           search_query=search_query,
                            current_page=1, 
                            total_pages=total_pages)
 
@@ -110,8 +140,45 @@ def cake_details(cake_id):
 
         return render_template('cake_details.html', cake=cake, related_cakes=related_cakes)
     except Exception:
-        flash('Sorry, that cake could not be found.', 'danger')
+        flash('Invalid cake ID provided.', 'danger')
         return redirect(url_for('routes.customer'))
+
+@routes_bp.route('/tasting-events')
+def tasting_events():
+    """Renders the cake tasting events page."""
+    today = datetime.now()
+    year, month = today.year, today.month
+    
+    month_calendar = calendar.monthcalendar(year, month)
+    saturdays = [week[calendar.SATURDAY] for week in month_calendar if week[calendar.SATURDAY] != 0]
+
+    upcoming_dates = []
+    if len(saturdays) >= 2 and saturdays[1] >= today.day:
+        upcoming_dates.append(datetime(year, month, saturdays[1]))
+    if len(saturdays) >= 4 and saturdays[3] >= today.day:
+        upcoming_dates.append(datetime(year, month, saturdays[3]))
+
+    if not upcoming_dates:
+        month += 1
+        if month > 12:
+            month, year = 1, year + 1
+        month_calendar = calendar.monthcalendar(year, month)
+        saturdays = [week[calendar.SATURDAY] for week in month_calendar if week[calendar.SATURDAY] != 0]
+        if len(saturdays) >= 2: upcoming_dates.append(datetime(year, month, saturdays[1]))
+        if len(saturdays) >= 4: upcoming_dates.append(datetime(year, month, saturdays[3]))
+    
+    slide_images = []
+    slides_path = os.path.join(current_app.static_folder, 'cake_slides')
+
+    if os.path.isdir(slides_path):
+        for filename in os.listdir(slides_path):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                image_url = url_for('static', filename=f'cake_slides/{filename}')
+                slide_images.append(image_url)
+
+    return render_template('tasting_events.html', 
+                           dates=upcoming_dates, 
+                           slide_images=slide_images)
 
 @routes_bp.route('/cart')
 @login_required
@@ -185,7 +252,7 @@ def signup():
 
 @routes_bp.route('/verify/<email>', methods=['GET', 'POST'])
 def verify_email(email):
-    """Handles the verification and moves the full user data to the permanent collection."""
+    """Handles email verification and finalizes user registration."""
     if request.method == 'POST':
         submitted_code = request.form.get('verification_code')
         user_data = db.unverified_users.find_one({'email': email})
@@ -225,7 +292,10 @@ def login():
             login_user(user_obj)
             next_page = request.args.get('next')
             flash('Login successful!', 'success')
-            return redirect(next_page or (url_for('routes.admin_dashboard') if user_obj.role == 'admin' else url_for('routes.customer')))
+            
+            if user_obj.role == 'admin':
+                return redirect(url_for('routes.admin_dashboard'))
+            return redirect(next_page or url_for('routes.customer'))
         else:
             flash('Login failed. Please check your email and password.', 'danger')
 
@@ -251,20 +321,12 @@ def admin_dashboard():
     """Renders the main admin dashboard with site statistics."""
     total_orders = db.orders.count_documents({})
     total_customers = db.users.count_documents({'role': 'customer'})
-    sales_data = list(db.orders.aggregate([{"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}]))
+    sales_data = list(db.orders.aggregate([
+        {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+    ]))
     total_sales = sales_data[0]['total_sales'] if sales_data else 0
 
-    pipeline = [
-        {'$match': {'role': 'customer'}},
-        {'$sort': {'_id': -1}},
-        {'$limit': 10},
-        {'$lookup': {
-            'from': 'students', 'localField': 'email',
-            'foreignField': 'user_email', 'as': 'student_info'
-        }},
-        {'$addFields': {'is_student': {'$gt': [{'$size': '$student_info'}, 0]}}}
-    ]
-    customers = list(db.users.aggregate(pipeline))
+    customers = _get_users_with_student_status(limit=10)
 
     return render_template('AdminDashboard.html',
                            total_sales=total_sales,
@@ -272,33 +334,48 @@ def admin_dashboard():
                            total_customers=total_customers,
                            customers=customers)
 
+@routes_bp.route('/admin/manage_orders')
+@login_required
+@admin_required
+def manage_orders():
+    """Renders a page to view all customer orders."""
+    all_orders = list(db.orders.find().sort('_id', -1))
+    return render_template('manage_orders.html', orders=all_orders)
+
+@routes_bp.route('/admin/manage_users')
+@login_required
+@admin_required
+def manage_users():
+    """Renders a page to view all registered users."""
+    all_users = _get_users_with_student_status()
+    return render_template('manage_users.html', users=all_users)
+
 @routes_bp.route('/admin/upload', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def upload():
     """Handles the uploading of new cake products by an admin."""
     if request.method == 'POST':
-        if 'cake_image' not in request.files:
-            flash('No file part', 'warning')
+        if 'cake_image' not in request.files or request.files['cake_image'].filename == '':
+            flash('No image file selected', 'warning')
             return redirect(request.url)
+            
         file = request.files['cake_image']
-        if file.filename == '':
-            flash('No selected file', 'warning')
-            return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
+            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            
             cake_data = {
                 'name': request.form['cake_name'],
                 'price': float(request.form['cake_price']),
                 'description': request.form['cake_description'],
                 'category': request.form['cake_category'],
-                'image': url_for('static', filename=f'FynCakes/{filename}')
+                'image': url_for('static', filename=f'cake_uploads/{filename}')
             }
             db.cakes.insert_one(cake_data)
             flash(f"Cake '{cake_data['name']}' uploaded successfully!", 'success')
-        return redirect(url_for('routes.manage_cakes'))
+            return redirect(url_for('routes.manage_cakes'))
+
     return render_template('uploadPage.html')
 
 @routes_bp.route('/admin/manage_cakes')
@@ -313,10 +390,10 @@ def manage_cakes():
 @login_required
 @admin_required
 def edit_cake(cake_id):
-    """Handles editing an existing cake, including category and optional image update."""
+    """Handles editing an existing cake."""
     try:
         cake = db.cakes.find_one({'_id': ObjectId(cake_id)})
-        if cake is None:
+        if not cake:
             flash('Error: Cake not found.', 'danger')
             return redirect(url_for('routes.manage_cakes'))
     except Exception:
@@ -330,20 +407,19 @@ def edit_cake(cake_id):
             'price': float(request.form.get('cake_price')),
             'category': request.form.get('cake_category')
         }
+        
         if 'cake_image' in request.files:
             file = request.files['cake_image']
-            if file.filename != '':
+            if file and file.filename != '':
                 if allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-                    file.save(file_path)
-                    updated_data['image'] = url_for('static', filename=f'FynCakes/{filename}')
-                else:
-                    flash('Invalid file type for image.', 'warning')
-                    return render_template('edit_cake.html', cake=cake)
+                    file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                    updated_data['image'] = url_for('static', filename=f'cake_uploads/{filename}')
+        
         db.cakes.update_one({'_id': ObjectId(cake_id)}, {'$set': updated_data})
         flash(f"'{updated_data['name']}' has been updated successfully!", 'success')
         return redirect(url_for('routes.manage_cakes'))
+        
     return render_template('edit_cake.html', cake=cake)
 
 @routes_bp.route('/admin/delete_cake/<cake_id>', methods=['POST'])
@@ -362,21 +438,27 @@ def delete_cake(cake_id):
 
 @routes_bp.route('/api/get_cakes')
 def get_cakes_api():
-    """API endpoint to fetch a 'page' of cakes for the see more button."""
-    PER_PAGE = 8
+    """API endpoint to fetch a 'page' of cakes, now with search."""
     try:
-        page = int(request.args.get('page', 2))
-        category = request.args.get('category')
+        page = int(request.args.get('page', 1))
     except (ValueError, TypeError):
-        page = 2
-        category = None
-    skip = (page - 1) * PER_PAGE
+        page = 1
+    
+    skip = (page - 1) * CAKES_PER_PAGE
+    category = request.args.get('category')
+    search_query = request.args.get('q', '').strip()
     
     query = {}
-    if category:
-        query = {'category': category}
+    if category and category in CATEGORIES:
+        query['category'] = category
+        
+    if search_query:
+        query['$or'] = [
+            {'name': {'$regex': search_query, '$options': 'i'}},
+            {'description': {'$regex': search_query, '$options': 'i'}}
+        ]
 
-    cakes_cursor = db.cakes.find(query).skip(skip).limit(PER_PAGE)
+    cakes_cursor = db.cakes.find(query).skip(skip).limit(CAKES_PER_PAGE)
     cakes_list = []
     for cake in cakes_cursor:
         cake['_id'] = str(cake['_id'])
@@ -426,9 +508,7 @@ def clear_cart():
 @routes_bp.route('/place_order', methods=['POST'])
 @login_required
 def place_order():
-    """
-    Handles the final order placement and sends a confirmation email.
-    """
+    """Handles the final order placement and sends a confirmation email."""
     data = request.get_json()
     products = data.get('products')
     total_amount = data.get('totalAmount')
@@ -468,16 +548,14 @@ def place_order():
         """
         mail.send(msg)
     except Exception as e:
-        print(f"CRITICAL: Failed to send order confirmation email for {order_id}: {e}")
+        current_app.logger.error(f"Failed to send order confirmation email for {order_id}: {e}")
 
     return jsonify({'success': True, 'message': f"Order #{order_id} placed! Please check your email for payment instructions."})
 
 @routes_bp.route('/register-class', methods=['POST'])
 @login_required
 def register_class():
-    """
-    Handles a student's registration for the online class.
-    """
+    """Handles a student's registration for the online class."""
     data = request.get_json()
     student_name = data.get('name')
     student_phone = data.get('phone')
@@ -510,6 +588,7 @@ def register_class():
         """
         mail.send(msg)
     except Exception as e:
-        print(f"CRITICAL: Failed to send class registration email for {current_user.email}: {e}")
+        current_app.logger.error(f"Failed to send class registration email for {current_user.email}: {e}")
 
     return jsonify({'success': True, 'message': 'Your spot is reserved! Please check your email for payment instructions.'})
+    
