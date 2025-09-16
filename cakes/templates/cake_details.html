@@ -8,7 +8,6 @@
 
 {% block content %}
 <div class="product-container">
-    <!-- THIS IS THE NEW BACK BUTTON SECTION -->
     <div class="breadcrumb-nav">
         <a href="{{ url_for('routes.customer') }}" class="back-link">
             Back to All Cakes
@@ -16,15 +15,13 @@
     </div>
 
     <div class="product-main-layout">
-        <!-- Main Image Gallery -->
         <div class="product-gallery">
             <img src="{{ cake.image }}" alt="{{ cake.name }}" class="main-product-image">
         </div>
 
-        <!-- Product Details & Actions -->
         <div class="product-info">
             <h1>{{ cake.name }}</h1>
-            <p class="price">${{ "%.2f"|format(cake.price) }}</p>
+            <p class="price">Shs {{ "{:,.0f}".format(cake.price|int) }}</p>
             <p class="description">{{ cake.description }}</p>
             
             <button
@@ -40,18 +37,16 @@
         </div>
     </div>
 
-    <!-- Related Products Section -->
     {% if related_cakes %}
     <div class="related-products-section">
         <h2 class="section-title">Related Products</h2>
         <div class="related-products-grid">
             {% for related_cake in related_cakes %}
-            <!-- Each related product is a clickable link to its own detail page -->
             <a href="{{ url_for('routes.cake_details', cake_id=related_cake._id) }}" class="related-product-link">
                 <div class="related-product-card">
                     <img src="{{ related_cake.image }}" alt="{{ related_cake.name }}">
                     <h3>{{ related_cake.name }}</h3>
-                    <p>${{ "%.2f"|format(related_cake.price) }}</p>
+                    <p>Shs {{ "{:,.0f}".format(related_cake.price|int) }}</p>
                 </div>
             </a>
             {% endfor %}
@@ -63,7 +58,6 @@
 
 {% block scripts %}
 <script>
-    // The addToCart logic is the same as on the customer page
     async function addToCart(button) {
         if (!window.isUserAuthenticated) {
             alert("Please log in or create an account to add items to your cart.");
@@ -95,4 +89,3 @@
     }
 </script>
 {% endblock %}
-

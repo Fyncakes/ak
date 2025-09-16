@@ -52,7 +52,7 @@
                             <div class="cake-card-content">
                                 <h3>{{ cake.name }}</h3>
                                 <p>{{ cake.description }}</p>
-                                <p class="price">${{ "%.2f"|format(cake.price) }}</p>
+                                <p class="price">Shs {{ "{:,.0f}".format(cake.price|int) }}</p>
                                 <div class="order-button-wrapper">
                                     <span class="order-button">
                                         <i class="fas fa-search-plus"></i> View Details
@@ -113,6 +113,8 @@
 
                 if (newCakes.length > 0) {
                     newCakes.forEach(cake => {
+                        // UPDATED: JavaScript price format for UGX
+                        const formattedPrice = new Intl.NumberFormat('en-US').format(cake.price);
                         const cakeCardHTML = `
                         <a href="${cake.url}" class="cake-card-link">
                             <div class="cake-card">
@@ -122,7 +124,7 @@
                                 <div class="cake-card-content">
                                     <h3>${cake.name}</h3>
                                     <p>${cake.description}</p>
-                                    <p class="price">Shs${parseFloat(cake.price).toFixed(2)}</p>
+                                    <p class="price">Shs ${formattedPrice}</p>
                                     <div class="order-button-wrapper">
                                         <span class="order-button">
                                             <i class="fas fa-search-plus"></i> View Details
