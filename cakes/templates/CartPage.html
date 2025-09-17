@@ -20,8 +20,7 @@
                     </tr>
                 </thead>
                 <tbody id="cart-items-body">
-                    <!-- JavaScript will populate this area with a loading message first -->
-                     <tr>
+                    <tr>
                         <td colspan="3" style="text-align:center; padding: 2rem;">
                             <div class="spinner" style="margin: auto;"></div>
                             <p>Loading your cart...</p>
@@ -38,7 +37,7 @@
             <h3>Order Summary</h3>
             <div class="summary-line">
                 <span>Subtotal</span>
-                <span id="cart-subtotal">Shs0</span>
+                <span id="cart-subtotal">Shs 0</span>
             </div>
             <hr>
             <button class="proceed-to-checkout-btn" onclick="proceedToCheckout()">
@@ -64,14 +63,12 @@
 
     // This is the main function that runs when the page loads.
     async function fetchCartItems() {
-        // Step 1: Call our new backend route to get the user's specific cart items.
         const response = await fetch(GET_CART_URL);
         userCart = await response.json();
         
-        // Step 2: Update the page with the fetched data.
         displayCartItems();
         updateCartSummary();
-        updateCartCounter(userCart.length); // This is the global function from base.html
+        updateCartCounter(userCart.length);
     }
 
     function displayCartItems() {
@@ -87,6 +84,8 @@
             emptyCartMessage.style.display = 'none';
             cartTable.style.display = '';
             userCart.forEach(item => {
+                // UPDATED: Price formatting for UGX
+                const formattedPrice = new Intl.NumberFormat('en-US').format(item.price);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="col-product">
@@ -95,7 +94,7 @@
                             <h4>${item.name}</h4>
                         </div>
                     </td>
-                    <td class="col-price">$${item.price.toFixed(2)}</td>
+                    <td class="col-price">Shs ${formattedPrice}</td>
                     <td class="col-remove">
                         <button class="remove-item-btn" onclick="removeFromCart('${item._id}')" title="Remove item">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
@@ -109,24 +108,23 @@
 
     function updateCartSummary() {
         const subtotal = userCart.reduce((total, product) => total + product.price, 0);
-        document.getElementById("cart-subtotal").innerText = `$${subtotal.toFixed(2)}`;
+        // UPDATED: Price formatting for UGX
+        const formattedSubtotal = new Intl.NumberFormat('en-US').format(subtotal);
+        document.getElementById("cart-subtotal").innerText = `Shs ${formattedSubtotal}`;
     }
 
     async function removeFromCart(itemId) {
-        // For a faster user experience, update the page immediately.
         userCart = userCart.filter(item => item._id !== itemId);
         displayCartItems();
         updateCartSummary();
         updateCartCounter(userCart.length);
         
-        // Then, send the request to the server to delete the item from the database.
         const removeUrl = REMOVE_CART_URL_TEMPLATE.replace('ITEM_ID', itemId);
         await fetch(removeUrl, { method: 'POST' });
     }
     
     function proceedToCheckout() {
         if (userCart.length > 0) {
-            // Use sessionStorage to pass the cart data to the checkout page.
             sessionStorage.setItem('checkoutCart', JSON.stringify(userCart));
             window.location.href = "{{ url_for('routes.checkout') }}";
         } else {
@@ -134,8 +132,6 @@
         }
     }
 
-    // This is the starting point: fetch the cart items as soon as the page is ready.
     document.addEventListener('DOMContentLoaded', fetchCartItems);
 </script>
 {% endblock %}
-

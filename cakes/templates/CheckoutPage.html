@@ -60,23 +60,27 @@
     let totalAmount = 0;
 
     function updateOrderSummary() {
-        const summaryList = document.getElementById("summary-items-list");
-        summaryList.innerHTML = "";
-        
-        totalAmount = checkoutCart.reduce((total, product) => total + product.price, 0);
+    const summaryList = document.getElementById("summary-items-list");
+    summaryList.innerHTML = "";
+    
+    totalAmount = checkoutCart.reduce((total, product) => total + product.price, 0);
 
-        if (checkoutCart.length > 0) {
+    if (checkoutCart.length > 0) {
             checkoutCart.forEach(product => {
-                const item = document.createElement('div');
-                item.className = 'summary-item';
-                item.innerHTML = `<span>${product.name}</span><strong>$Shs{product.price.toFixed(2)}</strong>`;
-                summaryList.appendChild(item);
-            });
-        } else {
-             summaryList.innerHTML = "<p>Your cart is empty.</p>";
+            const item = document.createElement('div');
+            item.className = 'summary-item';
+            // UPDATED: Price formatting for UGX
+            const formattedPrice = new Intl.NumberFormat('en-US').format(product.price);
+            item.innerHTML = `<span>${product.name}</span><strong>Shs ${formattedPrice}</strong>`;
+             summaryList.appendChild(item);
+                });
+             } else {
+         summaryList.innerHTML = "<p>Your cart is empty.</p>";
         }
-        
-        document.getElementById("cart-total").innerText = `$Shs{totalAmount.toFixed(2)}`;
+    
+             // UPDATED: Total amount formatting for UGX
+            const formattedTotal = new Intl.NumberFormat('en-US').format(totalAmount);
+            document.getElementById("cart-total").innerText = `Shs ${formattedTotal}`;
     }
 
     async function placeOrder() {
