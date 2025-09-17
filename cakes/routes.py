@@ -34,7 +34,7 @@ from .forms import SignupForm, LoginForm, RequestResetForm, ResetPasswordForm
 routes_bp = Blueprint('routes', __name__)
 
 # --- Centralized Constants for easy management ---
-CAKES_PER_PAGE = 8
+CAKES_PER_PAGE = 6
 CATEGORIES = ["Ready Cake", "Orange Cake", "Vanilla Cake","Bread","Cookies","chocolate cakes", "Wedding Cake"]
 
 
