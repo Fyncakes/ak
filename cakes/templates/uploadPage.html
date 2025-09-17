@@ -32,14 +32,13 @@
             <div class="form-group">
                 <label for="cake-category">Category</label>
                 <select id="cake-category" name="cake_category" class="form-control" required>
-                    <option value="" disabled selected>Select a category...</option>
-                    <option value="Ready Cake">Ready Cake</option>
-                    <option value="Mousse & Cheesecake">Orange Cake</option>
-                    <option value="Mini Cake">Vanilla Cake</option>
-                    <option value="Mini Cake">Bread</option>
-                    <option value="Mini Cake">Cookies</option>
-                    <option value="Mini Cake">chocolate cakes</option>
-                    <option value="Wedding Cake">Wedding Cake</option>
+                    <option value="" disabled {% if not cake or not cake.category %}selected{% endif %}>Select a category...</option>
+        
+                        {% for category_name in categories %}
+                    <option value="{{ category_name }}" {% if cake and cake.category == category_name %}selected{% endif %}>
+                        {{ category_name }}
+                    </option>
+                {% endfor %}
                 </select>
             </div>
 

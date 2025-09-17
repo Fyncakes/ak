@@ -1,12 +1,12 @@
-from flask_sqlalchemy import SQLAlchemy
+# In database.py
 
-# Create a SQLAlchemy instance
-db = SQLAlchemy()
+from flask_pymongo import PyMongo
+
+# Create a PyMongo instance
+mongo = PyMongo()
 
 def initialize_db(app):
     """
     Initialize the database with the Flask app.
     """
-    db.init_app(app)
-    app.app_context().push()
-    db.create_all()
+    mongo.init_app(app)

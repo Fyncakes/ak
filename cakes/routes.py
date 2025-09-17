@@ -21,21 +21,18 @@ from flask_login import login_user, login_required, current_user, logout_user
 from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from itsdangerous import URLSafeTimedSerializer # Added for password reset
+from itsdangerous import URLSafeTimedSerializer
 
 # --- Local Application Imports ---
 from . import db, mail
 from .models import User
-# THIS IS THE CORRECTED LINE
 from .forms import SignupForm, LoginForm, RequestResetForm, ResetPasswordForm
-
 
 # --- Blueprint Configuration ---
 routes_bp = Blueprint('routes', __name__)
 
-# --- Centralized Constants for easy management ---
+# --- Constants ---
 CAKES_PER_PAGE = 6
-CATEGORIES = ["Ready Cake", "Orange Cake", "Vanilla Cake","Bread","Cookies","chocolate cakes", "Wedding Cake"]
 
 
 # =============================================================================
@@ -58,10 +55,7 @@ def admin_required(f):
     return decorated_function
 
 def _get_users_with_student_status(limit=None):
-    """
-    Fetches users with the 'customer' role and enriches them with an 'is_student' flag.
-    - limit (int, optional): The maximum number of users to return.
-    """
+    """Fetches users with the 'customer' role and enriches them with an 'is_student' flag."""
     pipeline = [
         {'$match': {'role': 'customer'}},
         {'$sort': {'_id': -1}}
@@ -81,7 +75,7 @@ def _get_users_with_student_status(limit=None):
 
 
 # =============================================================================
-# PAGE RENDERING ROUTES (Public & User-facing)
+# PUBLIC-FACING ROUTES
 # =============================================================================
 
 @routes_bp.route('/')
@@ -96,29 +90,33 @@ def about_us():
 
 @routes_bp.route('/customer')
 def customer():
-    """Renders the main product listing page with filtering, searching, and pagination."""
+    """Renders the main product listing page with dynamic filtering, searching, and pagination."""
     selected_category = request.args.get('category')
     search_query = request.args.get('q', '').strip()
     
     query = {}
-    if selected_category and selected_category in CATEGORIES:
+    if selected_category:
         query['category'] = selected_category
     
     if search_query:
-        query['name'] = {'$regex': f'^{search_query}', '$options': 'i'}
+        query['name'] = {'$regex': search_query, '$options': 'i'}
+
+    # Fetch dynamic categories from the database for the dropdown
+    all_categories = db.cakes.distinct("category")
+    all_categories.sort()
 
     total_cakes = db.cakes.count_documents(query)
     initial_cakes = list(db.cakes.find(query).limit(CAKES_PER_PAGE))
     total_pages = math.ceil(total_cakes / CAKES_PER_PAGE)
     
     return render_template('CustomerPage.html', 
-                           cakes=initial_cakes, 
-                           categories=CATEGORIES,
+                           cakes=initial_cakes,
+                           categories=all_categories,
                            selected_category=selected_category,
                            search_query=search_query,
                            current_page=1, 
                            total_pages=total_pages)
-
+                           
 @routes_bp.route('/cake/<cake_id>')
 def cake_details(cake_id):
     """Renders the detailed page for a single cake."""
@@ -128,11 +126,13 @@ def cake_details(cake_id):
             flash('Sorry, that cake could not be found.', 'danger')
             return redirect(url_for('routes.customer'))
         
+        # Find related cakes from the same category
         related_cakes = list(db.cakes.find({
             'category': cake.get('category'), 
             '_id': {'$ne': ObjectId(cake_id)}
         }).limit(3))
         
+        # If not enough related cakes, fill with other random cakes
         if len(related_cakes) < 3:
              more_cakes = list(db.cakes.find({'_id': {'$ne': ObjectId(cake_id)}}).limit(3 - len(related_cakes)))
              related_cakes.extend(more_cakes)
@@ -145,6 +145,7 @@ def cake_details(cake_id):
 @routes_bp.route('/tasting-events')
 def tasting_events():
     """Renders the cake tasting events page."""
+    # This logic seems complex and might be simplified, but is kept as is for now.
     today = datetime.now()
     year, month = today.year, today.month
     
@@ -159,8 +160,7 @@ def tasting_events():
 
     if not upcoming_dates:
         month += 1
-        if month > 12:
-            month, year = 1, year + 1
+        if month > 12: month, year = 1, year + 1
         month_calendar = calendar.monthcalendar(year, month)
         saturdays = [week[calendar.SATURDAY] for week in month_calendar if week[calendar.SATURDAY] != 0]
         if len(saturdays) >= 2: upcoming_dates.append(datetime(year, month, saturdays[1]))
@@ -172,12 +172,9 @@ def tasting_events():
     if os.path.isdir(slides_path):
         for filename in os.listdir(slides_path):
             if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                image_url = url_for('static', filename=f'cake_slides/{filename}')
-                slide_images.append(image_url)
+                slide_images.append(url_for('static', filename=f'cake_slides/{filename}'))
 
-    return render_template('tasting_events.html', 
-                           dates=upcoming_dates, 
-                           slide_images=slide_images)
+    return render_template('tasting_events.html', dates=upcoming_dates, slide_images=slide_images)
 
 @routes_bp.route('/cart')
 @login_required
@@ -257,7 +254,8 @@ def verify_email(email):
         user_data = db.unverified_users.find_one({'email': email})
 
         if not user_data or user_data['expires_at'] < datetime.now():
-            flash('Your verification code is invalid or has expired. Please sign up again.', 'danger')
+            flash('Your verification code is invalid or has expired. Pcake_categorylease sign up again.', 'danger')
+            db.unverified_users.delete_one({'email': email}) # Clean up expired entry
             return redirect(url_for('routes.signup'))
 
         if user_data['verification_code'] == submitted_code:
@@ -292,9 +290,7 @@ def login():
             next_page = request.args.get('next')
             flash('Login successful!', 'success')
             
-            if user_obj.role == 'admin':
-                return redirect(url_for('routes.admin_dashboard'))
-            return redirect(next_page or url_for('routes.customer'))
+            return redirect(url_for('routes.admin_dashboard')) if user_obj.role == 'admin' else redirect(next_page or url_for('routes.customer'))
         else:
             flash('Login failed. Please check your email and password.', 'danger')
 
@@ -317,29 +313,24 @@ def verify_reset_token(token, expires_sec=1800):
     """Verifies the reset token and returns the user's email."""
     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
-        user_email = s.loads(token, salt='password-reset-salt', max_age=expires_sec)
+        return s.loads(token, salt='password-reset-salt', max_age=expires_sec)
     except Exception:
         return None
-    return user_email
 
 @routes_bp.route('/reset_password', methods=['GET', 'POST'])
 def request_reset():
     """Handles the request for a password reset link."""
-    if current_user.is_authenticated:
-        return redirect(url_for('routes.home'))
+    if current_user.is_authenticated: return redirect(url_for('routes.home'))
     
     form = RequestResetForm()
     if form.validate_on_submit():
-        user_data = db.users.find_one({'email': form.email.data})
-        if user_data:
-            token = get_reset_token(user_data['email'])
-            msg = Message('Password Reset Request for FynCakes', 
-                          recipients=[user_data['email']])
-            msg.body = f'''To reset your password, visit the following link:
+        if db.users.find_one({'email': form.email.data}):
+            token = get_reset_token(form.email.data)
+            msg = Message('Password Reset Request for FynCakes', recipients=[form.email.data])
+            msg.body = f'''To reset your password, visit the following link (expires in 30 mins):
 {url_for('routes.reset_password', token=token, _external=True)}
 
-If you did not make this request, simply ignore this email and no changes will be made.
-This link will expire in 30 minutes.
+If you did not make this request, simply ignore this email.
 '''
             mail.send(msg)
         
@@ -351,19 +342,18 @@ This link will expire in 30 minutes.
 @routes_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     """Handles the actual password reset."""
-    if current_user.is_authenticated:
-        return redirect(url_for('routes.home'))
+    if current_user.is_authenticated: return redirect(url_for('routes.home'))
         
     user_email = verify_reset_token(token)
-    if user_email is None:
-        flash('That is an invalid or expired token. Please try again.', 'warning')
+    if not user_email:
+        flash('That is an invalid or expired token.', 'warning')
         return redirect(url_for('routes.request_reset'))
         
     form = ResetPasswordForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data)
         db.users.update_one({'email': user_email}, {'$set': {'password': hashed_password}})
-        flash('Your password has been updated! You are now able to log in.', 'success')
+        flash('Your password has been updated! You can now log in.', 'success')
         return redirect(url_for('routes.login'))
         
     return render_template('reset_password.html', form=form)
@@ -374,7 +364,6 @@ def reset_password(token):
 # =============================================================================
 
 @routes_bp.route('/admin/dashboard')
-@login_required
 @admin_required
 def admin_dashboard():
     """Renders the main admin dashboard with site statistics."""
@@ -384,7 +373,6 @@ def admin_dashboard():
         {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
     ]))
     total_sales = sales_data[0]['total_sales'] if sales_data else 0
-
     customers = _get_users_with_student_status(limit=10)
 
     return render_template('AdminDashboard.html',
@@ -394,7 +382,6 @@ def admin_dashboard():
                            customers=customers)
 
 @routes_bp.route('/admin/manage_orders')
-@login_required
 @admin_required
 def manage_orders():
     """Renders a page to view all customer orders."""
@@ -402,7 +389,6 @@ def manage_orders():
     return render_template('manage_orders.html', orders=all_orders)
 
 @routes_bp.route('/admin/manage_users')
-@login_required
 @admin_required
 def manage_users():
     """Renders a page to view all registered users."""
@@ -410,12 +396,11 @@ def manage_users():
     return render_template('manage_users.html', users=all_users)
 
 @routes_bp.route('/admin/upload', methods=['GET', 'POST'])
-@login_required
 @admin_required
 def upload():
-    """Handles the uploading of new cake products by an admin."""
+    """Handles uploading new cake products, providing categories for the form."""
     if request.method == 'POST':
-        if 'cake_image' not in request.files or request.files['cake_image'].filename == '':
+        if 'cake_image' not in request.files or not request.files['cake_image'].filename:
             flash('No image file selected', 'warning')
             return redirect(request.url)
             
@@ -435,10 +420,12 @@ def upload():
             flash(f"Cake '{cake_data['name']}' uploaded successfully!", 'success')
             return redirect(url_for('routes.manage_cakes'))
 
-    return render_template('uploadPage.html')
+    # Fetch categories for the GET request to populate the dropdown
+    all_categories = db.cakes.distinct("category")
+    all_categories.sort()
+    return render_template('uploadPage.html', categories=all_categories)
 
 @routes_bp.route('/admin/manage_cakes')
-@login_required
 @admin_required
 def manage_cakes():
     """Renders a page where admins can view, edit, and delete all cakes."""
@@ -446,10 +433,9 @@ def manage_cakes():
     return render_template('manage_cakes.html', cakes=all_cakes)
 
 @routes_bp.route('/admin/edit_cake/<cake_id>', methods=['GET', 'POST'])
-@login_required
 @admin_required
 def edit_cake(cake_id):
-    """Handles editing an existing cake."""
+    """Handles editing an existing cake, providing categories for the form."""
     try:
         cake = db.cakes.find_one({'_id': ObjectId(cake_id)})
         if not cake:
@@ -467,27 +453,31 @@ def edit_cake(cake_id):
             'category': request.form.get('cake_category')
         }
         
-        if 'cake_image' in request.files:
-            file = request.files['cake_image']
-            if file and file.filename != '':
-                if allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                    updated_data['image'] = url_for('static', filename=f'cake_uploads/{filename}')
+        file = request.files.get('cake_image')
+        if file and file.filename:
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                updated_data['image'] = url_for('static', filename=f'cake_uploads/{filename}')
         
         db.cakes.update_one({'_id': ObjectId(cake_id)}, {'$set': updated_data})
         flash(f"'{updated_data['name']}' has been updated successfully!", 'success')
         return redirect(url_for('routes.manage_cakes'))
         
-    return render_template('edit_cake.html', cake=cake)
+    # Fetch categories for the GET request to populate the dropdown
+    all_categories = db.cakes.distinct("category")
+    all_categories.sort()
+    return render_template('edit_cake.html', cake=cake, categories=all_categories)
 
 @routes_bp.route('/admin/delete_cake/<cake_id>', methods=['POST'])
-@login_required
 @admin_required
 def delete_cake(cake_id):
     """Handles deleting a cake."""
-    db.cakes.delete_one({'_id': ObjectId(cake_id)})
-    flash('Cake deleted successfully!', 'success')
+    try:
+        db.cakes.delete_one({'_id': ObjectId(cake_id)})
+        flash('Cake deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting cake: {e}', 'danger')
     return redirect(url_for('routes.manage_cakes'))
 
 
@@ -497,7 +487,7 @@ def delete_cake(cake_id):
 
 @routes_bp.route('/api/get_cakes')
 def get_cakes_api():
-    """API endpoint to fetch a 'page' of cakes, now with search."""
+    """API endpoint to fetch a 'page' of cakes with dynamic filtering."""
     try:
         page = int(request.args.get('page', 1))
     except (ValueError, TypeError):
@@ -508,11 +498,11 @@ def get_cakes_api():
     search_query = request.args.get('q', '').strip()
     
     query = {}
-    if category and category in CATEGORIES:
+    if category: # Removed check against hardcoded list
         query['category'] = category
         
     if search_query:
-        query['name'] = {'$regex': f'^{search_query}', '$options': 'i'}
+        query['name'] = {'$regex': search_query, '$options': 'i'} # Use more flexible search
 
     cakes_cursor = db.cakes.find(query).skip(skip).limit(CAKES_PER_PAGE)
     cakes_list = []
@@ -528,8 +518,7 @@ def get_cakes_api():
 def get_cart_items():
     """API endpoint to fetch the current user's cart items."""
     items = list(db.carts.find({'user_email': current_user.email}))
-    for item in items:
-        item['_id'] = str(item['_id'])
+    for item in items: item['_id'] = str(item['_id'])
     return jsonify(items)
 
 @routes_bp.route('/cart/add', methods=['POST'])
@@ -537,21 +526,21 @@ def get_cart_items():
 def add_to_cart_db():
     """API endpoint to add an item to the user's cart."""
     product_data = request.get_json()
-    cart_item = {
+    db.carts.insert_one({
         'user_email': current_user.email,
         'name': product_data.get('name'),
         'price': product_data.get('price'),
         'description': product_data.get('description'),
         'imageUrl': product_data.get('imageUrl')
-    }
-    db.carts.insert_one(cart_item)
+    })
     return jsonify({'success': True})
 
 @routes_bp.route('/cart/remove/<item_id>', methods=['POST'])
 @login_required
 def remove_from_cart_db(item_id):
     """API endpoint to remove an item from the user's cart."""
-    db.cakes.delete_one({'_id': ObjectId(item_id), 'user_email': current_user.email})
+    # Note: This logic seems to use cake_id to delete from carts, might need review
+    db.carts.delete_one({'_id': ObjectId(item_id), 'user_email': current_user.email})
     return jsonify({'success': True})
 
 @routes_bp.route('/cart/clear', methods=['POST'])
@@ -575,7 +564,7 @@ def place_order():
         return jsonify({'success': False, 'message': 'Missing order information.'}), 400
 
     order_id = f"FYN-{random.randint(1000, 9999)}"
-    order_document = {
+    db.orders.insert_one({
         'order_id': order_id,
         'customer_email': current_user.email,
         'products': products,
@@ -585,11 +574,10 @@ def place_order():
         'delivery_date': datetime.strptime(delivery_date_str, '%Y-%m-%d'),
         'customer_phone': phone_number,
         'order_placed_at': datetime.now()
-    }
-    db.orders.insert_one(order_document)
+    })
 
     try:
-        product_list_html = "".join([f"<li>{p['name']} - ${p['price']:.2f}</li>" for p in products])
+        product_list_html = "".join([f"<li>{p['name']} - Shs {p['price']:,.0f}</li>" for p in products])
         msg = Message(f"FynCakes Order Confirmation - #{order_id}", recipients=[current_user.email])
         msg.html = f"""
         <div style="font-family: sans-serif;">
@@ -597,7 +585,7 @@ def place_order():
             <p>Your order #{order_id} has been received and is awaiting payment.</p>
             <h3>Order Summary</h3>
             <ul>{product_list_html}</ul>
-            <p><strong>Total Amount: Shs{total_amount:.2f}</strong></p>
+            <p><strong>Total Amount: Shs {total_amount:,.0f}</strong></p>
             <h3>Next Steps: Payment</h3>
             <p>Please send the total amount via Mobile Money to <strong>0772 123 456</strong> using your Order ID <strong>({order_id})</strong> as the reason.</p>
         </div>
@@ -622,7 +610,7 @@ def register_class():
     if db.students.find_one({'user_email': current_user.email}):
         return jsonify({'success': False, 'message': 'You are already registered for this class.'}), 409
 
-    student_document = {
+    db.students.insert_one({
         'user_email': current_user.email,
         'student_name': student_name,
         'student_phone': student_phone,
@@ -631,15 +619,14 @@ def register_class():
         'amount_paid': 0,
         'payment_status': 'pending_deposit',
         'has_access': False
-    }
-    db.students.insert_one(student_document)
+    })
 
     try:
         msg = Message("Welcome to FynCakes Baking Class!", recipients=[current_user.email])
         msg.html = f"""
         <div style="font-family: sans-serif;">
             <h1>Your Spot is Reserved, {student_name}!</h1>
-            <p>To complete your registration, please send a 50% deposit of <strong>Shs150,000</strong> via Mobile Money to <strong>0758 449 390</strong>.</p>
+            <p>To complete your registration, please send a 50% deposit of <strong>Shs 150,000</strong> via Mobile Money to <strong>0758 449 390</strong>.</p>
         </div>
         """
         mail.send(msg)
@@ -647,4 +634,3 @@ def register_class():
         current_app.logger.error(f"Failed to send class registration email for {current_user.email}: {e}")
 
     return jsonify({'success': True, 'message': 'Your spot is reserved! Please check your email for payment instructions.'})
-    
