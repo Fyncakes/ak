@@ -15,7 +15,7 @@ login_manager.login_message_category = 'info'
 # Initialize Database (MongoDB Atlas or Mock)
 try:
     # Try to connect to MongoDB Atlas first
-    mongo_uri = os.environ.get('MONGO_URI', 'mongodb+srv://fyncakes_user:<db_password>@fyncakes-cluster.sfxujh9.mongodb.net/?retryWrites=true&w=majority&appName=fyncakes-cluster')
+    mongo_uri = os.environ.get('MONGO_URI', 'mongodb+srv://fyncakes:FynCakes123@cluster0.68beb34.mongodb.net/fyncakes?retryWrites=true&w=majority')
     
     # Check if password placeholder exists
     if '<db_password>' in mongo_uri:

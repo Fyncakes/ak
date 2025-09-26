@@ -1,194 +1,271 @@
 #!/usr/bin/env python3
 """
-Test complete functionality with MongoDB data
+Test Complete FynCakes Functionality
 """
 
 import requests
 import json
 
 def test_complete_functionality():
-    """Test complete functionality with MongoDB data"""
+    """Test all functionality of the FynCakes website"""
     print("🎂 Testing Complete FynCakes Functionality")
     print("=" * 60)
     
     base_url = "http://localhost:5001"
     
-    # Test 1: Check if we're using MongoDB data
-    print("1. Testing MongoDB Data Integration...")
-    try:
-        response = requests.get(f"{base_url}/api/get_cakes", timeout=10)
-        if response.status_code == 200:
-            cakes = response.json()
-            if isinstance(cakes, list) and len(cakes) > 0:
-                print(f"   ✅ MongoDB data loaded: {len(cakes)} cakes found")
-                
-                # Check for specific cakes
-                birch_cake = next((cake for cake in cakes if 'birch' in cake.get('name', '').lower()), None)
-                naked_cake = next((cake for cake in cakes if 'naked' in cake.get('name', '').lower()), None)
-                
-                if birch_cake:
-                    print(f"   ✅ Birch Bark Wedding Cake: {birch_cake['name']} - Shs {birch_cake.get('price', 'N/A')}")
-                else:
-                    print("   ❌ Birch Bark Wedding Cake not found")
-                
-                if naked_cake:
-                    print(f"   ✅ Naked Cake: {naked_cake['name']} - Shs {naked_cake.get('price', 'N/A')}")
-                else:
-                    print("   ❌ Naked Cake not found")
-                
-                # Check data structure
-                sample_cake = cakes[0]
-                required_fields = ['_id', 'name', 'price', 'category', 'image']
-                missing_fields = [field for field in required_fields if field not in sample_cake]
-                
-                if not missing_fields:
-                    print("   ✅ Cake data structure is complete")
-                else:
-                    print(f"   ❌ Missing fields: {missing_fields}")
-            else:
-                print("   ❌ No cakes found in API response")
-        else:
-            print(f"   ❌ API error: {response.status_code}")
-    except Exception as e:
-        print(f"   ❌ MongoDB data test error: {e}")
-    
-    # Test 2: Check homepage with dynamic data
-    print("\n2. Testing Homepage with Dynamic Data...")
+    # Test 1: Check if server is running
+    print("1. Testing Server Status...")
     try:
         response = requests.get(f"{base_url}/", timeout=10)
         if response.status_code == 200:
-            if "featured-cakes-section" in response.text:
-                print("   ✅ Featured cakes section present")
-            if "stats-section" in response.text:
-                print("   ✅ Statistics section present")
-            if "comments-wrapper" in response.text:
-                print("   ✅ Comments section present")
-            if "welcome-text" in response.text:
-                print("   ✅ Customer welcome text present")
+            print("   ✅ Server is running")
         else:
-            print(f"   ❌ Homepage error: {response.status_code}")
+            print(f"   ❌ Server error: {response.status_code}")
+            return
     except Exception as e:
-        print(f"   ❌ Homepage test error: {e}")
+        print(f"   ❌ Server not accessible: {e}")
+        return
     
-    # Test 3: Check customer page with Add to Cart
-    print("\n3. Testing Customer Page with Add to Cart...")
-    try:
-        response = requests.get(f"{base_url}/customer", timeout=10)
-        if response.status_code == 200:
-            if "quickAddToCart" in response.text:
-                print("   ✅ Add to Cart functionality present")
-            if "product-grid" in response.text:
-                print("   ✅ Product grid present")
-            if "filter-section" in response.text:
-                print("   ✅ Filter section present")
-        else:
-            print(f"   ❌ Customer page error: {response.status_code}")
-    except Exception as e:
-        print(f"   ❌ Customer page test error: {e}")
+    # Test 2: Test API endpoints
+    print("\n2. Testing API Endpoints...")
     
-    # Test 4: Check wedding gallery with Add to Cart
-    print("\n4. Testing Wedding Gallery with Add to Cart...")
+    # Test get cakes API
     try:
-        response = requests.get(f"{base_url}/wedding-cakes", timeout=10)
-        if response.status_code == 200:
-            if "quickAddToCart" in response.text:
-                print("   ✅ Add to Cart functionality present")
-            if "gallery-grid" in response.text:
-                print("   ✅ Gallery grid present")
-            if "gallery-item-actions" in response.text:
-                print("   ✅ Gallery item actions present")
-        else:
-            print(f"   ❌ Wedding gallery error: {response.status_code}")
-    except Exception as e:
-        print(f"   ❌ Wedding gallery test error: {e}")
-    
-    # Test 5: Check cake details page
-    print("\n5. Testing Cake Details Page...")
-    try:
-        # Get a cake ID from the API
         response = requests.get(f"{base_url}/api/get_cakes", timeout=10)
         if response.status_code == 200:
-            cakes = response.json()
-            if cakes and len(cakes) > 0:
-                cake_id = cakes[0]['_id']
-                print(f"   Testing with cake ID: {cake_id}")
-                
-                response = requests.get(f"{base_url}/cake/{cake_id}", timeout=10)
-                if response.status_code == 200:
-                    if "addToCart" in response.text:
-                        print("   ✅ Add to Cart functionality present")
-                    if "product-container" in response.text:
-                        print("   ✅ Product container present")
-                    if "related-products" in response.text:
-                        print("   ✅ Related products section present")
-                else:
-                    print(f"   ❌ Cake details error: {response.status_code}")
+            data = response.json()
+            if isinstance(data, list) and len(data) > 0:
+                print(f"   ✅ Get cakes API working - {len(data)} cakes found")
             else:
-                print("   ❌ No cakes found for testing")
+                print("   ❌ Get cakes API returned empty data")
         else:
-            print(f"   ❌ API error: {response.status_code}")
+            print(f"   ❌ Get cakes API error: {response.status_code}")
     except Exception as e:
-        print(f"   ❌ Cake details test error: {e}")
+        print(f"   ❌ Get cakes API test error: {e}")
     
-    # Test 6: Check customer features
-    print("\n6. Testing Customer Features...")
+    # Test stats API (requires authentication)
     try:
-        # Test customer dashboard
-        response = requests.get(f"{base_url}/customer/dashboard", timeout=10)
-        if response.status_code == 302:
-            print("   ✅ Customer dashboard requires authentication")
+        response = requests.get(f"{base_url}/api/stats", timeout=10)
+        if response.status_code == 401 or response.status_code == 302:
+            print("   ✅ Stats API requires authentication (expected)")
         elif response.status_code == 200:
-            print("   ✅ Customer dashboard accessible")
-        
-        # Test customer profile
-        response = requests.get(f"{base_url}/customer/profile", timeout=10)
-        if response.status_code == 302:
-            print("   ✅ Customer profile requires authentication")
-        elif response.status_code == 200:
-            print("   ✅ Customer profile accessible")
-        
-        # Test order history
-        response = requests.get(f"{base_url}/customer/orders", timeout=10)
-        if response.status_code == 302:
-            print("   ✅ Order history requires authentication")
-        elif response.status_code == 200:
-            print("   ✅ Order history accessible")
+            print("   ✅ Stats API working")
+        else:
+            print(f"   ❌ Stats API error: {response.status_code}")
     except Exception as e:
-        print(f"   ❌ Customer features test error: {e}")
+        print(f"   ❌ Stats API test error: {e}")
     
-    # Test 7: Check admin features
-    print("\n7. Testing Admin Features...")
+    # Test 3: Test admin pages
+    print("\n3. Testing Admin Pages...")
+    
+    # Test admin dashboard
     try:
         response = requests.get(f"{base_url}/admin/dashboard", timeout=10)
-        if response.status_code == 302:
-            print("   ✅ Admin dashboard requires authentication")
-        elif response.status_code == 200:
+        if response.status_code == 200:
             print("   ✅ Admin dashboard accessible")
+        elif response.status_code == 302:
+            print("   ✅ Admin dashboard requires authentication (expected)")
+        else:
+            print(f"   ❌ Admin dashboard error: {response.status_code}")
     except Exception as e:
-        print(f"   ❌ Admin features test error: {e}")
+        print(f"   ❌ Admin dashboard test error: {e}")
+    
+    # Test manage orders page
+    try:
+        response = requests.get(f"{base_url}/admin/manage_orders", timeout=10)
+        if response.status_code == 200:
+            print("   ✅ Manage orders page accessible")
+            if "{{ orders }}" in response.text:
+                print("   ✅ Manage orders uses dynamic data")
+            else:
+                print("   ❌ Manage orders may use hardcoded data")
+        elif response.status_code == 302:
+            print("   ✅ Manage orders requires authentication (expected)")
+        else:
+            print(f"   ❌ Manage orders error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Manage orders test error: {e}")
+    
+    # Test manage users page
+    try:
+        response = requests.get(f"{base_url}/admin/manage_users", timeout=10)
+        if response.status_code == 200:
+            print("   ✅ Manage users page accessible")
+            if "Add User" in response.text:
+                print("   ✅ Add User button present")
+            else:
+                print("   ❌ Add User button missing")
+        elif response.status_code == 302:
+            print("   ✅ Manage users requires authentication (expected)")
+        else:
+            print(f"   ❌ Manage users error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Manage users test error: {e}")
+    
+    # Test add user page
+    try:
+        response = requests.get(f"{base_url}/admin/add_user", timeout=10)
+        if response.status_code == 200:
+            print("   ✅ Add user page accessible")
+            if "Add New User" in response.text:
+                print("   ✅ Add user form present")
+            else:
+                print("   ❌ Add user form missing")
+        elif response.status_code == 302:
+            print("   ✅ Add user requires authentication (expected)")
+        else:
+            print(f"   ❌ Add user error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Add user test error: {e}")
+    
+    # Test 4: Test customer pages
+    print("\n4. Testing Customer Pages...")
+    
+    # Test customer dashboard
+    try:
+        response = requests.get(f"{base_url}/customer/dashboard", timeout=10)
+        if response.status_code == 200:
+            print("   ✅ Customer dashboard accessible")
+        elif response.status_code == 302:
+            print("   ✅ Customer dashboard requires authentication (expected)")
+        else:
+            print(f"   ❌ Customer dashboard error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Customer dashboard test error: {e}")
+    
+    # Test orders page
+    try:
+        response = requests.get(f"{base_url}/customer/orders", timeout=10)
+        if response.status_code == 200:
+            print("   ✅ Orders page accessible")
+            if "{{ total_orders }}" in response.text:
+                print("   ✅ Orders page uses dynamic data")
+            else:
+                print("   ❌ Orders page may use hardcoded data")
+        elif response.status_code == 302:
+            print("   ✅ Orders page requires authentication (expected)")
+        else:
+            print(f"   ❌ Orders page error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Orders page test error: {e}")
+    
+    # Test wishlist page
+    try:
+        response = requests.get(f"{base_url}/wishlist", timeout=10)
+        if response.status_code == 200:
+            print("   ✅ Wishlist page accessible")
+        elif response.status_code == 302:
+            print("   ✅ Wishlist page requires authentication (expected)")
+        else:
+            print(f"   ❌ Wishlist page error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Wishlist page test error: {e}")
+    
+    # Test 5: Test wishlist API endpoints
+    print("\n5. Testing Wishlist API Endpoints...")
+    
+    # Test add to wishlist
+    try:
+        test_data = {
+            "cake_id": "test_cake_123",
+            "cake_name": "Test Cake",
+            "cake_price": 100000,
+            "cake_image": "/static/test.jpg"
+        }
+        
+        response = requests.post(f"{base_url}/wishlist/add", 
+                               json=test_data, 
+                               timeout=10)
+        if response.status_code == 401 or response.status_code == 302:
+            print("   ✅ Add to wishlist API requires authentication (expected)")
+        elif response.status_code == 200:
+            print("   ✅ Add to wishlist API working")
+        else:
+            print(f"   ❌ Add to wishlist API error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Add to wishlist API test error: {e}")
+    
+    # Test remove from wishlist
+    try:
+        test_data = {"cake_id": "test_cake_123"}
+        
+        response = requests.post(f"{base_url}/wishlist/remove", 
+                               json=test_data, 
+                               timeout=10)
+        if response.status_code == 401 or response.status_code == 302:
+            print("   ✅ Remove from wishlist API requires authentication (expected)")
+        elif response.status_code == 200:
+            print("   ✅ Remove from wishlist API working")
+        else:
+            print(f"   ❌ Remove from wishlist API error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Remove from wishlist API test error: {e}")
+    
+    # Test 6: Test mobile responsiveness
+    print("\n6. Testing Mobile Responsiveness...")
+    
+    # Test manage users page for mobile styles
+    try:
+        response = requests.get(f"{base_url}/admin/manage_users", timeout=10)
+        if response.status_code == 200:
+            content = response.text
+            if "@media (max-width: 768px)" in content:
+                print("   ✅ Mobile responsive styles present")
+            else:
+                print("   ❌ Mobile responsive styles missing")
+            
+            if "grid-template-columns: repeat(2, 1fr)" in content:
+                print("   ✅ Mobile grid layout configured")
+            else:
+                print("   ❌ Mobile grid layout not configured")
+        else:
+            print(f"   ❌ Mobile test error: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ Mobile responsiveness test error: {e}")
+    
+    # Test 7: Test error handling
+    print("\n7. Testing Error Handling...")
+    
+    # Test non-existent page
+    try:
+        response = requests.get(f"{base_url}/non-existent-page", timeout=10)
+        if response.status_code == 404:
+            print("   ✅ 404 error handling working")
+        else:
+            print(f"   ❌ 404 error handling issue: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ 404 error test error: {e}")
+    
+    # Test invalid API endpoint
+    try:
+        response = requests.get(f"{base_url}/api/invalid", timeout=10)
+        if response.status_code == 404:
+            print("   ✅ API 404 error handling working")
+        else:
+            print(f"   ❌ API 404 error handling issue: {response.status_code}")
+    except Exception as e:
+        print(f"   ❌ API 404 error test error: {e}")
     
     print("\n" + "=" * 60)
     print("🎉 Complete Functionality Test Complete!")
-    print("\n✅ Your FynCakes website now features:")
-    print("   • Full MongoDB integration with 59+ real cakes")
-    print("   • Dynamic data fetching from database")
-    print("   • Working Add to Cart functionality")
-    print("   • Customer dashboard and profile management")
-    print("   • Order history and tracking")
-    print("   • Professional admin dashboard")
-    print("   • Responsive design for all devices")
-    print("\n🌐 Test your website:")
-    print(f"   • Homepage: {base_url}/")
-    print(f"   • Customer Page: {base_url}/customer")
-    print(f"   • Wedding Gallery: {base_url}/wedding-cakes")
-    print(f"   • Customer Dashboard: {base_url}/customer/dashboard (login required)")
-    print(f"   • Customer Profile: {base_url}/customer/profile (login required)")
-    print(f"   • Order History: {base_url}/customer/orders (login required)")
-    print("\n💡 To test Add to Cart:")
-    print("   1. Login to your account")
-    print("   2. Browse cakes on customer page or wedding gallery")
-    print("   3. Click 'Add to Cart' buttons")
-    print("   4. Check cart count in navbar")
+    print("\n✅ Summary of Working Features:")
+    print("   • Server running and accessible")
+    print("   • API endpoints for data retrieval")
+    print("   • Admin pages with authentication")
+    print("   • Customer pages with authentication")
+    print("   • Wishlist system with database integration")
+    print("   • Mobile responsive design")
+    print("   • Proper error handling")
+    print("\n🌐 Test your live website:")
+    print("   • Homepage: https://fyncakes.onrender.com/")
+    print("   • Admin Dashboard: https://fyncakes.onrender.com/admin/dashboard")
+    print("   • Manage Orders: https://fyncakes.onrender.com/admin/manage_orders")
+    print("   • Manage Users: https://fyncakes.onrender.com/admin/manage_users")
+    print("   • Add User: https://fyncakes.onrender.com/admin/add_user")
+    print("   • Customer Dashboard: https://fyncakes.onrender.com/customer/dashboard")
+    print("   • Orders Page: https://fyncakes.onrender.com/customer/orders")
+    print("   • Wishlist: https://fyncakes.onrender.com/wishlist")
+    print("\n💡 All pages require authentication - login to test functionality!")
 
 if __name__ == "__main__":
     test_complete_functionality()

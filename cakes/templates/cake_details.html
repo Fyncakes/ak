@@ -45,7 +45,7 @@
                         <i class="fas fa-star"></i>
                         <i class="fas fa-star"></i>
                     </div>
-                    <span class="rating-text">(4.9) • 127 reviews</span>
+                    <span class="rating-text">({{ avg_rating }}) • {{ total_reviews }} reviews</span>
                 </div>
             </div>
             
@@ -165,106 +165,57 @@
         <div class="reviews-summary">
             <div class="rating-overview">
                 <div class="overall-rating">
-                    <span class="rating-number">4.9</span>
+                    <span class="rating-number">{{ avg_rating }}</span>
                     <div class="stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
+                        {% for i in range(5) %}
+                        <i class="fas fa-star{% if i < avg_rating|int %}{% endif %}"></i>
+                        {% endfor %}
                     </div>
-                    <p>Based on 127 reviews</p>
+                    <p>Based on {{ total_reviews }} reviews</p>
                 </div>
                 <div class="rating-breakdown">
+                    {% for rating in range(5, 0, -1) %}
                     <div class="rating-bar">
-                        <span>5★</span>
-                        <div class="bar"><div class="fill" style="width: 85%"></div></div>
-                        <span>108</span>
+                        <span>{{ rating }}★</span>
+                        <div class="bar">
+                            <div class="fill" style="width: {{ (rating_counts[rating] / total_reviews * 100) if total_reviews > 0 else 0 }}%"></div>
+                        </div>
+                        <span>{{ rating_counts[rating] }}</span>
                     </div>
-                    <div class="rating-bar">
-                        <span>4★</span>
-                        <div class="bar"><div class="fill" style="width: 12%"></div></div>
-                        <span>15</span>
-                    </div>
-                    <div class="rating-bar">
-                        <span>3★</span>
-                        <div class="bar"><div class="fill" style="width: 2%"></div></div>
-                        <span>3</span>
-                    </div>
-                    <div class="rating-bar">
-                        <span>2★</span>
-                        <div class="bar"><div class="fill" style="width: 1%"></div></div>
-                        <span>1</span>
-                    </div>
-                    <div class="rating-bar">
-                        <span>1★</span>
-                        <div class="bar"><div class="fill" style="width: 0%"></div></div>
-                        <span>0</span>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
         
         <div class="reviews-list">
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <div class="reviewer-avatar">SJ</div>
-                        <div class="reviewer-details">
-                            <h4>Sarah Johnson</h4>
-                            <div class="review-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">{{ review.name[0]|upper }}{{ review.name.split()[1][0]|upper if review.name.split()|length > 1 else '' }}</div>
+                            <div class="reviewer-details">
+                                <h4>{{ review.name }}</h4>
+                                <div class="review-rating">
+                                    {% for i in range(review.rating) %}
+                                    <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                    {% for i in range(5 - review.rating) %}
+                                    <i class="far fa-star"></i>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
+                        <span class="review-date">{{ review.created_at }}</span>
                     </div>
-                    <span class="review-date">2 days ago</span>
+                    <p class="review-text">"{{ review.comment }}"</p>
                 </div>
-                <p class="review-text">"Absolutely amazing! The cake was moist, delicious, and beautifully decorated. Perfect for our anniversary celebration. Will definitely order again!"</p>
-            </div>
-            
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <div class="reviewer-avatar">MD</div>
-                        <div class="reviewer-details">
-                            <h4>Michael Davis</h4>
-                            <div class="review-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <span class="review-date">1 week ago</span>
+                {% endfor %}
+            {% else %}
+                <div class="no-reviews">
+                    <p>No reviews yet. Be the first to review this cake!</p>
                 </div>
-                <p class="review-text">"Outstanding quality and taste! The delivery was on time and the presentation was perfect. Highly recommend FynCakes for any special occasion."</p>
-            </div>
-            
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <div class="reviewer-avatar">GM</div>
-                        <div class="reviewer-details">
-                            <h4>Grace Mbabazi</h4>
-                            <div class="review-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <span class="review-date">2 weeks ago</span>
-                </div>
-                <p class="review-text">"Best cake in Kampala! Fresh ingredients, perfect sweetness, and the decoration exceeded my expectations. Thank you FynCakes!"</p>
-            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -630,17 +581,47 @@
         }
         
         .edit-btn {
-            background: #007bff;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .edit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .edit-btn:hover::before {
+            left: 100%;
         }
         
         .edit-btn:hover {
-            background: #0056b3;
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+        
+        .edit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
         }
         
         .image-upload-overlay {

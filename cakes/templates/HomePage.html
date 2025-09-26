@@ -129,10 +129,34 @@
     </div>
 </section>
 
-<!-- Customer Comments Section -->
-<section class="comments-wrapper">
+<!-- Recent Comments Section -->
+<section class="recent-comments-section">
     <div class="container">
-        {% include 'components/comments_section.html' %}
+        <h2>What Our Customers Say</h2>
+        <p>Recent feedback from our valued customers</p>
+        
+        {% if recent_comments %}
+        <div class="comments-grid">
+            {% for comment in recent_comments %}
+            <div class="comment-card">
+                <div class="comment-header">
+                    <h4>{{ comment.name }}</h4>
+                    <div class="comment-rating">
+                        {% for i in range(comment.rating) %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="comment-text">"{{ comment.comment }}"</p>
+                <small class="comment-date">{{ comment.created_at }}</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-comments">
+            <p>No recent comments yet. Be the first to share your experience!</p>
+        </div>
+        {% endif %}
     </div>
 </section>
 

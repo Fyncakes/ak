@@ -14,31 +14,84 @@
 }
 /* --- Breadcrumb Navigation --- */
 .breadcrumb-nav {
-    /* Adds space below the button */
-    margin-bottom: 2rem; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .back-link {
-    display: inline-flex; /* Aligns the icon and text neatly on one line */
-    align-items: center; /* Vertically centers the icon with the text */
-    gap: 0.75rem; /* Creates space between the arrow icon and the text */
-
-    background-color: #6c757d; /* A professional, neutral grey */
-    color: #fff; /* White text and icon */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
     
-    padding: 0.75rem 1.5rem; /* Sets the button's size (height and width) */
-    border-radius: 8px; /* Rounds the corners of the button */
-    border: none; /* Removes any default border */
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    color: white;
     
-    font-weight: 500;
-    text-decoration: none; /* Removes the default underline from the link */
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    border: none;
     
-    transition: background-color 0.2s ease-in-out; /* Adds a smooth hover effect */
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    
+    box-shadow: 0 4px 15px rgba(73, 80, 87, 0.3);
+    transition: all 0.3s ease;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.back-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.back-link:hover::before {
+    left: 100%;
 }
 
 .back-link:hover {
-    background-color: #5a6268; /* Makes the button slightly darker on hover */
+    background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(73, 80, 87, 0.4);
+}
+
+.back-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(73, 80, 87, 0.3);
+}
+
+/* Mobile responsiveness for buttons */
+@media (max-width: 768px) {
+    .breadcrumb-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .back-link {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9rem;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .edit-btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.85rem;
+        text-align: center;
+        justify-content: center;
+    }
 }
 
 /* --- Main Product Layout (Two-column grid) --- */

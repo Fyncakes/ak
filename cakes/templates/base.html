@@ -102,6 +102,41 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Live Chat Widget -->
+    <div id="chat-widget" class="chat-widget">
+        <div id="chat-toggle" class="chat-toggle">
+            <i class="fas fa-comments"></i>
+            <span class="chat-badge" id="chat-badge" style="display: none;">1</span>
+        </div>
+        <div id="chat-container" class="chat-container" style="display: none;">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <i class="fas fa-robot"></i>
+                    <span>FynCakes Assistant</span>
+                </div>
+                <button id="chat-close" class="chat-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="chat-message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hello! I'm your FynCakes assistant. How can I help you today? I can answer questions about our cakes, help with orders, or provide recommendations!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type your message..." maxlength="500">
+                <button id="chat-send" class="chat-send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- NEW: Enhanced & Professional Footer -->
     <footer class="main-footer">
         <div class="footer-content">
@@ -189,6 +224,153 @@
     </script>
     {% endif %}
     
+    <!-- Live Chat Widget JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatContainer = document.getElementById('chat-container');
+            const chatClose = document.getElementById('chat-close');
+            const chatInput = document.getElementById('chat-input');
+            const chatSend = document.getElementById('chat-send');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatBadge = document.getElementById('chat-badge');
+            
+            let isOpen = false;
+            let messageCount = 0;
+            
+            // Toggle chat
+            chatToggle.addEventListener('click', function() {
+                isOpen = !isOpen;
+                chatContainer.style.display = isOpen ? 'flex' : 'none';
+                if (isOpen) {
+                    chatBadge.style.display = 'none';
+                    messageCount = 0;
+                    chatInput.focus();
+                }
+            });
+            
+            // Close chat
+            chatClose.addEventListener('click', function() {
+                isOpen = false;
+                chatContainer.style.display = 'none';
+            });
+            
+            // Send message
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+                
+                // Add user message
+                addMessage(message, 'user');
+                chatInput.value = '';
+                
+                // Simulate typing indicator
+                setTimeout(() => {
+                    const response = getAIResponse(message);
+                    addMessage(response, 'bot');
+                }, 1000);
+            }
+            
+            // Send button click
+            chatSend.addEventListener('click', sendMessage);
+            
+            // Enter key press
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Add message to chat
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${sender}-message`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+                
+                const content = document.createElement('div');
+                content.className = 'message-content';
+                content.innerHTML = `<p>${text}</p>`;
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(content);
+                chatMessages.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Show badge if chat is closed
+                if (!isOpen && sender === 'bot') {
+                    messageCount++;
+                    chatBadge.textContent = messageCount;
+                    chatBadge.style.display = 'flex';
+                }
+            }
+            
+            // AI Response Logic
+            function getAIResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // Greetings
+                if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                    return "Hello! Welcome to FynCakes! 🎂 I'm here to help you with any questions about our delicious cakes. What would you like to know?";
+                }
+                
+                // Cake questions
+                if (lowerMessage.includes('cake') || lowerMessage.includes('cakes')) {
+                    if (lowerMessage.includes('flavor') || lowerMessage.includes('flavors')) {
+                        return "We offer a wide variety of cake flavors including chocolate, vanilla, strawberry, red velvet, carrot, and many more! You can browse our full collection on our cakes page. Which flavor interests you most?";
+                    }
+                    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('how much')) {
+                        return "Our cakes are priced based on size and complexity. Prices start from Shs 50,000 for small cakes. You can see specific prices for each cake on our website. Would you like me to help you find a cake in your budget?";
+                    }
+                    if (lowerMessage.includes('order') || lowerMessage.includes('buy')) {
+                        return "Great! You can easily order any cake by clicking the 'Add to Cart' button on any cake page. We also offer custom orders for special occasions. What type of cake are you looking for?";
+                    }
+                    if (lowerMessage.includes('delivery') || lowerMessage.includes('deliver')) {
+                        return "We offer delivery services throughout Kampala! Delivery is usually within 2-4 hours for regular orders. For custom cakes, we'll coordinate the delivery time with you. What's your location?";
+                    }
+                    return "We have an amazing selection of cakes! From birthday cakes to wedding cakes, we've got something for every occasion. You can browse our collection or tell me what you're looking for and I'll help you find the perfect cake!";
+                }
+                
+                // Order questions
+                if (lowerMessage.includes('order') || lowerMessage.includes('purchase')) {
+                    return "Ordering is easy! Simply browse our cakes, click 'Add to Cart' on any cake you like, and proceed to checkout. We accept various payment methods and offer delivery throughout Kampala. Need help with a specific order?";
+                }
+                
+                // Contact questions
+                if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('email')) {
+                    return "You can reach us at:\n📞 Phone: 0758 449 390\n📧 Email: fyncakes1@gmail.com\n💬 WhatsApp: Join our channel for updates!\nWe're here to help with any questions!";
+                }
+                
+                // Location questions
+                if (lowerMessage.includes('where') || lowerMessage.includes('location') || lowerMessage.includes('address')) {
+                    return "We're located in Kampala, Uganda! We offer delivery services throughout the city. You can place orders online and we'll deliver fresh cakes right to your doorstep. What area are you in?";
+                }
+                
+                // Custom cake questions
+                if (lowerMessage.includes('custom') || lowerMessage.includes('special') || lowerMessage.includes('wedding') || lowerMessage.includes('birthday')) {
+                    return "We love creating custom cakes for special occasions! We can make wedding cakes, birthday cakes, anniversary cakes, and more. Tell me about your special event and I'll help you plan the perfect cake!";
+                }
+                
+                // General help
+                if (lowerMessage.includes('help') || lowerMessage.includes('what can you do')) {
+                    return "I can help you with:\n🍰 Finding the perfect cake\n💰 Pricing information\n📦 Ordering and delivery\n🎉 Custom cake requests\n📞 Contact information\n\nWhat would you like to know?";
+                }
+                
+                // Thank you responses
+                if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
+                    return "You're very welcome! 😊 I'm here whenever you need help with anything related to FynCakes. Is there anything else I can assist you with?";
+                }
+                
+                // Default response
+                return "That's a great question! I'd be happy to help you with that. Could you provide a bit more detail? I can assist with cake recommendations, ordering, delivery, pricing, or any other FynCakes-related questions!";
+            }
+        });
+    </script>
+
     <!-- A block for extra scripts on specific pages -->
     {% block scripts %}{% endblock %}
 </body>

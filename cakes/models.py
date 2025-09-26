@@ -12,6 +12,11 @@ class User(UserMixin):
         self.email = user_data.get('email')
         self.password = user_data.get('password')
         self.role = user_data.get('role', 'customer')
+        self.username = user_data.get('username', '')
+        self.first_name = user_data.get('first_name', '')
+        self.last_name = user_data.get('last_name', '')
+        self.profile_image = user_data.get('profile_image', '')
+        self.is_student = user_data.get('is_student', False)
 
     def get_id(self):
         """

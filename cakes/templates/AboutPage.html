@@ -44,24 +44,48 @@
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin: 4rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
             padding: 0 2rem;
         }
         .stat-item {
             text-align: center;
             background: rgba(255,255,255,0.1);
-            padding: 2rem;
-            border-radius: 15px;
+            padding: 1.5rem;
+            border-radius: 10px;
             backdrop-filter: blur(10px);
         }
         .stat-number {
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 700;
             color: #ffd700;
             display: block;
             margin-bottom: 0.5rem;
+        }
+        .rating-stars {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .interactive-stars {
+            display: flex;
+            gap: 0.2rem;
+            margin: 0.5rem 0;
+        }
+        .interactive-stars i {
+            font-size: 1.2rem;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .interactive-stars i:hover {
+            transform: scale(1.2);
+            color: #ffed4e;
+        }
+        .interactive-stars i.active {
+            color: #ffd700;
         }
         .stat-label {
             font-size: 1.1rem;
@@ -261,8 +285,17 @@
                 <span class="stat-label">Cakes Delivered</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">5★</span>
-                <span class="stat-label">Average Rating</span>
+                <div class="rating-stars">
+                    <span class="stat-number">5.0</span>
+                    <div class="interactive-stars">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                    <span class="stat-label">Average Rating</span>
+                </div>
             </div>
             <div class="stat-item">
                 <span class="stat-number">3+</span>
@@ -372,5 +405,99 @@
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize interactive stars
+    const stars = document.querySelectorAll('.interactive-stars i');
+    
+    // Set initial rating to 5 stars
+    stars.forEach((star, index) => {
+        if (index < 5) {
+            star.classList.add('active');
+        }
+    });
+    
+    // Add click functionality
+    stars.forEach((star, index) => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            
+            // Update all stars
+            stars.forEach((s, i) => {
+                if (i < rating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+            
+            // Update the rating number
+            const ratingNumber = document.querySelector('.rating-stars .stat-number');
+            if (ratingNumber) {
+                ratingNumber.textContent = rating + '.0';
+            }
+            
+            // Show feedback
+            showRatingFeedback(rating);
+        });
+        
+        // Add hover effects
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            stars.forEach((s, i) => {
+                if (i < rating) {
+                    s.style.color = '#ffed4e';
+                } else {
+                    s.style.color = '#ffd700';
+                }
+            });
+        });
+        
+        star.addEventListener('mouseleave', function() {
+            stars.forEach((s, i) => {
+                if (s.classList.contains('active')) {
+                    s.style.color = '#ffd700';
+                } else {
+                    s.style.color = '#ffd700';
+                }
+            });
+        });
+    });
+    
+    function showRatingFeedback(rating) {
+        const messages = {
+            1: "Thanks for your feedback! We'll work harder to improve.",
+            2: "We appreciate your honest feedback. We're always improving!",
+            3: "Thank you! We're glad you had a good experience.",
+            4: "Excellent! We're thrilled you enjoyed our service!",
+            5: "Outstanding! Thank you for the perfect rating!"
+        };
+        
+        // Create a temporary feedback message
+        const feedback = document.createElement('div');
+        feedback.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            z-index: 1000;
+            font-size: 1.1rem;
+            text-align: center;
+        `;
+        feedback.textContent = messages[rating];
+        document.body.appendChild(feedback);
+        
+        // Remove feedback after 3 seconds
+        setTimeout(() => {
+            document.body.removeChild(feedback);
+        }, 3000);
+    }
+});
+</script>
 {% endblock %}
 

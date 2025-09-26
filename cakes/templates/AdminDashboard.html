@@ -384,19 +384,19 @@
             <div class="quick-stats">
                 <div class="quick-stat">
                     <h4>Today's Orders</h4>
-                    <p id="today-orders">Loading...</p>
+                    <p id="today-orders">{{ todays_orders }}</p>
                 </div>
                 <div class="quick-stat">
                     <h4>This Week's Sales</h4>
-                    <p id="week-sales">Loading...</p>
+                    <p id="week-sales">Shs {{ "{:,.0f}".format(weekly_sales) }}</p>
                 </div>
                 <div class="quick-stat">
                     <h4>Pending Orders</h4>
-                    <p id="pending-orders">Loading...</p>
+                    <p id="pending-orders">{{ pending_orders }}</p>
                 </div>
                 <div class="quick-stat">
                     <h4>New Customers</h4>
-                    <p id="new-customers">Loading...</p>
+                    <p id="new-customers">{{ new_customers }}</p>
                 </div>
             </div>
 
@@ -404,19 +404,19 @@
                 <h4><i class="fas fa-info-circle"></i> System Information</h4>
                 <div class="info-item">
                     <span class="info-label">Server Status:</span>
-                    <span class="info-value" style="color: #28a745;">Online</span>
+                    <span class="info-value" style="color: #28a745;">{{ server_status }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Database:</span>
-                    <span class="info-value" id="db-status">Connected</span>
+                    <span class="info-value" id="db-status">{{ database_status }}</span>
                 </div>
-                       <div class="info-item">
-                           <span class="info-label">Last Backup:</span>
-                           <span class="info-value">2024-01-26</span>
-                       </div>
+                <div class="info-item">
+                    <span class="info-label">Last Backup:</span>
+                    <span class="info-value">{{ last_backup }}</span>
+                </div>
                 <div class="info-item">
                     <span class="info-label">Uptime:</span>
-                    <span class="info-value" id="uptime">Loading...</span>
+                    <span class="info-value" id="uptime">{{ uptime }}</span>
                 </div>
             </div>
         </div>
@@ -426,9 +426,23 @@
     <div class="content-card">
         <h2><i class="fas fa-clock"></i> Recent Orders</h2>
         <div class="recent-orders" id="recent-orders">
-            <div style="text-align: center; padding: 2rem; color: #666;">
-                <i class="fas fa-spinner fa-spin"></i> Loading recent orders...
-            </div>
+            {% if recent_orders %}
+                {% for order in recent_orders %}
+                <div class="order-item">
+                    <div class="order-info">
+                        <h4>Order #{{ order._id[:8] }}</h4>
+                        <p>{{ order.get('customer_name', 'Unknown') }} - Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</p>
+                        <p>{{ order.get('created_at', 'Unknown date') }}</p>
+                    </div>
+                    <span class="order-status status-{{ order.get('status', 'pending') }}">{{ order.get('status', 'Pending').title() }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>No recent orders found</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

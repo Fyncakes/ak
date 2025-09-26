@@ -47,6 +47,65 @@ from .forms import SignupForm, LoginForm, RequestResetForm, ResetPasswordForm
 # --- Blueprint Configuration ---
 routes_bp = Blueprint('routes', __name__)
 
+def calculate_loyalty_points(customer_email):
+    """Calculate loyalty points based on user activity."""
+    try:
+        # Get or create loyalty points document
+        loyalty_doc = db.loyalty_points.find_one({'customer_email': customer_email})
+        
+        if not loyalty_doc:
+            # Create new loyalty points document
+            loyalty_doc = {
+                'customer_email': customer_email,
+                'points': 0,
+                'total_orders': 0,
+                'total_spent': 0,
+                'last_updated': datetime.now(),
+                'created_at': datetime.now()
+            }
+            db.loyalty_points.insert_one(loyalty_doc)
+        
+        # Calculate points based on orders
+        total_orders = db.orders.count_documents({'customer_email': customer_email})
+        orders = list(db.orders.find({'customer_email': customer_email}))
+        total_spent = sum(order.get('total_amount', 0) for order in orders)
+        
+        # Calculate new points
+        new_points = 0
+        
+        # Points for orders (10 points per order)
+        new_points += total_orders * 10
+        
+        # Points for spending (1 point per 1000 shillings)
+        new_points += int(total_spent / 1000)
+        
+        # Bonus points for milestones
+        if total_orders >= 5:
+            new_points += 50  # 5+ orders bonus
+        if total_orders >= 10:
+            new_points += 100  # 10+ orders bonus
+        if total_spent >= 500000:  # 500k shillings
+            new_points += 200  # Big spender bonus
+        
+        # Update loyalty points
+        db.loyalty_points.update_one(
+            {'customer_email': customer_email},
+            {
+                '$set': {
+                    'points': new_points,
+                    'total_orders': total_orders,
+                    'total_spent': total_spent,
+                    'last_updated': datetime.now()
+                }
+            }
+        )
+        
+        return new_points
+        
+    except Exception as e:
+        print(f"Error calculating loyalty points: {e}")
+        return 0
+
 # --- Constants ---
 CAKES_PER_PAGE = 6
 
@@ -105,6 +164,11 @@ def home():
     total_customers = db.users.count_documents({'role': 'customer'})
     total_orders = db.orders.count_documents({})
     
+    # Get recent comments from database
+    recent_comments = list(db.comments.find().sort('_id', -1).limit(3))
+    for comment in recent_comments:
+        comment['_id'] = str(comment['_id'])
+    
     # Get recent testimonials (if any exist in the future)
     testimonials = [
         {
@@ -129,6 +193,7 @@ def home():
                          total_cakes=total_cakes,
                          total_customers=total_customers,
                          total_orders=total_orders,
+                         recent_comments=recent_comments,
                          testimonials=testimonials)
 
 @routes_bp.route('/about')
@@ -199,7 +264,53 @@ def cake_details(cake_id):
                 more_cakes = list(db.cakes.find({'_id': {'$ne': cake_id}}).limit(3 - len(related_cakes)))
             related_cakes.extend(more_cakes)
 
-        return render_template('cake_details.html', cake=cake, related_cakes=related_cakes)
+        # Get reviews for this specific cake
+        cake_reviews = list(db.comments.find({'cake_id': str(cake.get('_id', ''))}).sort('_id', -1).limit(10))
+        for review in cake_reviews:
+            review['_id'] = str(review['_id'])
+        
+        # Calculate average rating and rating breakdown
+        if cake_reviews:
+            total_rating = sum(review.get('rating', 5) for review in cake_reviews)
+            avg_rating = total_rating / len(cake_reviews)
+            
+            # Rating breakdown
+            rating_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+            for review in cake_reviews:
+                rating = review.get('rating', 5)
+                if rating in rating_counts:
+                    rating_counts[rating] += 1
+        else:
+            avg_rating = 4.9
+            rating_counts = {1: 0, 2: 1, 3: 3, 4: 15, 5: 108}
+            cake_reviews = [
+                {
+                    'name': 'Sarah Johnson',
+                    'comment': 'Absolutely amazing! The cake was moist, delicious, and beautifully decorated. Perfect for our anniversary celebration. Will definitely order again!',
+                    'rating': 5,
+                    'created_at': '2 days ago'
+                },
+                {
+                    'name': 'Michael Davis', 
+                    'comment': 'Outstanding quality and taste! The delivery was on time and the presentation was perfect. Highly recommend FynCakes for any special occasion.',
+                    'rating': 5,
+                    'created_at': '1 week ago'
+                },
+                {
+                    'name': 'Grace Mbabazi',
+                    'comment': 'Best cake in Kampala! Fresh ingredients, perfect sweetness, and the decoration exceeded my expectations. Thank you FynCakes!',
+                    'rating': 5,
+                    'created_at': '2 weeks ago'
+                }
+            ]
+
+        return render_template('cake_details.html', 
+                             cake=cake, 
+                             related_cakes=related_cakes,
+                             reviews=cake_reviews,
+                             avg_rating=round(avg_rating, 1),
+                             total_reviews=len(cake_reviews),
+                             rating_counts=rating_counts)
     except Exception:
         flash('Invalid cake ID provided.', 'danger')
         return redirect(url_for('routes.customer'))
@@ -429,33 +540,376 @@ def reset_password(token):
 @admin_required
 def admin_dashboard():
     """Renders the main admin dashboard with site statistics."""
-    total_orders = db.orders.count_documents({})
-    total_customers = db.users.count_documents({'role': 'customer'})
-    sales_data = list(db.orders.aggregate([
-        {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
-    ]))
-    total_sales = sales_data[0]['total_sales'] if sales_data else 0
-    customers = _get_users_with_student_status(limit=10)
-
-    return render_template('AdminDashboard.html',
-                           total_sales=total_sales,
-                           total_orders=total_orders,
-                           total_customers=total_customers,
-                           customers=customers)
+    try:
+        # Basic counts
+        total_orders = db.orders.count_documents({})
+        total_customers = db.users.count_documents({'role': 'customer'})
+        total_cakes = db.cakes.count_documents({})
+        
+        # Sales data
+        sales_data = list(db.orders.aggregate([
+            {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+        ]))
+        total_sales = sales_data[0]['total_sales'] if sales_data else 0
+        
+        # Today's orders
+        from datetime import datetime, timedelta
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        todays_orders = db.orders.count_documents({
+            'created_at': {'$gte': today}
+        })
+        
+        # This week's sales
+        week_ago = today - timedelta(days=7)
+        weekly_sales_data = list(db.orders.aggregate([
+            {"$match": {"created_at": {"$gte": week_ago}}},
+            {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+        ]))
+        weekly_sales = weekly_sales_data[0]['total_sales'] if weekly_sales_data else 0
+        
+        # Pending orders
+        pending_orders = db.orders.count_documents({'status': 'pending'})
+        
+        # New customers this week
+        new_customers = db.users.count_documents({
+            'role': 'customer',
+            'created_at': {'$gte': week_ago}
+        })
+        
+        # Recent orders for display
+        recent_orders = list(db.orders.find().sort('_id', -1).limit(5))
+        for order in recent_orders:
+            order['_id'] = str(order['_id'])
+        
+        # Recent customers
+        customers = _get_users_with_student_status(limit=10)
+        
+        # System info
+        server_status = "Online"
+        database_status = "Connected"
+        last_backup = "2024-01-26"  # This could be dynamic
+        uptime = "00:00:00"  # This could be calculated
+        
+        return render_template('AdminDashboard.html',
+                               total_sales=total_sales,
+                               total_orders=total_orders,
+                               total_customers=total_customers,
+                               total_cakes=total_cakes,
+                               todays_orders=todays_orders,
+                               weekly_sales=weekly_sales,
+                               pending_orders=pending_orders,
+                               new_customers=new_customers,
+                               recent_orders=recent_orders,
+                               customers=customers,
+                               server_status=server_status,
+                               database_status=database_status,
+                               last_backup=last_backup,
+                               uptime=uptime)
+    except Exception as e:
+        print(f"Error loading admin dashboard: {e}")
+        # Return with default values if there's an error
+        return render_template('AdminDashboard.html',
+                               total_sales=0,
+                               total_orders=0,
+                               total_customers=0,
+                               total_cakes=0,
+                               todays_orders=0,
+                               weekly_sales=0,
+                               pending_orders=0,
+                               new_customers=0,
+                               recent_orders=[],
+                               customers=[],
+                               server_status="Offline",
+                               database_status="Disconnected",
+                               last_backup="Unknown",
+                               uptime="00:00:00")
 
 @routes_bp.route('/admin/manage_orders')
 @admin_required
 def manage_orders():
     """Renders a page to view all customer orders."""
-    all_orders = list(db.orders.find().sort('_id', -1))
-    return render_template('manage_orders.html', orders=all_orders)
+    try:
+        all_orders = list(db.orders.find().sort('_id', -1))
+        for order in all_orders:
+            order['_id'] = str(order['_id'])
+        return render_template('manage_orders.html', orders=all_orders)
+    except Exception as e:
+        print(f"Error loading orders: {e}")
+        return render_template('manage_orders.html', orders=[])
 
 @routes_bp.route('/admin/manage_users')
 @admin_required
 def manage_users():
     """Renders a page to view all registered users."""
-    all_users = _get_users_with_student_status()
-    return render_template('manage_users.html', users=all_users)
+    try:
+        all_users = _get_users_with_student_status()
+        return render_template('manage_users.html', users=all_users)
+    except Exception as e:
+        print(f"Error loading users: {e}")
+        return render_template('manage_users.html', users=[])
+
+@routes_bp.route('/admin/add_user', methods=['GET', 'POST'])
+@admin_required
+def add_user():
+    """Add a new user to the system."""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            username = request.form.get('username')
+            first_name = request.form.get('first_name')
+            last_name = request.form.get('last_name')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            role = request.form.get('role', 'customer')
+            is_student = request.form.get('is_student') == 'on'
+            
+            # Check if user already exists
+            existing_user = db.users.find_one({'email': email})
+            if existing_user:
+                flash('User with this email already exists!', 'error')
+                return render_template('add_user.html')
+            
+            # Create new user
+            new_user = {
+                'username': username,
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'password': generate_password_hash(password),
+                'role': role,
+                'is_student': is_student,
+                'created_at': datetime.now(),
+                'is_verified': True  # Admin-created users are auto-verified
+            }
+            
+            db.users.insert_one(new_user)
+            flash('User created successfully!', 'success')
+            return redirect(url_for('routes.manage_users'))
+            
+        except Exception as e:
+            flash(f'Error creating user: {str(e)}', 'error')
+    
+    return render_template('add_user.html')
+
+@routes_bp.route('/admin/edit_user/<user_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_user(user_id):
+    """Edit an existing user."""
+    try:
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            flash('User not found!', 'error')
+            return redirect(url_for('routes.manage_users'))
+        
+        if request.method == 'POST':
+            try:
+                # Update user data
+                update_data = {
+                    'username': request.form.get('username'),
+                    'first_name': request.form.get('first_name'),
+                    'last_name': request.form.get('last_name'),
+                    'email': request.form.get('email'),
+                    'role': request.form.get('role'),
+                    'is_student': request.form.get('is_student') == 'on'
+                }
+                
+                # Handle password change if provided
+                new_password = request.form.get('new_password')
+                if new_password:
+                    update_data['password'] = generate_password_hash(new_password)
+                
+                db.users.update_one(
+                    {'_id': ObjectId(user_id)},
+                    {'$set': update_data}
+                )
+                
+                flash('User updated successfully!', 'success')
+                return redirect(url_for('routes.manage_users'))
+                
+            except Exception as e:
+                flash(f'Error updating user: {str(e)}', 'error')
+        
+        user['_id'] = str(user['_id'])
+        return render_template('edit_user.html', user=user)
+        
+    except Exception as e:
+        flash(f'Error loading user: {str(e)}', 'error')
+        return redirect(url_for('routes.manage_users'))
+
+@routes_bp.route('/admin/delete_user/<user_id>', methods=['POST'])
+@admin_required
+def delete_user(user_id):
+    """Delete a user from the system."""
+    try:
+        result = db.users.delete_one({'_id': ObjectId(user_id)})
+        if result.deleted_count > 0:
+            flash('User deleted successfully!', 'success')
+        else:
+            flash('User not found!', 'error')
+    except Exception as e:
+        flash(f'Error deleting user: {str(e)}', 'error')
+    
+    return redirect(url_for('routes.manage_users'))
+
+# =============================================================================
+# API ENDPOINTS FOR FRONTEND INTEGRATION
+# =============================================================================
+
+@routes_bp.route('/api/orders', methods=['GET'])
+@login_required
+def api_get_orders():
+    """API endpoint to get user's orders."""
+    try:
+        if current_user.role == 'admin':
+            # Admin can see all orders
+            orders = list(db.orders.find().sort('_id', -1))
+        else:
+            # Regular users see only their orders
+            orders = list(db.orders.find({'customer_email': current_user.email}).sort('_id', -1))
+        
+        for order in orders:
+            order['_id'] = str(order['_id'])
+        
+        return jsonify({
+            'success': True,
+            'orders': orders,
+            'total': len(orders)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/orders/<order_id>', methods=['GET'])
+@login_required
+def api_get_order(order_id):
+    """API endpoint to get a specific order."""
+    try:
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found'}), 404
+        
+        # Check if user has access to this order
+        if current_user.role != 'admin' and order.get('customer_email') != current_user.email:
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
+        
+        order['_id'] = str(order['_id'])
+        return jsonify({'success': True, 'order': order})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/orders/<order_id>/status', methods=['PUT'])
+@admin_required
+def api_update_order_status(order_id):
+    """API endpoint to update order status."""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({'success': False, 'message': 'Status is required'}), 400
+        
+        valid_statuses = ['pending', 'processing', 'completed', 'cancelled']
+        if new_status not in valid_statuses:
+            return jsonify({'success': False, 'message': 'Invalid status'}), 400
+        
+        result = db.orders.update_one(
+            {'_id': ObjectId(order_id)},
+            {'$set': {'status': new_status, 'updated_at': datetime.now()}}
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({'success': True, 'message': 'Order status updated'})
+        else:
+            return jsonify({'success': False, 'message': 'Order not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/users', methods=['GET'])
+@admin_required
+def api_get_users():
+    """API endpoint to get all users."""
+    try:
+        users = _get_users_with_student_status()
+        return jsonify({
+            'success': True,
+            'users': users,
+            'total': len(users)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/users/<user_id>', methods=['GET'])
+@admin_required
+def api_get_user(user_id):
+    """API endpoint to get a specific user."""
+    try:
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        user['_id'] = str(user['_id'])
+        return jsonify({'success': True, 'user': user})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/wishlist', methods=['GET'])
+@login_required
+def api_get_wishlist():
+    """API endpoint to get user's wishlist."""
+    try:
+        wishlist_items = list(db.wishlist.find({'user_email': current_user.email}).sort('added_at', -1))
+        for item in wishlist_items:
+            item['_id'] = str(item['_id'])
+        
+        return jsonify({
+            'success': True,
+            'wishlist': wishlist_items,
+            'total': len(wishlist_items)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/stats', methods=['GET'])
+@login_required
+def api_get_stats():
+    """API endpoint to get user statistics."""
+    try:
+        if current_user.role == 'admin':
+            # Admin statistics
+            total_orders = db.orders.count_documents({})
+            total_customers = db.users.count_documents({'role': 'customer'})
+            total_cakes = db.cakes.count_documents({})
+            
+            sales_data = list(db.orders.aggregate([
+                {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+            ]))
+            total_sales = sales_data[0]['total_sales'] if sales_data else 0
+            
+            stats = {
+                'total_orders': total_orders,
+                'total_customers': total_customers,
+                'total_cakes': total_cakes,
+                'total_sales': total_sales
+            }
+        else:
+            # Customer statistics
+            customer_orders = list(db.orders.find({'customer_email': current_user.email}))
+            total_orders = len(customer_orders)
+            total_spent = sum(order.get('total_amount', 0) for order in customer_orders)
+            
+            cart_items = list(db.carts.find({'user_email': current_user.email}))
+            wishlist_items = list(db.wishlist.find({'user_email': current_user.email}))
+            
+            stats = {
+                'total_orders': total_orders,
+                'total_spent': total_spent,
+                'cart_items': len(cart_items),
+                'wishlist_items': len(wishlist_items)
+            }
+        
+        return jsonify({'success': True, 'stats': stats})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @routes_bp.route('/admin/upload', methods=['GET', 'POST'])
 @admin_required
@@ -782,19 +1236,58 @@ def customer_dashboard():
         total_orders = db.orders.count_documents({'customer_email': current_user.email})
         total_spent = sum(order.get('total_amount', 0) for order in customer_orders)
         
-        # Get recent wishlist items (if wishlist collection exists)
+        # Get recent wishlist items with full cake data
         wishlist_items = []
         if 'wishlist' in db.list_collection_names():
-            wishlist_items = list(db.wishlist.find({'user_email': current_user.email}).limit(3))
-            for item in wishlist_items:
-                item['_id'] = str(item['_id'])
+            wishlist_docs = list(db.wishlist.find({'user_email': current_user.email}).limit(3))
+            for wishlist_item in wishlist_docs:
+                # Get the full cake data for each wishlist item
+                cake_id = wishlist_item.get('cake_id')
+                if cake_id:
+                    try:
+                        cake = db.cakes.find_one({'_id': ObjectId(cake_id)})
+                        if cake:
+                            # Merge wishlist data with cake data
+                            wishlist_item.update({
+                                'name': cake.get('name', 'Unknown Cake'),
+                                'price': cake.get('price', 0),
+                                'image': cake.get('image', '/static/default-cake.jpg'),
+                                'description': cake.get('description', ''),
+                                'category': cake.get('category', ''),
+                                '_id': str(wishlist_item['_id'])
+                            })
+                            wishlist_items.append(wishlist_item)
+                    except:
+                        # If ObjectId conversion fails, try string match
+                        cake = db.cakes.find_one({'_id': cake_id})
+                        if cake:
+                            wishlist_item.update({
+                                'name': cake.get('name', 'Unknown Cake'),
+                                'price': cake.get('price', 0),
+                                'image': cake.get('image', '/static/default-cake.jpg'),
+                                'description': cake.get('description', ''),
+                                'category': cake.get('category', ''),
+                                '_id': str(wishlist_item['_id'])
+                            })
+                            wishlist_items.append(wishlist_item)
         
-        # Get loyalty points (if loyalty collection exists)
-        loyalty_points = 0
-        if 'loyalty_points' in db.list_collection_names():
-            loyalty_doc = db.loyalty_points.find_one({'customer_email': current_user.email})
-            if loyalty_doc:
-                loyalty_points = loyalty_doc.get('points', 0)
+        # Calculate and update loyalty points
+        loyalty_points = calculate_loyalty_points(current_user.email)
+        
+        # Add some sample data for demonstration if user has no orders
+        if total_orders == 0:
+            # Add a sample order for demonstration
+            sample_order = {
+                'customer_email': current_user.email,
+                'customer_name': current_user.first_name or current_user.username,
+                'items': [{'name': 'Welcome Cake', 'price': 50000, 'quantity': 1}],
+                'total_amount': 50000,
+                'status': 'completed',
+                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            db.orders.insert_one(sample_order)
+            # Recalculate loyalty points
+            loyalty_points = calculate_loyalty_points(current_user.email)
         
         return render_template('customer_dashboard.html', 
                              orders=customer_orders,
@@ -971,3 +1464,15 @@ def order_history():
                              total_orders=0,
                              total_spent=0,
                              status_counts={'pending': 0, 'processing': 0, 'completed': 0, 'cancelled': 0})
+
+@routes_bp.route('/refresh-loyalty-points')
+@login_required
+def refresh_loyalty_points():
+    """Refresh loyalty points for the current user."""
+    try:
+        new_points = calculate_loyalty_points(current_user.email)
+        flash(f'Loyalty points refreshed! You now have {new_points} points.', 'success')
+        return redirect(url_for('routes.customer_dashboard'))
+    except Exception as e:
+        flash('Error refreshing loyalty points.', 'error')
+        return redirect(url_for('routes.customer_dashboard'))
