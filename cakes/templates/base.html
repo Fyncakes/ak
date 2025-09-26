@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}FynCakes{% endblock %}</title>
     
-    <!-- Professional Google Font & Icons -->
+    <!-- Professional Google Font & Icons with Performance Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Performance Optimization Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FynCakes - Premium handcrafted cakes in Kampala. Fresh ingredients, beautiful designs, and exceptional taste for your special occasions.">
+    <meta name="keywords" content="cakes, bakery, Kampala, Uganda, wedding cakes, birthday cakes, custom cakes, fresh ingredients">
+    <meta name="author" content="FynCakes">
+    
+    <!-- Open Graph Meta Tags for Social Sharing -->
+    <meta property="og:title" content="FynCakes - Premium Handcrafted Cakes">
+    <meta property="og:description" content="Where every slice is a piece of art, crafted with passion. Fresh, delicious cakes for your special moments.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
@@ -38,7 +53,33 @@
                     <span id="cart-count" class="cart-count-badge">0</span>
                 </a>
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('routes.logout') }}" class="nav-link nav-button">Logout</a>
+                    <div class="user-menu">
+                        <span class="welcome-text">Hi, {{ current_user.first_name or current_user.username }}!</span>
+                        <div class="user-dropdown">
+                            <button class="user-dropdown-toggle" aria-label="User Menu">
+                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="user-dropdown-menu">
+                                <a href="{{ url_for('routes.customer_dashboard') }}" class="dropdown-item">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                                <a href="{{ url_for('routes.customer_profile') }}" class="dropdown-item">
+                                    <i class="fas fa-user-edit"></i> Profile
+                                </a>
+                                <a href="{{ url_for('routes.order_history') }}" class="dropdown-item">
+                                    <i class="fas fa-history"></i> Order History
+                                </a>
+                                <a href="{{ url_for('routes.wishlist_page') }}" class="dropdown-item">
+                                    <i class="fas fa-heart"></i> My Wishlist
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ url_for('routes.logout') }}" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 {% else %}
                     <a href="{{ url_for('routes.login') }}" class="nav-link nav-button">Login</a>
                 {% endif %}

@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Order History - FynCakes{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/order_history.css') }}">
+<style>
+    .history-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .history-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .history-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .history-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #e74c3c;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .filters-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .order-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-info h3 {
+        margin: 0;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .order-date {
+        margin: 0.25rem 0 0 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .order-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .order-items {
+        padding: 1.5rem;
+    }
+
+    .order-items h4 {
+        margin: 0 0 1rem 0;
+        color: #333;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .item-info {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-details {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .item-price {
+        font-weight: 600;
+        color: #e74c3c;
+    }
+
+    .order-summary {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #eee;
+    }
+
+    .order-total {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        text-align: right;
+    }
+
+    .order-details {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .order-details p {
+        margin: 0.25rem 0;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+
+    .btn-outline:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #ddd;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+    }
+
+    .empty-state p {
+        margin: 0 0 1.5rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <div class="history-header">
+        <h1><i class="fas fa-history"></i> Order History</h1>
+        <p>Track all your FynCakes orders and their status</p>
+    </div>
+
+    <!-- Statistics Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-number">{{ total_orders }}</span>
+            <span class="stat-label">Total Orders</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">Shs {{ "{:,.0f}".format(total_spent) }}</span>
+            <span class="stat-label">Total Spent</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ status_counts.pending }}</span>
+            <span class="stat-label">Pending</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ status_counts.completed }}</span>
+            <span class="stat-label">Completed</span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <div class="filter-group">
+            <label for="status-filter">Status:</label>
+            <select id="status-filter">
+                <option value="">All Orders</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="date-from">From Date:</label>
+            <input type="date" id="date-from">
+        </div>
+        <div class="filter-group">
+            <label for="date-to">To Date:</label>
+            <input type="date" id="date-to">
+        </div>
+        <div class="filter-group">
+            <button class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="orders-list" id="orders-list">
+        {% if orders %}
+            {% for order in orders %}
+            <div class="order-card" data-status="{{ order.get('status', 'pending') }}">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Order #{{ order._id[:8] }}</h3>
+                        <p class="order-date">{{ order.get('created_at', 'Unknown date') }}</p>
+                    </div>
+                    <div class="order-status">
+                        <span class="status status-{{ order.get('status', 'pending') }}">
+                            {{ order.get('status', 'Pending').title() }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="order-items">
+                    <h4>Order Items:</h4>
+                    {% for item in order.get('items', []) %}
+                    <div class="order-item">
+                        <img src="{{ item.get('image', '/static/default-cake.jpg') }}" alt="{{ item.get('name', 'Cake') }}" class="item-image">
+                        <div class="item-info">
+                            <div class="item-name">{{ item.get('name', 'Unknown Cake') }}</div>
+                            <div class="item-details">
+                                <span class="item-quantity">Qty: {{ item.get('quantity', 1) }}</span>
+                                <span class="item-price">Shs {{ "{:,.0f}".format(item.get('price', 0)) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="order-total">
+                        <strong>Total: Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</strong>
+                    </div>
+                    <div class="order-details">
+                        <p><strong>Delivery Address:</strong> {{ order.get('delivery_address', 'Not specified') }}</p>
+                        <p><strong>Payment Method:</strong> {{ order.get('payment_method', 'Not specified') }}</p>
+                    </div>
+                </div>
+                
+                <div class="order-actions">
+                    <button class="btn btn-outline" onclick="viewOrderDetails('{{ order._id }}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                    {% if order.get('status') == 'completed' %}
+                    <button class="btn btn-primary" onclick="reorder('{{ order._id }}')">
+                        <i class="fas fa-redo"></i> Reorder
+                    </button>
+                    {% endif %}
+                    {% if order.get('status') == 'pending' %}
+                    <button class="btn btn-secondary" onclick="cancelOrder('{{ order._id }}')">
+                        <i class="fas fa-times"></i> Cancel Order
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>No orders found</h3>
+                <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                <a href="{{ url_for('routes.customer') }}" class="btn btn-primary">Browse Cakes</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Orders are now loaded from server-side template
+    console.log('Order history page loaded with real data');
+});
+
+function viewOrderDetails(orderId) {
+    // This would open a modal or navigate to order details
+    alert('View order details: ' + orderId);
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        // This would make an API call to cancel the order
+        alert('Order cancelled: ' + orderId);
+    }
+}
+
+function reorder(orderId) {
+    // This would add items from the order back to cart
+    alert('Reordering: ' + orderId);
+}
+
+function applyFilters() {
+    const statusFilter = document.getElementById('status-filter').value;
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+    
+    // Filter orders by status
+    const orderCards = document.querySelectorAll('.order-card');
+    orderCards.forEach(card => {
+        const orderStatus = card.getAttribute('data-status');
+        if (statusFilter === '' || orderStatus === statusFilter) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

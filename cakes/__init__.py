@@ -12,10 +12,30 @@ login_manager = LoginManager()
 login_manager.login_view = 'routes.login'
 login_manager.login_message_category = 'info'
 
-# Initialize MongoDB client
-mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/fyncakes')
-client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
-db = client.fyncakes
+# Initialize Database (MongoDB Atlas or Mock)
+try:
+    # Try to connect to MongoDB Atlas first
+    mongo_uri = os.environ.get('MONGO_URI', 'mongodb+srv://fyncakes_user:<db_password>@fyncakes-cluster.sfxujh9.mongodb.net/?retryWrites=true&w=majority&appName=fyncakes-cluster')
+    
+    # Check if password placeholder exists
+    if '<db_password>' in mongo_uri:
+        print("⚠️  Please replace <db_password> in MONGO_URI with your actual MongoDB Atlas password")
+        print("   Current URI:", mongo_uri)
+        raise Exception("Password placeholder not replaced")
+    
+    client = MongoClient(mongo_uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+    # Test connection
+    client.admin.command('ping')
+    db = client.fyncakes
+    print("✅ Connected to MongoDB Atlas successfully!")
+    print(f"   Database: {db.name}")
+    print(f"   Collections: {db.list_collection_names()}")
+except Exception as e:
+    # Fall back to mock database
+    print("⚠️  MongoDB Atlas not available, using mock database for development")
+    print(f"   Error: {str(e)}")
+    from .mock_db import init_mock_db
+    db = init_mock_db()
 mail = Mail()
 
 def create_app():
@@ -25,7 +45,7 @@ def create_app():
     app = Flask(__name__)
 
     # --- Configuration ---
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     
     # Configure upload folder and allowed extensions
     upload_path = os.path.join(app.root_path, 'static', 'cake_uploads')
@@ -36,12 +56,12 @@ def create_app():
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     
     # --- Email Server Configuration ---
-    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
-    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT'))
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
     app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', '')
 
     # --- Initialize Extensions ---
     login_manager.init_app(app)

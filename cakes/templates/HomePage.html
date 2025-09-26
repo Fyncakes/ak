@@ -53,10 +53,147 @@
     </div>
 </section>
 
+<!-- NEW: Statistics Section -->
+<section class="stats-section">
+    <div class="stats-container">
+        <div class="stat-item">
+            <div class="stat-number">{{ total_cakes }}+</div>
+            <div class="stat-label">Cake Varieties</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ total_customers }}+</div>
+            <div class="stat-label">Happy Customers</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ total_orders }}+</div>
+            <div class="stat-label">Orders Delivered</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">5★</div>
+            <div class="stat-label">Average Rating</div>
+        </div>
+    </div>
+</section>
+
+<!-- NEW: Featured Cakes Section -->
+{% if featured_cakes %}
+<section class="featured-cakes-section">
+    <h2 class="section-title">Our Featured Cakes</h2>
+    <div class="featured-cakes-grid">
+        {% for cake in featured_cakes[:3] %}
+        <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="featured-cake-card">
+            <div class="featured-cake-image">
+                <img src="{{ cake.image }}" alt="{{ cake.name }}" loading="lazy">
+            </div>
+            <div class="featured-cake-info">
+                <h3>{{ cake.name }}</h3>
+                <p class="featured-cake-price">Shs {{ "{:,.0f}".format(cake.price|int) }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    <div class="featured-cakes-cta">
+        <a href="{{ url_for('routes.customer') }}" class="cta-button">View All Cakes</a>
+    </div>
+</section>
+{% endif %}
+
+<!-- NEW: Customer Testimonials Section -->
+<section class="testimonials-section">
+    <h2 class="section-title">What Our Customers Say</h2>
+    <div class="testimonials-container">
+        {% for testimonial in testimonials %}
+        <div class="testimonial-card">
+            <div class="testimonial-rating">
+                {% for i in range(testimonial.rating) %}
+                <i class="fas fa-star"></i>
+                {% endfor %}
+            </div>
+            <blockquote class="testimonial-text">"{{ testimonial.text }}"</blockquote>
+            <cite class="testimonial-author">- {{ testimonial.name }}</cite>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- NEW: Newsletter Signup Section -->
+<section class="newsletter-section">
+    <div class="newsletter-container">
+        <h2>Stay Sweet with FynCakes</h2>
+        <p>Get the latest updates on new cake flavors, special offers, and baking tips delivered to your inbox!</p>
+        <form class="newsletter-form" id="newsletter-form">
+            <input type="email" placeholder="Enter your email address" required class="newsletter-input">
+            <button type="submit" class="newsletter-button">Subscribe</button>
+        </form>
+        <p class="newsletter-disclaimer">We respect your privacy. Unsubscribe at any time.</p>
+    </div>
+</section>
+
+<!-- Customer Comments Section -->
+<section class="comments-wrapper">
+    <div class="container">
+        {% include 'components/comments_section.html' %}
+    </div>
+</section>
+
 <section class="cta-section">
     <h2>Ready for a Taste of Perfection?</h2>
     <p>Browse our gallery of delicious, handcrafted cakes and find the perfect centerpiece for your next celebration.</p>
     <a href="{{ url_for('routes.customer') }}" class="cta-button-alt">View All Cakes</a>
 </section>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Newsletter signup functionality
+    document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = this.querySelector('.newsletter-input').value;
+        
+        // Simple validation
+        if (!email || !email.includes('@')) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+        
+        // Show success message (in a real app, this would send to server)
+        alert('Thank you for subscribing! You\'ll receive our latest updates soon.');
+        this.reset();
+    });
+    
+    // Animate statistics on scroll
+    function animateStats() {
+        const stats = document.querySelectorAll('.stat-number');
+        stats.forEach(stat => {
+            const target = parseInt(stat.textContent.replace(/\D/g, ''));
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    stat.textContent = target + '+';
+                    clearInterval(timer);
+                } else {
+                    stat.textContent = Math.floor(current) + '+';
+                }
+            }, 30);
+        });
+    }
+    
+    // Trigger animation when stats section is visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateStats();
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+    
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - FynCakes{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer_profile.css') }}">
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e74c3c;
+    }
+
+    .profile-header h1 {
+        color: #2c3e50;
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-header p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .profile-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .form-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+
+    .form-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #e74c3c;
+        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+    }
+
+    .form-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.8rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #c3e6cb;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+        .profile-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1><i class="fas fa-user-edit"></i> My Profile</h1>
+        <p>Manage your personal information and account settings</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="{{ category }}-message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('routes.customer_profile') }}" class="profile-form">
+        <div class="form-section">
+            <h3><i class="fas fa-user"></i> Personal Information</h3>
+            
+            <div class="form-group">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" 
+                       value="{{ current_user.first_name or '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" 
+                       value="{{ current_user.last_name or '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" name="email" 
+                       value="{{ current_user.email or '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" 
+                       value="{{ current_user.phone or '' }}" 
+                       placeholder="e.g., +256 751 234 567">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3><i class="fas fa-map-marker-alt"></i> Address Information</h3>
+            
+            <div class="form-group">
+                <label for="address">Street Address:</label>
+                <input type="text" id="address" name="address" 
+                       value="{{ current_user.address or '' }}" 
+                       placeholder="e.g., Plot 123, Kampala Road">
+            </div>
+
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" 
+                       value="{{ current_user.city or 'Kampala' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="district">District:</label>
+                <select id="district" name="district">
+                    <option value="">Select District</option>
+                    <option value="Kampala" {{ 'selected' if current_user.district == 'Kampala' else '' }}>Kampala</option>
+                    <option value="Wakiso" {{ 'selected' if current_user.district == 'Wakiso' else '' }}>Wakiso</option>
+                    <option value="Mukono" {{ 'selected' if current_user.district == 'Mukono' else '' }}>Mukono</option>
+                    <option value="Entebbe" {{ 'selected' if current_user.district == 'Entebbe' else '' }}>Entebbe</option>
+                    <option value="Other" {{ 'selected' if current_user.district == 'Other' else '' }}>Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="postal_code">Postal Code:</label>
+                <input type="text" id="postal_code" name="postal_code" 
+                       value="{{ current_user.postal_code or '' }}" 
+                       placeholder="e.g., 256">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3><i class="fas fa-cog"></i> Account Settings</h3>
+            
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" 
+                       value="{{ current_user.username or '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="is_student">Account Type:</label>
+                <select id="is_student" name="is_student">
+                    <option value="false" {{ 'selected' if not current_user.is_student else '' }}>Regular Customer</option>
+                    <option value="true" {{ 'selected' if current_user.is_student else '' }}>Student (10% Discount)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="newsletter">Email Notifications:</label>
+                <select id="newsletter" name="newsletter">
+                    <option value="true" {{ 'selected' if current_user.newsletter else '' }}>Yes, send me updates</option>
+                    <option value="false" {{ 'selected' if not current_user.newsletter else '' }}>No, don't send updates</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3><i class="fas fa-lock"></i> Security</h3>
+            
+            <div class="form-group">
+                <label for="current_password">Current Password:</label>
+                <input type="password" id="current_password" name="current_password" 
+                       placeholder="Enter current password to change">
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">New Password:</label>
+                <input type="password" id="new_password" name="new_password" 
+                       placeholder="Enter new password">
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" 
+                       placeholder="Confirm new password">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <a href="{{ url_for('routes.customer_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.profile-form');
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+
+    form.addEventListener('submit', function(e) {
+        if (newPassword.value && newPassword.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert('New passwords do not match!');
+            confirmPassword.focus();
+        }
+    });
+
+    // Real-time password confirmation
+    confirmPassword.addEventListener('input', function() {
+        if (newPassword.value && this.value && newPassword.value !== this.value) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+</script>
+{% endblock %}

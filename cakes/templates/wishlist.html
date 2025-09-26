@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}My Wishlist - FynCakes{% endblock %}
+
+{% block head_extra %}
+<style>
+    .wishlist-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .wishlist-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .wishlist-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .wishlist-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #e74c3c;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .wishlist-item {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .wishlist-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .wishlist-item-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .wishlist-item-content {
+        padding: 1.5rem;
+    }
+
+    .wishlist-item-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .wishlist-item-price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+    }
+
+    .wishlist-item-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+
+    .btn-outline:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #ddd;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+        font-size: 1.5rem;
+    }
+
+    .empty-state p {
+        margin: 0 0 2rem 0;
+        font-size: 1.1rem;
+    }
+
+    .bulk-actions {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .bulk-actions input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
+
+    .bulk-actions button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .bulk-actions .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .bulk-actions .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .bulk-actions .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .bulk-actions .btn-danger:hover {
+        background: #c82333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-container">
+    <div class="wishlist-header">
+        <h1><i class="fas fa-heart"></i> My Wishlist</h1>
+        <p>Save your favorite cakes for later</p>
+    </div>
+
+    <!-- Statistics Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-number">{{ wishlist_items|length }}</span>
+            <span class="stat-label">Total Items</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">Shs {{ "{:,.0f}".format(wishlist_items|sum(attribute='cake_price')) }}</span>
+            <span class="stat-label">Total Value</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ wishlist_items|selectattr('added_at')|list|length }}</span>
+            <span class="stat-label">Recently Added</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">0</span>
+            <span class="stat-label">In Cart</span>
+        </div>
+    </div>
+
+    {% if wishlist_items %}
+    <!-- Bulk Actions -->
+    <div class="bulk-actions">
+        <label>
+            <input type="checkbox" id="select-all" onchange="toggleAllItems()">
+            Select All
+        </label>
+        <button class="btn-secondary" onclick="addSelectedToCart()">
+            <i class="fas fa-shopping-cart"></i> Add Selected to Cart
+        </button>
+        <button class="btn-danger" onclick="removeSelected()">
+            <i class="fas fa-trash"></i> Remove Selected
+        </button>
+    </div>
+
+    <!-- Wishlist Grid -->
+    <div class="wishlist-grid">
+        {% for item in wishlist_items %}
+        <div class="wishlist-item" data-cake-id="{{ item.cake_id }}">
+            <img src="{{ item.cake_image }}" alt="{{ item.cake_name }}" class="wishlist-item-image">
+            <div class="wishlist-item-content">
+                <h3 class="wishlist-item-name">{{ item.cake_name }}</h3>
+                <p class="wishlist-item-price">Shs {{ "{:,.0f}".format(item.cake_price) }}</p>
+                <div class="wishlist-item-actions">
+                    <button class="btn btn-primary" onclick="addToCart('{{ item.cake_id }}', '{{ item.cake_name }}', {{ item.cake_price }}, '{{ item.cake_image }}')">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <a href="/cake/{{ item.cake_id }}" class="btn btn-outline">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    <button class="btn btn-danger" onclick="removeFromWishlist('{{ item.cake_id }}')">
+                        <i class="fas fa-heart-broken"></i> Remove
+                    </button>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <input type="checkbox" class="item-checkbox" value="{{ item.cake_id }}">
+                    <small style="color: #666; margin-left: 0.5rem;">Select for bulk actions</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-heart"></i>
+        <h3>No items in wishlist</h3>
+        <p>Add cakes you love to your wishlist!</p>
+        <a href="{{ url_for('routes.customer') }}" class="btn btn-primary">Browse Cakes</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function addToCart(cakeId, name, price, image) {
+    if (!window.isUserAuthenticated) {
+        alert("Please log in to add items to your cart.");
+        window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+        return;
+    }
+
+    const product = {
+        name: name,
+        price: parseFloat(price),
+        description: name,
+        imageUrl: image
+    };
+
+    fetch("{{ url_for('routes.add_to_cart_db') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${name} added to cart!`);
+            // Update cart count
+            const cartCounter = document.getElementById('cart-count');
+            if (cartCounter) {
+                const currentCount = parseInt(cartCounter.innerText) || 0;
+                cartCounter.innerText = currentCount + 1;
+            }
+        } else {
+            alert("Could not add item to cart. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to cart:', error);
+        alert("Could not add item to cart. Please try again.");
+    });
+}
+
+function removeFromWishlist(cakeId) {
+    if (confirm('Remove this item from your wishlist?')) {
+        fetch("{{ url_for('routes.remove_from_wishlist') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cake_id: cakeId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the item from the page
+                const item = document.querySelector(`[data-cake-id="${cakeId}"]`);
+                if (item) {
+                    item.remove();
+                }
+                alert('Removed from wishlist!');
+                // Reload page to update stats
+                location.reload();
+            } else {
+                alert(data.message || 'Could not remove item from wishlist.');
+            }
+        })
+        .catch(error => {
+            console.error('Error removing from wishlist:', error);
+            alert('Could not remove item from wishlist.');
+        });
+    }
+}
+
+function toggleAllItems() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+function addSelectedToCart() {
+    const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+    
+    if (selectedItems.length === 0) {
+        alert('Please select items to add to cart.');
+        return;
+    }
+    
+    let addedCount = 0;
+    selectedItems.forEach(checkbox => {
+        const cakeId = checkbox.value;
+        const item = document.querySelector(`[data-cake-id="${cakeId}"]`);
+        const name = item.querySelector('.wishlist-item-name').textContent;
+        const price = parseFloat(item.querySelector('.wishlist-item-price').textContent.replace(/[^\d]/g, ''));
+        const image = item.querySelector('.wishlist-item-image').src;
+        
+        addToCart(cakeId, name, price, image);
+        addedCount++;
+    });
+    
+    if (addedCount > 0) {
+        alert(`${addedCount} items added to cart!`);
+    }
+}
+
+function removeSelected() {
+    const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+    
+    if (selectedItems.length === 0) {
+        alert('Please select items to remove.');
+        return;
+    }
+    
+    if (confirm(`Remove ${selectedItems.length} selected items from wishlist?`)) {
+        let removedCount = 0;
+        selectedItems.forEach(checkbox => {
+            const cakeId = checkbox.value;
+            removeFromWishlist(cakeId);
+            removedCount++;
+        });
+    }
+}
+</script>
+{% endblock %}

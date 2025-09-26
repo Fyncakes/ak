@@ -12,7 +12,23 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
-from bson.objectid import ObjectId
+try:
+    from bson.objectid import ObjectId
+except ImportError:
+    # Mock ObjectId for development without MongoDB
+    class ObjectId:
+        def __init__(self, oid=None):
+            self.oid = oid or f"mock_{hash(str(oid)) % 10000}"
+        
+        def __str__(self):
+            return self.oid
+        
+        def __eq__(self, other):
+            return str(self) == str(other)
+        
+        @classmethod
+        def is_valid(cls, oid):
+            return True
 from flask import (
     Blueprint, render_template, request, redirect, flash, url_for,
     jsonify, current_app, Response
@@ -80,8 +96,40 @@ def _get_users_with_student_status(limit=None):
 
 @routes_bp.route('/')
 def home():
-    """Renders the homepage."""
-    return render_template('HomePage.html')
+    """Renders the homepage with dynamic content."""
+    # Get featured cakes (latest 6 cakes)
+    featured_cakes = list(db.cakes.find().sort('_id', -1).limit(6))
+    
+    # Get statistics for homepage
+    total_cakes = db.cakes.count_documents({})
+    total_customers = db.users.count_documents({'role': 'customer'})
+    total_orders = db.orders.count_documents({})
+    
+    # Get recent testimonials (if any exist in the future)
+    testimonials = [
+        {
+            'name': 'Sarah Johnson',
+            'text': 'Absolutely delicious cakes! The attention to detail and the flavors are amazing. FynCakes is our go-to for every family celebration.',
+            'rating': 5
+        },
+        {
+            'name': 'Michael Davis', 
+            'text': 'FynCakes made our wedding day extra special with the most beautiful and delicious cake. Thank you for the wonderful experience!',
+            'rating': 5
+        },
+        {
+            'name': 'Grace Mbabazi',
+            'text': 'The best cakes in Kampala! Fresh, delicious, and beautifully decorated. My kids love them!',
+            'rating': 5
+        }
+    ]
+    
+    return render_template('HomePage.html', 
+                         featured_cakes=featured_cakes,
+                         total_cakes=total_cakes,
+                         total_customers=total_customers,
+                         total_orders=total_orders,
+                         testimonials=testimonials)
 
 @routes_bp.route('/about')
 def about_us():
@@ -121,21 +169,35 @@ def customer():
 def cake_details(cake_id):
     """Renders the detailed page for a single cake."""
     try:
-        cake = db.cakes.find_one({'_id': ObjectId(cake_id)})
+        # Handle both ObjectId and string IDs for compatibility
+        try:
+            cake = db.cakes.find_one({'_id': ObjectId(cake_id)})
+        except:
+            cake = db.cakes.find_one({'_id': cake_id})
+            
         if not cake:
             flash('Sorry, that cake could not be found.', 'danger')
             return redirect(url_for('routes.customer'))
         
         # Find related cakes from the same category
-        related_cakes = list(db.cakes.find({
-            'category': cake.get('category'), 
-            '_id': {'$ne': ObjectId(cake_id)}
-        }).limit(3))
+        try:
+            related_cakes = list(db.cakes.find({
+                'category': cake.get('category'), 
+                '_id': {'$ne': ObjectId(cake_id)}
+            }).limit(3))
+        except:
+            related_cakes = list(db.cakes.find({
+                'category': cake.get('category'), 
+                '_id': {'$ne': cake_id}
+            }).limit(3))
         
         # If not enough related cakes, fill with other random cakes
         if len(related_cakes) < 3:
-             more_cakes = list(db.cakes.find({'_id': {'$ne': ObjectId(cake_id)}}).limit(3 - len(related_cakes)))
-             related_cakes.extend(more_cakes)
+            try:
+                more_cakes = list(db.cakes.find({'_id': {'$ne': ObjectId(cake_id)}}).limit(3 - len(related_cakes)))
+            except:
+                more_cakes = list(db.cakes.find({'_id': {'$ne': cake_id}}).limit(3 - len(related_cakes)))
+            related_cakes.extend(more_cakes)
 
         return render_template('cake_details.html', cake=cake, related_cakes=related_cakes)
     except Exception:
@@ -634,3 +696,278 @@ def register_class():
         current_app.logger.error(f"Failed to send class registration email for {current_user.email}: {e}")
 
     return jsonify({'success': True, 'message': 'Your spot is reserved! Please check your email for payment instructions.'})
+
+@routes_bp.route('/api/update_cake/<cake_id>', methods=['PUT'])
+@admin_required
+def update_cake_api(cake_id):
+    """API endpoint to update cake details."""
+    try:
+        data = request.get_json()
+        
+        # Update the cake in the database
+        result = db.cakes.update_one(
+            {'_id': cake_id},
+            {'$set': data}
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({'success': True, 'message': 'Cake updated successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Cake not found or no changes made'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/comments', methods=['GET'])
+def get_comments():
+    """Get all approved comments."""
+    try:
+        comments = list(db.comments.find({'approved': True}).sort('created_at', -1).limit(10))
+        # Convert ObjectId to string for JSON serialization
+        for comment in comments:
+            comment['_id'] = str(comment['_id'])
+        return jsonify({'success': True, 'comments': comments})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/api/comments', methods=['POST'])
+def add_comment():
+    """Add a new comment."""
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        if not data.get('name') or not data.get('comment'):
+            return jsonify({'success': False, 'message': 'Name and comment are required'}), 400
+
+        # Create comment object
+        comment = {
+            'name': data.get('name'),
+            'email': data.get('email', ''),
+            'comment': data.get('comment'),
+            'rating': data.get('rating', 5),
+            'approved': False,  # Comments need approval
+            'created_at': datetime.now()
+        }
+
+        # Insert comment
+        result = db.comments.insert_one(comment)
+
+        if result.inserted_id:
+            return jsonify({'success': True, 'message': 'Thank you for your comment! It will be reviewed before being published.'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to add comment'}), 500
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# --- Customer Dashboard and Profile Routes ---
+
+@routes_bp.route('/customer/dashboard')
+@login_required
+def customer_dashboard():
+    """Customer dashboard with order history and statistics."""
+    try:
+        # Get customer's orders
+        customer_orders = list(db.orders.find({'customer_email': current_user.email}).sort('created_at', -1).limit(5))
+        for order in customer_orders:
+            order['_id'] = str(order['_id'])
+        
+        # Get customer's cart items
+        cart_items = list(db.carts.find({'user_email': current_user.email}))
+        for item in cart_items:
+            item['_id'] = str(item['_id'])
+        
+        # Calculate statistics
+        total_orders = db.orders.count_documents({'customer_email': current_user.email})
+        total_spent = sum(order.get('total_amount', 0) for order in customer_orders)
+        
+        # Get recent wishlist items (if wishlist collection exists)
+        wishlist_items = []
+        if 'wishlist' in db.list_collection_names():
+            wishlist_items = list(db.wishlist.find({'user_email': current_user.email}).limit(3))
+            for item in wishlist_items:
+                item['_id'] = str(item['_id'])
+        
+        # Get loyalty points (if loyalty collection exists)
+        loyalty_points = 0
+        if 'loyalty_points' in db.list_collection_names():
+            loyalty_doc = db.loyalty_points.find_one({'customer_email': current_user.email})
+            if loyalty_doc:
+                loyalty_points = loyalty_doc.get('points', 0)
+        
+        return render_template('customer_dashboard.html', 
+                             orders=customer_orders,
+                             cart_items=cart_items,
+                             wishlist_items=wishlist_items,
+                             total_orders=total_orders,
+                             total_spent=total_spent,
+                             loyalty_points=loyalty_points)
+    except Exception as e:
+        print(f"Error loading customer dashboard: {e}")
+        # Return empty data if there's an error
+        return render_template('customer_dashboard.html', 
+                             orders=[],
+                             cart_items=[],
+                             wishlist_items=[],
+                             total_orders=0,
+                             total_spent=0,
+                             loyalty_points=0)
+
+@routes_bp.route('/customer/profile', methods=['GET', 'POST'])
+@login_required
+def customer_profile():
+    """Customer profile management page."""
+    if request.method == 'POST':
+        try:
+            # Update user profile
+            update_data = {
+                'first_name': request.form.get('first_name'),
+                'last_name': request.form.get('last_name'),
+                'email': request.form.get('email'),
+                'phone': request.form.get('phone'),
+                'address': request.form.get('address'),
+                'city': request.form.get('city'),
+                'district': request.form.get('district'),
+                'postal_code': request.form.get('postal_code'),
+                'is_student': request.form.get('is_student') == 'true',
+                'newsletter': request.form.get('newsletter') == 'true'
+            }
+            
+            # Handle password change if provided
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+            
+            if current_password and new_password:
+                if new_password != confirm_password:
+                    flash('New passwords do not match!', 'error')
+                    return render_template('customer_profile.html')
+                
+                if not check_password_hash(current_user.password, current_password):
+                    flash('Current password is incorrect!', 'error')
+                    return render_template('customer_profile.html')
+                
+                update_data['password'] = generate_password_hash(new_password)
+            
+            # Update user in database
+            db.users.update_one(
+                {'_id': current_user._id},
+                {'$set': update_data}
+            )
+            
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('routes.customer_profile'))
+            
+        except Exception as e:
+            flash(f'Error updating profile: {str(e)}', 'error')
+    
+    return render_template('customer_profile.html')
+
+@routes_bp.route('/wishlist/add', methods=['POST'])
+@login_required
+def add_to_wishlist():
+    """Add a cake to the user's wishlist."""
+    try:
+        data = request.get_json()
+        cake_id = data.get('cake_id')
+        cake_name = data.get('cake_name')
+        cake_price = data.get('cake_price')
+        cake_image = data.get('cake_image')
+        
+        # Check if already in wishlist
+        existing = db.wishlist.find_one({
+            'user_email': current_user.email,
+            'cake_id': cake_id
+        })
+        
+        if existing:
+            return jsonify({'success': False, 'message': 'Cake already in wishlist'})
+        
+        # Add to wishlist
+        wishlist_item = {
+            'user_email': current_user.email,
+            'cake_id': cake_id,
+            'cake_name': cake_name,
+            'cake_price': cake_price,
+            'cake_image': cake_image,
+            'added_at': datetime.now()
+        }
+        
+        db.wishlist.insert_one(wishlist_item)
+        return jsonify({'success': True, 'message': 'Added to wishlist'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/wishlist/remove', methods=['POST'])
+@login_required
+def remove_from_wishlist():
+    """Remove a cake from the user's wishlist."""
+    try:
+        data = request.get_json()
+        cake_id = data.get('cake_id')
+        
+        result = db.wishlist.delete_one({
+            'user_email': current_user.email,
+            'cake_id': cake_id
+        })
+        
+        if result.deleted_count > 0:
+            return jsonify({'success': True, 'message': 'Removed from wishlist'})
+        else:
+            return jsonify({'success': False, 'message': 'Item not found in wishlist'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@routes_bp.route('/wishlist')
+@login_required
+def wishlist_page():
+    """Display the user's wishlist page."""
+    try:
+        # Get user's wishlist items
+        wishlist_items = list(db.wishlist.find({'user_email': current_user.email}).sort('added_at', -1))
+        for item in wishlist_items:
+            item['_id'] = str(item['_id'])
+        
+        return render_template('wishlist.html', wishlist_items=wishlist_items)
+    except Exception as e:
+        print(f"Error loading wishlist: {e}")
+        return render_template('wishlist.html', wishlist_items=[])
+
+@routes_bp.route('/customer/orders')
+@login_required
+def order_history():
+    """Customer order history page."""
+    try:
+        # Get customer's orders
+        customer_orders = list(db.orders.find({'customer_email': current_user.email}).sort('created_at', -1))
+        for order in customer_orders:
+            order['_id'] = str(order['_id'])
+        
+        # Calculate statistics
+        total_orders = len(customer_orders)
+        total_spent = sum(order.get('total_amount', 0) for order in customer_orders)
+        
+        # Get order status counts
+        status_counts = {
+            'pending': len([o for o in customer_orders if o.get('status') == 'pending']),
+            'processing': len([o for o in customer_orders if o.get('status') == 'processing']),
+            'completed': len([o for o in customer_orders if o.get('status') == 'completed']),
+            'cancelled': len([o for o in customer_orders if o.get('status') == 'cancelled'])
+        }
+        
+        return render_template('order_history.html', 
+                             orders=customer_orders,
+                             total_orders=total_orders,
+                             total_spent=total_spent,
+                             status_counts=status_counts)
+    except Exception as e:
+        print(f"Error loading order history: {e}")
+        # Return empty data if there's an error
+        return render_template('order_history.html', 
+                             orders=[],
+                             total_orders=0,
+                             total_spent=0,
+                             status_counts={'pending': 0, 'processing': 0, 'completed': 0, 'cancelled': 0})

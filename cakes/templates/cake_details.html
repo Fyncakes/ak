@@ -9,47 +9,327 @@
 {% block content %}
 <div class="product-container">
     <div class="breadcrumb-nav">
-        <a href="{{ url_for('routes.customer') }}" class="back-link">
-            Back to All Cakes
+        <a href="javascript:history.back()" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Previous Page
         </a>
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+        <div class="admin-actions">
+            <button class="edit-btn" onclick="toggleEditMode()">
+                <i class="fas fa-edit"></i> Edit Cake
+            </button>
+        </div>
+        {% endif %}
     </div>
 
     <div class="product-main-layout">
         <div class="product-gallery">
-            <img src="{{ cake.image }}" alt="{{ cake.name }}" class="main-product-image">
+            <img src="{{ cake.image }}" alt="{{ cake.name }}" class="main-product-image" id="cake-image">
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <div class="image-upload-overlay" id="image-upload-overlay" style="display: none;">
+                <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('image-upload').click()">
+                    <i class="fas fa-camera"></i> Change Image
+                </button>
+            </div>
+            {% endif %}
         </div>
 
         <div class="product-info">
-            <h1>{{ cake.name }}</h1>
-            <p class="price">Shs {{ "{:,.0f}".format(cake.price|int) }}</p>
-            <p class="description">{{ cake.description }}</p>
+            <div class="product-header">
+                <h1 id="cake-name" contenteditable="false">{{ cake.name }}</h1>
+                <div class="product-rating">
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <span class="rating-text">(4.9) • 127 reviews</span>
+                </div>
+            </div>
             
-            <button
-                class="add-to-cart-btn"
-                data-name="{{ cake.name }}"
-                data-image="{{ cake.image }}"
-                data-price="{{ cake.price }}"
-                data-description="{{ cake.description }}"
-                onclick="addToCart(this)"
-            >
-                <i class="fas fa-shopping-cart"></i> Add to Cart
-            </button>
+            <div class="product-category">
+                <span class="category-label">Category:</span>
+                <span id="cake-category" contenteditable="false">{{ cake.category }}</span>
+            </div>
+            
+            <div class="price-section">
+                <span class="price">Shs <span id="cake-price" contenteditable="false">{{ "{:,.0f}".format(cake.price|int) }}</span></span>
+                <span class="price-note">Free delivery in Kampala</span>
+            </div>
+            
+            <div class="product-description">
+                <h3>Description</h3>
+                <p id="cake-description" contenteditable="false">{{ cake.description }}</p>
+            </div>
+            
+            <!-- Dynamic Product Details -->
+            <div class="product-details">
+                <h3>Product Details</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Serving Size:</label>
+                        <span id="serving-size">{{ cake.get('serving_size', '6-8 people') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Preparation Time:</label>
+                        <span id="prep-time">{{ cake.get('preparation_time', '24-48 hours') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Allergens:</label>
+                        <span id="allergens">{{ cake.get('allergens', ['Gluten', 'Dairy', 'Eggs'])|join(', ') }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-features">
+                <h3>What's Special</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Made with fresh, locally-sourced ingredients</li>
+                    <li><i class="fas fa-check"></i> Handcrafted by our expert bakers</li>
+                    <li><i class="fas fa-check"></i> Customizable decorations available</li>
+                    <li><i class="fas fa-check"></i> 24-48 hour advance notice required</li>
+                </ul>
+            </div>
+            
+            <div class="action-buttons">
+                <button
+                    class="add-to-cart-btn primary"
+                    data-name="{{ cake.name }}"
+                    data-image="{{ cake.image }}"
+                    data-price="{{ cake.price }}"
+                    data-description="{{ cake.description }}"
+                    onclick="addToCart(this)"
+                >
+                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                </button>
+                <button class="wishlist-btn" onclick="addToWishlist('{{ cake._id }}')">
+                    <i class="far fa-heart"></i> Add to Wishlist
+                </button>
+            </div>
+            
+            <div class="social-proof">
+                <div class="recent-orders">
+                    <h4>Recent Orders</h4>
+                    <div class="order-avatars">
+                        <div class="avatar">SJ</div>
+                        <div class="avatar">MD</div>
+                        <div class="avatar">GM</div>
+                        <div class="avatar">+5</div>
+                    </div>
+                    <p>Ordered by 12+ customers in the last 24 hours</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Mode Controls (Admin Only) -->
+    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+    <div class="edit-controls" id="edit-controls" style="display: none;">
+        <div class="edit-panel">
+            <h3>Edit Cake Details</h3>
+            <div class="edit-form">
+                <div class="form-group">
+                    <label>Ingredients (comma-separated):</label>
+                    <input type="text" id="edit-ingredients" value="{{ cake.get('ingredients', [])|join(', ') }}" placeholder="Flour, Sugar, Eggs...">
+                </div>
+                <div class="form-group">
+                    <label>Allergens (comma-separated):</label>
+                    <input type="text" id="edit-allergens" value="{{ cake.get('allergens', [])|join(', ') }}" placeholder="Gluten, Dairy, Eggs...">
+                </div>
+                <div class="form-group">
+                    <label>Serving Size:</label>
+                    <input type="text" id="edit-serving-size" value="{{ cake.get('serving_size', '6-8 people') }}">
+                </div>
+                <div class="form-group">
+                    <label>Preparation Time:</label>
+                    <input type="text" id="edit-prep-time" value="{{ cake.get('preparation_time', '24-48 hours') }}">
+                </div>
+            </div>
+            <div class="edit-actions">
+                <button class="save-btn" onclick="saveCakeChanges()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button class="cancel-btn" onclick="cancelEdit()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Customer Reviews Section -->
+    <div class="reviews-section">
+        <h2 class="section-title">Customer Reviews</h2>
+        <div class="reviews-summary">
+            <div class="rating-overview">
+                <div class="overall-rating">
+                    <span class="rating-number">4.9</span>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p>Based on 127 reviews</p>
+                </div>
+                <div class="rating-breakdown">
+                    <div class="rating-bar">
+                        <span>5★</span>
+                        <div class="bar"><div class="fill" style="width: 85%"></div></div>
+                        <span>108</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>4★</span>
+                        <div class="bar"><div class="fill" style="width: 12%"></div></div>
+                        <span>15</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>3★</span>
+                        <div class="bar"><div class="fill" style="width: 2%"></div></div>
+                        <span>3</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>2★</span>
+                        <div class="bar"><div class="fill" style="width: 1%"></div></div>
+                        <span>1</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>1★</span>
+                        <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                        <span>0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reviews-list">
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">SJ</div>
+                        <div class="reviewer-details">
+                            <h4>Sarah Johnson</h4>
+                            <div class="review-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="review-date">2 days ago</span>
+                </div>
+                <p class="review-text">"Absolutely amazing! The cake was moist, delicious, and beautifully decorated. Perfect for our anniversary celebration. Will definitely order again!"</p>
+            </div>
+            
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">MD</div>
+                        <div class="reviewer-details">
+                            <h4>Michael Davis</h4>
+                            <div class="review-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="review-date">1 week ago</span>
+                </div>
+                <p class="review-text">"Outstanding quality and taste! The delivery was on time and the presentation was perfect. Highly recommend FynCakes for any special occasion."</p>
+            </div>
+            
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">GM</div>
+                        <div class="reviewer-details">
+                            <h4>Grace Mbabazi</h4>
+                            <div class="review-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="review-date">2 weeks ago</span>
+                </div>
+                <p class="review-text">"Best cake in Kampala! Fresh ingredients, perfect sweetness, and the decoration exceeded my expectations. Thank you FynCakes!"</p>
+            </div>
         </div>
     </div>
 
     {% if related_cakes %}
     <div class="related-products-section">
-        <h2 class="section-title">Related Products</h2>
+        <div class="section-header">
+            <h2 class="section-title">More {{ cake.category }} Cakes</h2>
+            <p class="section-subtitle">Discover other amazing cakes in the same category</p>
+        </div>
         <div class="related-products-grid">
             {% for related_cake in related_cakes %}
-            <a href="{{ url_for('routes.cake_details', cake_id=related_cake._id) }}" class="related-product-link">
-                <div class="related-product-card">
-                    <img src="{{ related_cake.image }}" alt="{{ related_cake.name }}">
-                    <h3>{{ related_cake.name }}</h3>
-                    <p>Shs {{ "{:,.0f}".format(related_cake.price|int) }}</p>
-                </div>
-            </a>
+            <div class="related-product-card">
+                <a href="{{ url_for('routes.cake_details', cake_id=related_cake._id) }}" class="related-product-link">
+                    <div class="related-product-image">
+                        <img src="{{ related_cake.image }}" alt="{{ related_cake.name }}" loading="lazy">
+                        <div class="related-product-overlay">
+                            <div class="quick-actions">
+                                <button class="quick-view-btn" onclick="event.preventDefault(); quickView('{{ related_cake._id }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="quick-cart-btn" onclick="event.preventDefault(); quickAddToCart('{{ related_cake._id }}', '{{ related_cake.name }}', {{ related_cake.price }}, '{{ related_cake.image }}', '{{ related_cake.description }}')">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="related-product-info">
+                        <div class="related-category">{{ related_cake.category }}</div>
+                        <h3>{{ related_cake.name }}</h3>
+                        <p class="related-description">{{ related_cake.description[:80] }}{% if related_cake.description|length > 80 %}...{% endif %}</p>
+                        <div class="related-price-section">
+                            <span class="related-price">Shs {{ "{:,.0f}".format(related_cake.price|int) }}</span>
+                            <div class="related-rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <span class="rating-text">(4.8)</span>
+                            </div>
+                        </div>
+                        <div class="related-features">
+                            <span class="feature-tag">
+                                <i class="fas fa-clock"></i>
+                                {{ related_cake.get('preparation_time', '24-48 hours') }}
+                            </span>
+                            <span class="feature-tag">
+                                <i class="fas fa-users"></i>
+                                {{ related_cake.get('serving_size', '6-8 people') }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
             {% endfor %}
+        </div>
+        
+        <!-- View All Category Button -->
+        <div class="view-all-category">
+            <a href="{{ url_for('routes.customer', category=cake.category) }}" class="view-all-btn">
+                <i class="fas fa-th-large"></i>
+                View All {{ cake.category }} Cakes
+            </a>
         </div>
     </div>
     {% endif %}
@@ -58,6 +338,9 @@
 
 {% block scripts %}
 <script>
+    let isEditMode = false;
+    let originalData = {};
+
     async function addToCart(button) {
         if (!window.isUserAuthenticated) {
             alert("Please log in or create an account to add items to your cart.");
@@ -72,20 +355,626 @@
             imageUrl: button.dataset.image
         };
 
-        const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+        // Show loading state
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        button.disabled = true;
+
+        try {
+            const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(product)
+            });
+            
+            if (response.ok) {
+                showSuccessMessage(`${product.name} added to cart!`);
+                const cartCounter = document.getElementById('cart-count');
+                const currentCount = parseInt(cartCounter.innerText) || 0;
+                updateCartCounter(currentCount + 1);
+            } else {
+                alert("Could not add item to cart. Please try again.");
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert("Could not add item to cart. Please try again.");
+        } finally {
+            // Reset button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    function addToWishlist(cakeId) {
+        if (!window.isUserAuthenticated) {
+            alert("Please log in to add items to your wishlist.");
+            window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+            return;
+        }
+        
+        const product = {
+            cake_id: cakeId,
+            cake_name: "{{ cake.name }}",
+            cake_price: {{ cake.price }},
+            cake_image: "{{ cake.image }}"
+        };
+
+        fetch("{{ url_for('routes.add_to_wishlist') }}", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(product)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccessMessage("Added to wishlist!");
+            } else {
+                alert(data.message || "Could not add to wishlist.");
+            }
+        })
+        .catch(error => {
+            console.error('Error adding to wishlist:', error);
+            alert("Could not add to wishlist.");
         });
+    }
+
+    // Edit Mode Functions
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
         
-        if (response.ok) {
-            alert(`'${product.name}' has been added to your cart!`);
-            const cartCounter = document.getElementById('cart-count');
-            const currentCount = parseInt(cartCounter.innerText) || 0;
-            updateCartCounter(currentCount + 1);
+        if (isEditMode) {
+            enterEditMode();
         } else {
+            exitEditMode();
+        }
+    }
+
+    function enterEditMode() {
+        // Store original data
+        originalData = {
+            name: document.getElementById('cake-name').textContent,
+            category: document.getElementById('cake-category').textContent,
+            price: document.getElementById('cake-price').textContent,
+            description: document.getElementById('cake-description').textContent,
+            servingSize: document.getElementById('serving-size').textContent,
+            prepTime: document.getElementById('prep-time').textContent,
+            allergens: document.getElementById('allergens').textContent
+        };
+
+        // Make elements editable
+        document.getElementById('cake-name').contentEditable = true;
+        document.getElementById('cake-category').contentEditable = true;
+        document.getElementById('cake-price').contentEditable = true;
+        document.getElementById('cake-description').contentEditable = true;
+
+        // Show edit controls
+        document.getElementById('edit-controls').style.display = 'block';
+        document.getElementById('image-upload-overlay').style.display = 'block';
+        
+        // Update button
+        document.querySelector('.edit-btn').innerHTML = '<i class="fas fa-times"></i> Cancel Edit';
+        
+        // Add edit styling
+        document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+            el.style.border = '2px dashed #007bff';
+            el.style.padding = '5px';
+            el.style.borderRadius = '4px';
+        });
+    }
+
+    function exitEditMode() {
+        // Restore original data
+        document.getElementById('cake-name').textContent = originalData.name;
+        document.getElementById('cake-category').textContent = originalData.category;
+        document.getElementById('cake-price').textContent = originalData.price;
+        document.getElementById('cake-description').textContent = originalData.description;
+        document.getElementById('serving-size').textContent = originalData.servingSize;
+        document.getElementById('prep-time').textContent = originalData.prepTime;
+        document.getElementById('allergens').textContent = originalData.allergens;
+
+        // Make elements non-editable
+        document.getElementById('cake-name').contentEditable = false;
+        document.getElementById('cake-category').contentEditable = false;
+        document.getElementById('cake-price').contentEditable = false;
+        document.getElementById('cake-description').contentEditable = false;
+
+        // Hide edit controls
+        document.getElementById('edit-controls').style.display = 'none';
+        document.getElementById('image-upload-overlay').style.display = 'none';
+        
+        // Update button
+        document.querySelector('.edit-btn').innerHTML = '<i class="fas fa-edit"></i> Edit Cake';
+        
+        // Remove edit styling
+        document.querySelectorAll('[contenteditable="false"]').forEach(el => {
+            el.style.border = 'none';
+            el.style.padding = '0';
+        });
+    }
+
+    async function saveCakeChanges() {
+        const cakeId = '{{ cake._id }}';
+        const updatedData = {
+            name: document.getElementById('cake-name').textContent,
+            category: document.getElementById('cake-category').textContent,
+            price: parseFloat(document.getElementById('cake-price').textContent.replace(/,/g, '')),
+            description: document.getElementById('cake-description').textContent,
+            serving_size: document.getElementById('edit-serving-size').value,
+            preparation_time: document.getElementById('edit-prep-time').value,
+            ingredients: document.getElementById('edit-ingredients').value.split(',').map(i => i.trim()),
+            allergens: document.getElementById('edit-allergens').value.split(',').map(a => a.trim())
+        };
+
+        try {
+            const response = await fetch(`/api/update_cake/${cakeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                // Update display
+                document.getElementById('serving-size').textContent = updatedData.serving_size;
+                document.getElementById('prep-time').textContent = updatedData.preparation_time;
+                document.getElementById('allergens').textContent = updatedData.allergens.join(', ');
+                
+                showSuccessMessage('Cake updated successfully!');
+                exitEditMode();
+            } else {
+                alert('Failed to update cake. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error updating cake:', error);
+            alert('Failed to update cake. Please try again.');
+        }
+    }
+
+    function cancelEdit() {
+        exitEditMode();
+    }
+
+    // Image upload handling
+    document.getElementById('image-upload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('cake-image').src = e.target.result;
+                showSuccessMessage('Image updated! (Note: This is a preview - save changes to persist)');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Related cakes functionality
+    function quickView(cakeId) {
+        window.location.href = `/cake/${cakeId}`;
+    }
+
+    async function quickAddToCart(cakeId, name, price, image, description) {
+        if (!window.isUserAuthenticated) {
+            alert("Please log in or create an account to add items to your cart.");
+            window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+            return;
+        }
+
+        const product = {
+            name: name,
+            price: parseFloat(price),
+            description: description,
+            imageUrl: image
+        };
+
+        try {
+            const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(product)
+            });
+            
+            if (response.ok) {
+                showSuccessMessage(`${name} added to cart!`);
+                const cartCounter = document.getElementById('cart-count');
+                if (cartCounter) {
+                    const currentCount = parseInt(cartCounter.innerText) || 0;
+                    cartCounter.innerText = currentCount + 1;
+                }
+            } else {
+                alert("Could not add item to cart. Please try again.");
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
             alert("Could not add item to cart. Please try again.");
         }
     }
+
+    function showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.textContent = message;
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => successDiv.remove(), 300);
+        }, 3000);
+    }
+
+    // Add CSS animations and edit styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .admin-actions {
+            margin-left: auto;
+        }
+        
+        .edit-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .edit-btn:hover {
+            background: #0056b3;
+        }
+        
+        .image-upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        
+        .upload-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .edit-controls {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .edit-panel h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .edit-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .edit-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .save-btn, .cancel-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .save-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .product-details {
+            margin: 20px 0;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .detail-item label {
+            font-weight: 500;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .detail-item span {
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .category-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        /* Enhanced Related Products Styles */
+        .related-products-section {
+            margin: 3rem 0;
+            padding: 2rem 0;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .related-products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .related-product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .related-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .related-product-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .related-product-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .related-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .related-product-card:hover .related-product-image img {
+            transform: scale(1.05);
+        }
+        
+        .related-product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .related-product-card:hover .related-product-overlay {
+            opacity: 1;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .quick-view-btn, .quick-cart-btn {
+            background: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-view-btn:hover, .quick-cart-btn:hover {
+            background: #007bff;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .related-product-info {
+            padding: 1.5rem;
+        }
+        
+        .related-category {
+            font-size: 0.9rem;
+            color: #007bff;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .related-product-info h3 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .related-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+        
+        .related-price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .related-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+        
+        .related-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .related-rating .stars {
+            color: #ffc107;
+        }
+        
+        .related-rating .rating-text {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .related-features {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .feature-tag {
+            background: #f8f9fa;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .view-all-category {
+            text-align: center;
+        }
+        
+        .view-all-btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .view-all-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .edit-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .edit-actions {
+                flex-direction: column;
+            }
+            
+            .related-products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .related-price-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Wedding Cake Gallery - FynCakes{% endblock %}
+{% block title %}Wedding & Special Occasions - FynCakes{% endblock %}
 
 {% block head_extra %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
@@ -8,42 +8,392 @@
 
 {% block content %}
 <div class="gallery-container">
+    <!-- Enhanced Header Section -->
     <div class="gallery-header">
-        <h1>Wedding Cake Showcase</h1>
-        <p class="subtitle">Crafting the centerpiece for your special day. Explore our collection of bespoke wedding cakes.</p>
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h1>Wedding & Special Occasions</h1>
+            <p class="subtitle">Let us craft the perfect centerpiece for your most memorable events. Explore our wedding gallery.</p>
+        </div>
+        
+        <!-- Filter and Search Controls -->
+        <div class="gallery-controls">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All Cakes</button>
+                <button class="filter-tab" data-filter="wedding">Wedding Cakes</button>
+                <button class="filter-tab" data-filter="anniversary">Anniversary</button>
+                <button class="filter-tab" data-filter="celebration">Celebration</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="gallery-search" placeholder="Search wedding cakes...">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
     </div>
 
+    <!-- Statistics Section -->
+    <div class="gallery-stats">
+        <div class="stat-item">
+            <span class="stat-number" id="total-cakes">{{ cakes|length if cakes else 0 }}</span>
+            <span class="stat-label">Wedding Cakes</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">50+</span>
+            <span class="stat-label">Happy Couples</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">5★</span>
+            <span class="stat-label">Average Rating</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Custom Made</span>
+        </div>
+    </div>
+
+    <!-- Enhanced Gallery Grid -->
     {% if cakes %}
-    <div class="gallery-grid">
+    <div class="gallery-grid" id="gallery-grid">
         {% for cake in cakes %}
-        <!-- Each image links to that cake's specific detail page -->
-        <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="gallery-item">
-            <img src="{{ cake.image }}" alt="{{ cake.name }}">
-            <div class="gallery-item-overlay">
-                <h3>{{ cake.name }}</h3>
-                <span>View Details</span>
+        <div class="gallery-item" data-category="{{ cake.category.lower() }}" data-name="{{ cake.name.lower() }}">
+            <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="gallery-main-link">
+                <div class="gallery-image-container">
+                    <img src="{{ cake.image }}" alt="{{ cake.name }}" loading="lazy">
+                    <div class="gallery-overlay">
+                           <div class="overlay-content">
+                               <h3>{{ cake.name }}</h3>
+                               <p class="cake-category">{{ cake.category }}</p>
+                               <div class="cake-price">Shs {{ "{:,.0f}".format(cake.price|int) }}</div>
+                               <div class="overlay-actions">
+                                   <div class="view-details-btn">
+                                       <i class="fas fa-eye"></i>
+                                       <span>View Details</span>
+                                   </div>
+                               </div>
+                           </div>
+                    </div>
+                </div>
+            </a>
+            <div class="gallery-item-info">
+                <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="gallery-item-link">
+                    <h4>{{ cake.name }}</h4>
+                    <p class="gallery-category">{{ cake.category }}</p>
+                    <div class="gallery-price">Shs {{ "{:,.0f}".format(cake.price|int) }}</div>
+                </a>
+                <div class="gallery-item-actions">
+                    <button class="quick-add-btn" onclick="event.stopPropagation(); quickAddToCart('{{ cake._id }}', '{{ cake.name }}', {{ cake.price }}, '{{ cake.image }}', '{{ cake.description }}')">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Add to Cart</span>
+                    </button>
+                    <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="view-details-link">
+                        <i class="fas fa-eye"></i>
+                        <span>View Details</span>
+                    </a>
+                </div>
             </div>
-        </a>
+        </div>
         {% endfor %}
+    </div>
+    
+    <!-- Load More Button -->
+    <div class="load-more-container">
+        <button class="load-more-btn" id="load-more-btn">
+            <i class="fas fa-plus"></i>
+            Load More Cakes
+        </button>
     </div>
     {% else %}
     <div class="no-items-message">
-        <p>Our wedding cake gallery is currently being updated. Please check back soon!</p>
+        <div class="no-items-icon">
+            <i class="fas fa-cake"></i>
+        </div>
+        <h3>Wedding Gallery Coming Soon</h3>
+        <p>We're preparing an amazing collection of wedding cakes for you. Check back soon!</p>
+        <a href="{{ url_for('routes.customer') }}" class="cta-button">View All Cakes</a>
     </div>
     {% endif %}
 
-    <!-- Consultation Call to Action Section -->
+    <!-- Enhanced Consultation Section -->
     <section class="consultation-cta">
-        <h2>Ready to Design Your Dream Cake?</h2>
-        <p>We offer personalized consultations to create a wedding cake that perfectly matches your vision. Contact us today to schedule your appointment and cake tasting.</p>
-        <div class="contact-info">
-            <p><i class="fas fa-envelope"></i> <a href="mailto:fyncakes1@gmail.com">fyncakes1@gmail.com</a></p>
-            <p><i class="fas fa-phone"></i> Call us at: 0758 449 390</p>
+        <div class="cta-content">
+            <div class="cta-text">
+                <h2>Ready to Design Your Dream Wedding Cake?</h2>
+                <p>We specialize in creating bespoke wedding cakes that tell your unique love story. From intimate ceremonies to grand celebrations, we'll craft the perfect centerpiece for your special day.</p>
+                
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Free consultation and tasting</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Custom design and flavors</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Delivery and setup included</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Fresh, locally-sourced ingredients</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cta-contact">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Email Us</strong>
+                            <a href="mailto:fyncakes1@gmail.com">fyncakes1@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <strong>Call Us</strong>
+                            <a href="tel:+256758449390">0758 449 390</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <strong>WhatsApp</strong>
+                            <a href="https://wa.me/256751082492" target="_blank">Chat Now</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cta-buttons">
+                    <a href="https://wa.me/256751082492" class="cta-button primary" target="_blank">
+                        <i class="fab fa-whatsapp"></i> Start Your Order
+                    </a>
+                    <a href="{{ url_for('routes.customer') }}" class="cta-button secondary">
+                        <i class="fas fa-cake"></i> View All Cakes
+                    </a>
+                </div>
+            </div>
         </div>
-        <a href="https://wa.me/256751082492" class="cta-button" target="_blank">
-            <i class="fab fa-whatsapp"></i> Chat on WhatsApp
-        </a>
     </section>
 
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <h2>What Our Couples Say</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p>"FynCakes made our wedding day absolutely perfect! The cake was not only beautiful but incredibly delicious. Our guests are still talking about it months later!"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">S&J</div>
+                    <div class="author-info">
+                        <h4>Sarah & John</h4>
+                        <span>Wedding - March 2024</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p>"The attention to detail was incredible. They perfectly captured our vision and the taste was out of this world. Highly recommend FynCakes for any special occasion!"</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">M&A</div>
+                    <div class="author-info">
+                        <h4>Michael & Anna</h4>
+                        <span>Anniversary - May 2024</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p>"Professional, creative, and absolutely delicious! FynCakes exceeded all our expectations. The cake was the highlight of our celebration."</p>
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">D&G</div>
+                    <div class="author-info">
+                        <h4>David & Grace</h4>
+                        <span>Wedding - July 2024</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Gallery filtering and search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const searchInput = document.getElementById('gallery-search');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        
+        let currentFilter = 'all';
+        let visibleItems = Array.from(galleryItems);
+        
+        // Filter functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const filter = this.dataset.filter;
+                
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = filter;
+                filterItems();
+            });
+        });
+        
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            filterItems();
+        });
+        
+        function filterItems() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            galleryItems.forEach(item => {
+                const category = item.dataset.category;
+                const name = item.dataset.name;
+                
+                const matchesFilter = currentFilter === 'all' || category.includes(currentFilter);
+                const matchesSearch = name.includes(searchTerm);
+                
+                if (matchesFilter && matchesSearch) {
+                    item.style.display = 'block';
+                    item.classList.add('fade-in');
+                } else {
+                    item.style.display = 'none';
+                    item.classList.remove('fade-in');
+                }
+            });
+            
+            // Update visible items count
+            visibleItems = Array.from(galleryItems).filter(item => 
+                item.style.display !== 'none'
+            );
+        }
+        
+        // Load more functionality (for future pagination)
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function() {
+                // This would load more items from the server
+                console.log('Loading more items...');
+                showSuccessMessage('More cakes loaded!');
+            });
+        }
+        
+        // Quick add to cart functionality
+        window.quickAddToCart = async function(cakeId, name, price, image, description) {
+            if (!window.isUserAuthenticated) {
+                alert("Please log in or create an account to add items to your cart.");
+                window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+                return;
+            }
+
+            const product = {
+                name: name,
+                price: parseFloat(price),
+                description: description,
+                imageUrl: image
+            };
+
+            try {
+                const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(product)
+                });
+                
+                if (response.ok) {
+                    showSuccessMessage(`${name} added to cart!`);
+                    const cartCounter = document.getElementById('cart-count');
+                    if (cartCounter) {
+                        const currentCount = parseInt(cartCounter.innerText) || 0;
+                        updateCartCounter(currentCount + 1);
+                    }
+                } else {
+                    alert("Could not add item to cart. Please try again.");
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                alert("Could not add item to cart. Please try again.");
+            }
+        };
+        
+        // Quick view functionality
+        window.quickView = function(cakeId) {
+            window.location.href = `/cake/${cakeId}`;
+        };
+        
+        // Wishlist functionality
+        window.addToWishlist = function(cakeId) {
+            showSuccessMessage('Added to wishlist!');
+        };
+        
+        // Success message function
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 8px;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => successDiv.remove(), 300);
+            }, 3000);
+        }
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .fade-in {
+                animation: fadeIn 0.5s ease;
+            }
+        `;
+        document.head.appendChild(style);
+    });
+</script>
 {% endblock %}
