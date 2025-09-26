@@ -35,7 +35,9 @@
 <body>
     <header class="main-header">
         <nav class="navbar">
-            <a href="{{ url_for('routes.home') }}" class="nav-brand">FynCakes</a>
+            <a href="{{ url_for('routes.home') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='logo/logo4.jpeg') }}" alt="FynCakes" class="logo-image">
+            </a>
             <button class="nav-toggle" id="nav-toggle" aria-label="toggle navigation">
                 <span class="hamburger"></span>
             </button>
@@ -141,7 +143,9 @@
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h4>FynCakes</h4>
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='logo/logo4.jpeg') }}" alt="FynCakes" class="footer-logo-image">
+                </div>
                 <p>Crafting Kampala's most delicious cakes with love and passion. From our family to yours.</p>
             </div>
             <div class="footer-section">
