@@ -59,11 +59,6 @@ def create_app():
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
     app.config['MAIL_USE_TLS'] = True
-<<<<<<< HEAD
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', '')
-=======
     app.config['MAIL_USE_SSL'] = False
     
     # Override environment variables with correct Gmail credentials
@@ -76,7 +71,6 @@ def create_app():
     print(f"   Email username: {app.config['MAIL_USERNAME']}")
     print(f"   Default sender: {app.config['MAIL_DEFAULT_SENDER']}")
     print("   Email verification and order notifications are now properly configured!")
->>>>>>> master
 
     # --- Initialize Extensions ---
     login_manager.init_app(app)
