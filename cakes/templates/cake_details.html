@@ -168,7 +168,7 @@
                     <span class="rating-number">{{ avg_rating }}</span>
                     <div class="stars">
                         {% for i in range(5) %}
-                        <i class="fas fa-star{% if i < avg_rating|int %}{% endif %}"></i>
+                        <i class="fas fa-star{% if i < avg_rating|int %} filled{% endif %}"></i>
                         {% endfor %}
                     </div>
                     <p>Based on {{ total_reviews }} reviews</p>
@@ -178,7 +178,7 @@
                     <div class="rating-bar">
                         <span>{{ rating }}★</span>
                         <div class="bar">
-                            <div class="fill" style="width: {{ (rating_counts[rating] / total_reviews * 100) if total_reviews > 0 else 0 }}%"></div>
+                            <div class="fill" style="--width: {{ ((rating_counts[rating] / total_reviews * 100) if total_reviews > 0 else 0)|round(1) }}%; width: var(--width)"></div>
                         </div>
                         <span>{{ rating_counts[rating] }}</span>
                     </div>
@@ -236,7 +236,7 @@
                                 <button class="quick-view-btn" onclick="event.preventDefault(); quickView('{{ related_cake._id }}')">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="quick-cart-btn" onclick="event.preventDefault(); quickAddToCart('{{ related_cake._id }}', '{{ related_cake.name }}', {{ related_cake.price }}, '{{ related_cake.image }}', '{{ related_cake.description }}')">
+                                <button class="quick-cart-btn" data-cake-id="{{ related_cake._id }}" data-cake-name="{{ related_cake.name }}" data-cake-price="{{ related_cake.price }}" data-cake-image="{{ related_cake.image }}" data-cake-description="{{ related_cake.description }}" onclick="event.preventDefault(); quickAddToCartFromData(this)">
                                     <i class="fas fa-shopping-cart"></i>
                                 </button>
                             </div>
@@ -346,7 +346,7 @@
         const product = {
             cake_id: cakeId,
             cake_name: "{{ cake.name }}",
-            cake_price: {{ cake.price }},
+            cake_price: "{{ cake.price }}",
             cake_image: "{{ cake.image }}"
         };
 
@@ -537,6 +537,16 @@
             console.error('Error adding to cart:', error);
             alert("Could not add item to cart. Please try again.");
         }
+    }
+
+    async function quickAddToCartFromData(button) {
+        const cakeId = button.dataset.cakeId;
+        const name = button.dataset.cakeName;
+        const price = button.dataset.cakePrice;
+        const image = button.dataset.cakeImage;
+        const description = button.dataset.cakeDescription;
+        
+        await quickAddToCart(cakeId, name, price, image, description);
     }
 
     function showSuccessMessage(message) {

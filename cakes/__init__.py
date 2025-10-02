@@ -15,7 +15,7 @@ login_manager.login_message_category = 'info'
 # Initialize Database (MongoDB Atlas or Mock)
 try:
     # Try to connect to MongoDB Atlas first
-    mongo_uri = os.environ.get('MONGO_URI', 'mongodb+srv://fyncakes:FynCakes123@cluster0.68beb34.mongodb.net/fyncakes?retryWrites=true&w=majority')
+    mongo_uri = os.environ.get('MONGO_URI', 'mongodb+srv://fyncakes_user:FynCakes123@fyncakes-cluster.sfxujh9.mongodb.net/fyncakes?retryWrites=true&w=majority&appName=fyncakes-cluster')
     
     # Check if password placeholder exists
     if '<db_password>' in mongo_uri:
@@ -59,9 +59,24 @@ def create_app():
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
     app.config['MAIL_USE_TLS'] = True
+<<<<<<< HEAD
     app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', '')
+=======
+    app.config['MAIL_USE_SSL'] = False
+    
+    # Override environment variables with correct Gmail credentials
+    app.config['MAIL_USERNAME'] = 'fyncakes1@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'drve kqec lkbo zbop'  # Gmail App Password for fyncakes1@gmail.com
+    app.config['MAIL_DEFAULT_SENDER'] = ('FynCakes', 'fyncakes1@gmail.com')
+    
+    print("🔧 Email configuration updated:")
+    print(f"   Email server: {app.config['MAIL_SERVER']}:{app.config['MAIL_PORT']}")
+    print(f"   Email username: {app.config['MAIL_USERNAME']}")
+    print(f"   Default sender: {app.config['MAIL_DEFAULT_SENDER']}")
+    print("   Email verification and order notifications are now properly configured!")
+>>>>>>> master
 
     # --- Initialize Extensions ---
     login_manager.init_app(app)

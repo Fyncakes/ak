@@ -428,7 +428,7 @@
         <div class="recent-orders" id="recent-orders">
             {% if recent_orders %}
                 {% for order in recent_orders %}
-                <div class="order-item">
+                <div class="order-item" onclick="window.location.href='{{ url_for('routes.order_detail', order_id=order._id) }}'" style="cursor: pointer; transition: background-color 0.3s ease;">
                     <div class="order-info">
                         <h4>Order #{{ order._id[:8] }}</h4>
                         <p>{{ order.get('customer_name', 'Unknown') }} - Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</p>
@@ -441,6 +441,9 @@
                 <div style="text-align: center; padding: 2rem; color: #666;">
                     <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                     <p>No recent orders found</p>
+                    <a href="{{ url_for('routes.manage_orders') }}" style="color: #e74c3c; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-plus"></i> View All Orders
+                    </a>
                 </div>
             {% endif %}
         </div>
@@ -460,68 +463,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadDashboardData() {
-    // Load total cakes count
-    fetch('/api/get_cakes')
+    // Load real-time data from the server
+    fetch('/api/dashboard_stats')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                document.getElementById('total-cakes').textContent = data.cakes.length;
+                // Update quick stats with real data
+                document.getElementById('today-orders').textContent = data.todays_orders || '0';
+                document.getElementById('week-sales').textContent = `Shs ${(data.weekly_sales || 0).toLocaleString()}`;
+                document.getElementById('pending-orders').textContent = data.pending_orders || '0';
+                document.getElementById('new-customers').textContent = data.new_customers || '0';
+                
+                // Update total cakes count
+                document.getElementById('total-cakes').textContent = data.total_cakes || '0';
+                
+                // Update database status
+                document.getElementById('db-status').textContent = 'Connected';
+                document.getElementById('db-status').style.color = '#28a745';
             }
         })
-        .catch(error => console.error('Error loading cakes count:', error));
-    
-    // Load recent orders (mock data for now)
-    loadRecentOrders();
-    
-    // Load quick stats (mock data for now)
-    loadQuickStats();
-}
-
-function loadRecentOrders() {
-    // Mock recent orders data
-    const mockOrders = [
-        {
-            id: 'ORD001',
-            customer: 'Sarah Johnson',
-            amount: 150000,
-            status: 'completed',
-            date: '2024-01-15'
-        },
-        {
-            id: 'ORD002',
-            customer: 'Michael Davis',
-            amount: 250000,
-            status: 'processing',
-            date: '2024-01-15'
-        },
-        {
-            id: 'ORD003',
-            customer: 'Grace Mbabazi',
-            amount: 80000,
-            status: 'pending',
-            date: '2024-01-14'
-        }
-    ];
-    
-    const container = document.getElementById('recent-orders');
-    container.innerHTML = mockOrders.map(order => `
-        <div class="order-item">
-            <div class="order-info">
-                <h4>Order ${order.id}</h4>
-                <p>${order.customer} - Shs ${order.amount.toLocaleString()}</p>
-                <p>${order.date}</p>
-            </div>
-            <span class="order-status status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
-        </div>
-    `).join('');
-}
-
-function loadQuickStats() {
-    // Mock quick stats
-    document.getElementById('today-orders').textContent = '12';
-    document.getElementById('week-sales').textContent = 'Shs 1,250,000';
-    document.getElementById('pending-orders').textContent = '5';
-    document.getElementById('new-customers').textContent = '8';
+        .catch(error => {
+            console.error('Error loading dashboard data:', error);
+            // Update database status to show error
+            document.getElementById('db-status').textContent = 'Connection Error';
+            document.getElementById('db-status').style.color = '#dc3545';
+        });
 }
 
 function updateUptime() {
@@ -536,5 +502,24 @@ function updateUptime() {
     document.getElementById('uptime').textContent = 
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
+
+// Add hover effects for clickable order items
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .order-item:hover {
+            background-color: #f8f9fa !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .order-item {
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+    `;
+    document.head.appendChild(style);
+});
 </script>
 {% endblock %}

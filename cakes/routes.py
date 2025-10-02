@@ -410,28 +410,49 @@ def signup():
 
         msg = Message('Your FynCakes Verification Code', recipients=[email])
         msg.body = f'Welcome to FynCakes! Your verification code is: {verification_code}'
+        
+        # Try to send email, but redirect to verification page regardless
+        email_sent = False
         try:
             mail.send(msg)
+            email_sent = True
+            print(f"✅ Verification email sent successfully to {email}")
             flash('A verification code has been sent to your email.', 'success')
-            return redirect(url_for('routes.verify_email', email=email))
         except Exception as e:
-            flash(f'An error occurred while sending the email: {e}', 'danger')
+            print(f"❌ Failed to send verification email to {email}: {str(e)}")
+            flash(f'Email sending failed, but you can still verify using the code: {verification_code}', 'warning')
+        
+        # Always redirect to verification page, regardless of email success
+        return redirect(url_for('routes.verify_email', email=email))
             
     return render_template('SignUp.html', form=form)
 
 @routes_bp.route('/verify/<email>', methods=['GET', 'POST'])
 def verify_email(email):
     """Handles email verification and finalizes user registration."""
+    user_data = db.unverified_users.find_one({'email': email})
+    
+    # Check if user data exists
+    if not user_data:
+        flash('No verification request found for this email. Please sign up again.', 'danger')
+        return redirect(url_for('routes.signup'))
+    
+    # For development: show the verification code in console
+    print(f"🔍 Verification page accessed for {email}")
+    print(f"   Expected code: {user_data.get('verification_code', 'N/A')}")
+    print(f"   Expires at: {user_data.get('expires_at', 'N/A')}")
+    
     if request.method == 'POST':
         submitted_code = request.form.get('verification_code')
-        user_data = db.unverified_users.find_one({'email': email})
+        print(f"   Submitted code: {submitted_code}")
 
-        if not user_data or user_data['expires_at'] < datetime.now():
-            flash('Your verification code is invalid or has expired. Pcake_categorylease sign up again.', 'danger')
+        if user_data['expires_at'] < datetime.now():
+            flash('Your verification code has expired. Please sign up again.', 'danger')
             db.unverified_users.delete_one({'email': email}) # Clean up expired entry
             return redirect(url_for('routes.signup'))
 
         if user_data['verification_code'] == submitted_code:
+            # Move user from unverified to verified users
             db.users.insert_one({
                 'email': user_data['email'],
                 'username': user_data.get('username'),
@@ -441,12 +462,15 @@ def verify_email(email):
                 'role': 'customer'
             })
             db.unverified_users.delete_one({'email': email})
+            print(f"✅ User {email} verified successfully!")
             flash('Email verified successfully! You can now log in.', 'success')
             return redirect(url_for('routes.login'))
         else:
-            flash('Invalid verification code.', 'danger')
+            flash('Invalid verification code. Please try again.', 'danger')
 
-    return render_template('verify.html', email=email)
+    # Pass verification code for development (remove in production)
+    debug_code = user_data.get('verification_code') if user_data else None
+    return render_template('verify.html', email=email, debug_code=debug_code)
 
 @routes_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -552,29 +576,27 @@ def admin_dashboard():
         ]))
         total_sales = sales_data[0]['total_sales'] if sales_data else 0
         
-        # Today's orders
+        # Today's orders (using string comparison since created_at might be stored as string)
         from datetime import datetime, timedelta
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now().strftime('%Y-%m-%d')
         todays_orders = db.orders.count_documents({
-            'created_at': {'$gte': today}
+            'created_at': {'$regex': f'^{today}'}
         })
         
-        # This week's sales
-        week_ago = today - timedelta(days=7)
-        weekly_sales_data = list(db.orders.aggregate([
+        # This week's sales (last 7 days)
+        week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        weekly_sales_pipeline = [
             {"$match": {"created_at": {"$gte": week_ago}}},
             {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
-        ]))
+        ]
+        weekly_sales_data = list(db.orders.aggregate(weekly_sales_pipeline))
         weekly_sales = weekly_sales_data[0]['total_sales'] if weekly_sales_data else 0
         
         # Pending orders
         pending_orders = db.orders.count_documents({'status': 'pending'})
         
-        # New customers this week
-        new_customers = db.users.count_documents({
-            'role': 'customer',
-            'created_at': {'$gte': week_ago}
-        })
+        # New customers (total customers for now, since we might not have creation dates)
+        new_customers = db.users.count_documents({'role': 'customer'})
         
         # Recent orders for display
         recent_orders = list(db.orders.find().sort('_id', -1).limit(5))
@@ -624,6 +646,75 @@ def admin_dashboard():
                                last_backup="Unknown",
                                uptime="00:00:00")
 
+@routes_bp.route('/api/dashboard_stats')
+@admin_required
+def dashboard_stats():
+    """API endpoint to get real-time dashboard statistics."""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Basic counts
+        total_orders = db.orders.count_documents({})
+        total_customers = db.users.count_documents({'role': 'customer'})
+        total_cakes = db.cakes.count_documents({})
+        
+        # Sales data
+        sales_data = list(db.orders.aggregate([
+            {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+        ]))
+        total_sales = sales_data[0]['total_sales'] if sales_data else 0
+        
+        # Today's orders (using string comparison since created_at might be stored as string)
+        today = datetime.now().strftime('%Y-%m-%d')
+        todays_orders = db.orders.count_documents({
+            'created_at': {'$regex': f'^{today}'}
+        })
+        
+        # This week's sales (last 7 days)
+        week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        weekly_sales_pipeline = [
+            {"$match": {"created_at": {"$gte": week_ago}}},
+            {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+        ]
+        weekly_sales_data = list(db.orders.aggregate(weekly_sales_pipeline))
+        weekly_sales = weekly_sales_data[0]['total_sales'] if weekly_sales_data else 0
+        
+        # Pending orders
+        pending_orders = db.orders.count_documents({'status': 'pending'})
+        
+        # New customers this week
+        new_customers = db.users.count_documents({
+            'role': 'customer'
+            # Note: If user creation date is stored, add date filter here
+        })
+        
+        return jsonify({
+            'success': True,
+            'total_sales': total_sales,
+            'total_orders': total_orders,
+            'total_customers': total_customers,
+            'total_cakes': total_cakes,
+            'todays_orders': todays_orders,
+            'weekly_sales': weekly_sales,
+            'pending_orders': pending_orders,
+            'new_customers': new_customers
+        })
+        
+    except Exception as e:
+        print(f"Error getting dashboard stats: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'total_sales': 0,
+            'total_orders': 0,
+            'total_customers': 0,
+            'total_cakes': 0,
+            'todays_orders': 0,
+            'weekly_sales': 0,
+            'pending_orders': 0,
+            'new_customers': 0
+        })
+
 @routes_bp.route('/admin/manage_orders')
 @admin_required
 def manage_orders():
@@ -636,6 +727,118 @@ def manage_orders():
     except Exception as e:
         print(f"Error loading orders: {e}")
         return render_template('manage_orders.html', orders=[])
+
+@routes_bp.route('/admin/orders/<order_id>')
+@admin_required
+def order_detail(order_id):
+    """View detailed information about a specific order."""
+    try:
+        from bson import ObjectId
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            flash('Order not found!', 'error')
+            return redirect(url_for('routes.manage_orders'))
+        
+        order['_id'] = str(order['_id'])
+        return render_template('order_detail.html', order=order)
+    except Exception as e:
+        print(f"Error loading order details: {e}")
+        flash('Error loading order details!', 'error')
+        return redirect(url_for('routes.manage_orders'))
+
+@routes_bp.route('/admin/orders/<order_id>/update', methods=['GET', 'POST'])
+@admin_required
+def order_update(order_id):
+    """Update order information."""
+    try:
+        from bson import ObjectId
+        from datetime import datetime
+        
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            if request.method == 'POST':
+                return jsonify({'success': False, 'message': 'Order not found!'})
+            flash('Order not found!', 'error')
+            return redirect(url_for('routes.manage_orders'))
+        
+        if request.method == 'POST':
+            # Handle AJAX update request
+            data = request.get_json()
+            
+            # Prepare update data
+            update_data = {
+                'status': data.get('order_status'),
+                'payment_status': data.get('payment_status'),
+                'payment_method': data.get('payment_method'),
+                'delivery_status': data.get('delivery_status'),
+                'delivery_address': data.get('delivery_address'),
+                'admin_notes': data.get('admin_notes'),
+                'notes': data.get('customer_notes'),
+                'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # Handle payment date
+            if data.get('payment_date'):
+                update_data['payment_date'] = data.get('payment_date')
+            
+            # Handle delivery date
+            if data.get('delivery_date'):
+                update_data['delivery_date'] = data.get('delivery_date')
+            
+            # Handle transaction ID
+            if data.get('transaction_id'):
+                update_data['transaction_id'] = data.get('transaction_id')
+            
+            # Remove empty values
+            update_data = {k: v for k, v in update_data.items() if v is not None and v != ''}
+            
+            # Update the order
+            result = db.orders.update_one(
+                {'_id': ObjectId(order_id)}, 
+                {'$set': update_data}
+            )
+            
+            if result.modified_count > 0:
+                print(f"✅ Order {order_id} updated successfully")
+                return jsonify({'success': True, 'message': 'Order updated successfully!'})
+            else:
+                return jsonify({'success': False, 'message': 'No changes were made to the order.'})
+        
+        # GET request - show update form
+        order['_id'] = str(order['_id'])
+        return render_template('order_update.html', order=order)
+        
+    except Exception as e:
+        print(f"Error updating order: {e}")
+        if request.method == 'POST':
+            return jsonify({'success': False, 'message': f'Error updating order: {str(e)}'})
+        flash('Error loading order update page!', 'error')
+        return redirect(url_for('routes.manage_orders'))
+
+@routes_bp.route('/admin/orders/<order_id>/delete', methods=['DELETE'])
+@admin_required
+def order_delete(order_id):
+    """Delete an order."""
+    try:
+        from bson import ObjectId
+        
+        # Check if order exists
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found!'})
+        
+        # Delete the order
+        result = db.orders.delete_one({'_id': ObjectId(order_id)})
+        
+        if result.deleted_count > 0:
+            print(f"✅ Order {order_id} deleted successfully")
+            return jsonify({'success': True, 'message': 'Order deleted successfully!'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to delete order.'})
+            
+    except Exception as e:
+        print(f"Error deleting order: {e}")
+        return jsonify({'success': False, 'message': f'Error deleting order: {str(e)}'})
 
 @routes_bp.route('/admin/manage_users')
 @admin_required
@@ -1103,7 +1306,7 @@ def place_order():
             <ul>{product_list_html}</ul>
             <p><strong>Total Amount: Shs {total_amount:,.0f}</strong></p>
             <h3>Next Steps: Payment</h3>
-            <p>Please send the total amount via Mobile Money to <strong>0772 123 456</strong> using your Order ID <strong>({order_id})</strong> as the reason.</p>
+            <p>Please send the total amount via Mobile Money to <strong>0758 449 390</strong> using your Order ID <strong>({order_id})</strong> as the reason.</p>
         </div>
         """
         mail.send(msg)

@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details - FynCakes Admin{% endblock %}
+
+{% block head_extra %}
+<style>
+    .order-detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .order-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .order-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .order-header-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 25px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-update {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-update:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    .order-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .content-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .content-card h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 2px solid #e74c3c;
+        padding-bottom: 0.5rem;
+    }
+
+    .order-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-item {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #e74c3c;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        color: #2c3e50;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-paid {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .order-items {
+        margin-top: 1rem;
+    }
+
+    .item-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .item-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #e74c3c;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .item-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-quantity {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .item-price {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #e74c3c;
+        text-align: right;
+    }
+
+    .order-summary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #e74c3c;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        border-top: 2px solid #e74c3c;
+    }
+
+    .customer-details {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .customer-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #e74c3c;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .customer-info h3 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .customer-info p {
+        color: #666;
+        margin: 0.25rem 0;
+    }
+
+    .payment-info {
+        background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #28a745;
+    }
+
+    .payment-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .payment-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #28a745;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .order-detail-container {
+            padding: 1rem;
+        }
+
+        .order-content {
+            grid-template-columns: 1fr;
+        }
+
+        .order-header-actions {
+            flex-direction: column;
+        }
+
+        .order-actions {
+            flex-direction: column;
+        }
+
+        .item-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .item-price {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+    <div class="order-header">
+        <h1><i class="fas fa-receipt"></i> Order #{{ order._id[:8] }}</h1>
+        <p>Complete order details and management</p>
+        
+        <div class="order-header-actions">
+            <a href="{{ url_for('routes.manage_orders') }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Orders
+            </a>
+            
+            <div class="order-actions">
+                <a href="{{ url_for('routes.order_update', order_id=order._id) }}" class="action-btn btn-update">
+                    <i class="fas fa-edit"></i> Update Order
+                </a>
+                <button class="action-btn btn-delete" onclick="confirmDeleteOrder('{{ order._id }}')">
+                    <i class="fas fa-trash"></i> Delete Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Information Grid -->
+    <div class="order-info-grid">
+        <div class="info-item">
+            <div class="info-label">Order ID</div>
+            <div class="info-value">#{{ order._id[:8] }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Status</div>
+            <div class="info-value">
+                <span class="status-badge status-{{ order.get('status', 'pending') }}">
+                    {{ order.get('status', 'Pending').title() }}
+                </span>
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Order Date</div>
+            <div class="info-value">{{ order.get('created_at', 'Unknown') }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total Amount</div>
+            <div class="info-value">Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</div>
+        </div>
+    </div>
+
+    <div class="order-content">
+        <!-- Order Items -->
+        <div class="content-card">
+            <h2><i class="fas fa-shopping-bag"></i> Order Items</h2>
+            
+            <div class="order-items">
+                {% if order.get('items') %}
+                    {% for item in order.items %}
+                    <div class="item-card">
+                        <img src="{{ item.get('imageUrl', '/static/default-cake.jpg') }}" alt="{{ item.get('name', 'Cake') }}" class="item-image">
+                        <div class="item-details">
+                            <div class="item-name">{{ item.get('name', 'Unknown Item') }}</div>
+                            <div class="item-description">{{ item.get('description', 'No description available') }}</div>
+                            <div class="item-quantity">Quantity: {{ item.get('quantity', 1) }}</div>
+                        </div>
+                        <div class="item-price">
+                            Shs {{ "{:,.0f}".format(item.get('price', 0) * item.get('quantity', 1)) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>No items found in this order</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>Shs {{ "{:,.0f}".format(order.get('subtotal', order.get('total_amount', 0))) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Fee:</span>
+                    <span>Shs {{ "{:,.0f}".format(order.get('delivery_fee', 0)) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Amount:</span>
+                    <span>Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer & Payment Info -->
+        <div>
+            <!-- Customer Details -->
+            <div class="content-card">
+                <h2><i class="fas fa-user"></i> Customer Details</h2>
+                
+                <div class="customer-details">
+                    <div class="customer-avatar">
+                        {{ (order.get('customer_name', 'U'))[0]|upper }}
+                    </div>
+                    <div class="customer-info">
+                        <h3>{{ order.get('customer_name', 'Unknown Customer') }}</h3>
+                        <p><i class="fas fa-envelope"></i> {{ order.get('customer_email', 'N/A') }}</p>
+                        <p><i class="fas fa-phone"></i> {{ order.get('customer_phone', 'N/A') }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ order.get('delivery_address', 'N/A') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            <div class="content-card">
+                <h2><i class="fas fa-credit-card"></i> Payment Information</h2>
+                
+                <div class="payment-info">
+                    <div class="payment-status">
+                        <div class="payment-icon">
+                            <i class="fas fa-{{ 'check' if order.get('payment_status') == 'paid' else 'clock' }}"></i>
+                        </div>
+                        <div>
+                            <h4>Payment Status: {{ order.get('payment_status', 'Pending').title() }}</h4>
+                            {% if order.get('payment_date') %}
+                                <p>Paid on: {{ order.get('payment_date') }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Payment Method</div>
+                        <div class="info-value">{{ order.get('payment_method', 'Cash on Delivery') }}</div>
+                    </div>
+                    
+                    {% if order.get('transaction_id') %}
+                    <div class="info-item">
+                        <div class="info-label">Transaction ID</div>
+                        <div class="info-value">{{ order.get('transaction_id') }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order Notes -->
+            {% if order.get('notes') %}
+            <div class="content-card">
+                <h2><i class="fas fa-sticky-note"></i> Order Notes</h2>
+                <div class="info-item">
+                    <div class="info-value">{{ order.get('notes') }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDeleteOrder(orderId) {
+    if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+        // Send delete request
+        fetch(`/admin/orders/${orderId}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Order deleted successfully!');
+                window.location.href = "{{ url_for('routes.manage_orders') }}";
+            } else {
+                alert('Failed to delete order: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to delete order. Please try again.');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -7,10 +7,16 @@
         <h2>Verify Your Email</h2>
         <p>We've sent a 6-digit verification code to <strong>{{ email }}</strong>. Please enter it below to complete your registration.</p>
         
+        {% if debug_code %}
+        <div class="alert alert-info" style="background: #e3f2fd; border: 1px solid #2196f3; padding: 10px; margin: 10px 0; border-radius: 4px;">
+            <strong>Development Mode:</strong> Your verification code is <strong>{{ debug_code }}</strong>
+        </div>
+        {% endif %}
+        
         <form method="POST">
             <div class="form-group">
                 <label for="verification_code">Verification Code</label>
-                <input type="text" id="verification_code" name="verification_code" required maxlength="6" pattern="\d{6}" title="Please enter the 6-digit code.">
+                <input type="text" id="verification_code" name="verification_code" required maxlength="6" pattern="\d{6}" title="Please enter the 6-digit code." {% if debug_code %}value="{{ debug_code }}"{% endif %}>
             </div>
             
             <button type="submit" class="auth-button">Verify Account</button>

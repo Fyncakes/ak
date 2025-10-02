@@ -516,8 +516,8 @@
                     </div>
                     <div class="wishlist-actions">
                         <a href="/cake/{{ item.get('cake_id', '') }}" class="btn btn-outline">View</a>
-                        <button class="btn btn-primary" onclick="addToCart('{{ item.get('cake_id', '') }}')">Add to Cart</button>
-                        <button class="btn btn-outline" onclick="removeFromWishlist('{{ item._id }}')">Remove</button>
+                        <button class="btn btn-primary" data-cake-id="{{ item.get('cake_id', '') }}" onclick="addToCart(this.dataset.cakeId)">Add to Cart</button>
+                        <button class="btn btn-outline" data-item-id="{{ item._id }}" onclick="removeFromWishlist(this.dataset.itemId)">Remove</button>
                     </div>
                 </div>
                 {% endfor %}

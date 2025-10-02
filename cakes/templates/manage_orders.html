@@ -85,12 +85,12 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn btn-sm btn-outline" onclick="viewOrder('{{ order._id }}')">
+                                <a href="{{ url_for('routes.order_detail', order_id=order._id) }}" class="btn btn-sm btn-outline">
                                     <i class="fas fa-eye"></i> View
-                                </button>
-                                <button class="btn btn-sm btn-primary" onclick="updateOrderStatus('{{ order._id }}')">
+                                </a>
+                                <a href="{{ url_for('routes.order_update', order_id=order._id) }}" class="btn btn-sm btn-primary">
                                     <i class="fas fa-edit"></i> Update
-                                </button>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -328,16 +328,6 @@
 </style>
 
 <script>
-function viewOrder(orderId) {
-    // This would open a modal or navigate to order details
-    alert('View order: ' + orderId);
-}
-
-function updateOrderStatus(orderId) {
-    // This would open a modal to update order status
-    alert('Update order status: ' + orderId);
-}
-
 function refreshOrders() {
     location.reload();
 }
