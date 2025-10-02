@@ -1637,8 +1637,11 @@ def wishlist_page():
 def order_history():
     """Customer order history page."""
     try:
-        # Get customer's orders
-        customer_orders = list(db.orders.find({'customer_email': current_user.email}).sort('created_at', -1))
+        # Get customer's orders (exclude hidden ones)
+        customer_orders = list(db.orders.find({
+            'customer_email': current_user.email,
+            'customer_hidden': {'$ne': True}  # Exclude hidden orders
+        }).sort('created_at', -1))
         for order in customer_orders:
             order['_id'] = str(order['_id'])
         
@@ -1667,6 +1670,210 @@ def order_history():
                              total_orders=0,
                              total_spent=0,
                              status_counts={'pending': 0, 'processing': 0, 'completed': 0, 'cancelled': 0})
+
+@routes_bp.route('/customer/orders/<order_id>')
+@login_required
+def customer_order_detail(order_id):
+    """Customer view of order details."""
+    try:
+        from bson import ObjectId
+        
+        # Find the order and verify it belongs to the current user
+        order = db.orders.find_one({
+            '_id': ObjectId(order_id),
+            'customer_email': current_user.email
+        })
+        
+        if not order:
+            flash('Order not found or you do not have permission to view it!', 'error')
+            return redirect(url_for('routes.order_history'))
+        
+        order['_id'] = str(order['_id'])
+        return render_template('customer_order_detail.html', order=order)
+        
+    except Exception as e:
+        print(f"Error loading customer order details: {e}")
+        flash('Error loading order details!', 'error')
+        return redirect(url_for('routes.order_history'))
+
+@routes_bp.route('/customer/orders/<order_id>/cancel', methods=['POST'])
+@login_required
+def customer_cancel_order(order_id):
+    """Customer cancels their own order (soft delete - hide from view but keep in DB)."""
+    try:
+        from bson import ObjectId
+        from datetime import datetime
+        
+        # Find the order and verify it belongs to the current user
+        order = db.orders.find_one({
+            '_id': ObjectId(order_id),
+            'customer_email': current_user.email
+        })
+        
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found or you do not have permission to cancel it!'})
+        
+        # Only allow cancellation of pending orders
+        if order.get('status') != 'pending':
+            return jsonify({'success': False, 'message': 'Only pending orders can be cancelled!'})
+        
+        # Update order status to cancelled and add customer_hidden flag
+        result = db.orders.update_one(
+            {'_id': ObjectId(order_id)},
+            {
+                '$set': {
+                    'status': 'cancelled',
+                    'customer_hidden': False,  # Keep visible to customer initially
+                    'cancelled_by': 'customer',
+                    'cancelled_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+            }
+        )
+        
+        if result.modified_count > 0:
+            print(f"✅ Order {order_id} cancelled by customer {current_user.email}")
+            return jsonify({'success': True, 'message': 'Order cancelled successfully!'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to cancel order.'})
+            
+    except Exception as e:
+        print(f"Error cancelling order: {e}")
+        return jsonify({'success': False, 'message': f'Error cancelling order: {str(e)}'})
+
+@routes_bp.route('/customer/orders/<order_id>/reorder', methods=['POST'])
+@login_required
+def customer_reorder(order_id):
+    """Add items from a previous order back to cart."""
+    try:
+        from bson import ObjectId
+        from datetime import datetime
+        
+        # Find the order and verify it belongs to the current user
+        order = db.orders.find_one({
+            '_id': ObjectId(order_id),
+            'customer_email': current_user.email
+        })
+        
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found!'})
+        
+        # Get order items
+        items = order.get('items', [])
+        if not items:
+            return jsonify({'success': False, 'message': 'No items found in this order!'})
+        
+        # Add each item to cart
+        items_added = 0
+        for item in items:
+            # Check if item already exists in cart
+            existing_item = db.carts.find_one({
+                'user_email': current_user.email,
+                'name': item.get('name')
+            })
+            
+            if existing_item:
+                # Update quantity
+                db.carts.update_one(
+                    {'_id': existing_item['_id']},
+                    {'$inc': {'quantity': item.get('quantity', 1)}}
+                )
+            else:
+                # Add new item to cart
+                cart_item = {
+                    'user_email': current_user.email,
+                    'name': item.get('name'),
+                    'price': item.get('price'),
+                    'quantity': item.get('quantity', 1),
+                    'imageUrl': item.get('image', ''),
+                    'description': item.get('description', ''),
+                    'added_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+                db.carts.insert_one(cart_item)
+            
+            items_added += 1
+        
+        if items_added > 0:
+            return jsonify({
+                'success': True, 
+                'message': f'{items_added} items added to cart!',
+                'items_added': items_added
+            })
+        else:
+            return jsonify({'success': False, 'message': 'No items could be added to cart.'})
+            
+    except Exception as e:
+        print(f"Error reordering: {e}")
+        return jsonify({'success': False, 'message': f'Error reordering: {str(e)}'})
+
+@routes_bp.route('/customer/orders/<order_id>/hide', methods=['POST'])
+@login_required
+def customer_hide_order(order_id):
+    """Hide order from customer's view (soft delete from customer perspective)."""
+    try:
+        from bson import ObjectId
+        from datetime import datetime
+        
+        # Find the order and verify it belongs to the current user
+        order = db.orders.find_one({
+            '_id': ObjectId(order_id),
+            'customer_email': current_user.email
+        })
+        
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found!'})
+        
+        # Set customer_hidden flag to true
+        result = db.orders.update_one(
+            {'_id': ObjectId(order_id)},
+            {
+                '$set': {
+                    'customer_hidden': True,
+                    'hidden_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+            }
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({'success': True, 'message': 'Order removed from your history!'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to remove order.'})
+            
+    except Exception as e:
+        print(f"Error hiding order: {e}")
+        return jsonify({'success': False, 'message': f'Error removing order: {str(e)}'})
+
+@routes_bp.route('/customer/orders/clear-history', methods=['POST'])
+@login_required
+def customer_clear_history():
+    """Clear all order history for customer (hide all orders from customer view)."""
+    try:
+        from datetime import datetime
+        
+        # Update all customer orders to be hidden
+        result = db.orders.update_many(
+            {'customer_email': current_user.email},
+            {
+                '$set': {
+                    'customer_hidden': True,
+                    'history_cleared_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+            }
+        )
+        
+        if result.modified_count > 0:
+            print(f"✅ Cleared order history for customer {current_user.email} - {result.modified_count} orders hidden")
+            return jsonify({
+                'success': True, 
+                'message': f'Order history cleared! {result.modified_count} orders removed from view.',
+                'orders_hidden': result.modified_count
+            })
+        else:
+            return jsonify({'success': False, 'message': 'No orders found to clear.'})
+            
+    except Exception as e:
+        print(f"Error clearing order history: {e}")
+        return jsonify({'success': False, 'message': f'Error clearing order history: {str(e)}'})
 
 @routes_bp.route('/refresh-loyalty-points')
 @login_required

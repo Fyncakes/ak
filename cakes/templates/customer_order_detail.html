@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details - FynCakes{% endblock %}
+
+{% block head_extra %}
+<style>
+    .order-detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .order-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-header h1 {
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .back-btn {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-btn:hover {
+        background: white;
+        color: #e74c3c;
+    }
+
+    .order-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .info-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #555;
+    }
+
+    .info-value {
+        color: #333;
+        text-align: right;
+    }
+
+    .status-badge {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .items-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .items-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+    }
+
+    .item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 0.8rem;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-price {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .item-quantity {
+        background: #e74c3c;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .total-section {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .total-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .total-label {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #e74c3c;
+        border: 2px solid #e74c3c;
+    }
+
+    .btn-outline:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .empty-items {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-items i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .order-detail-container {
+            padding: 1rem;
+        }
+
+        .order-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .order-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+    <div class="order-header">
+        <h1><i class="fas fa-receipt"></i> Order #{{ order._id[:8] }}</h1>
+        <a href="{{ url_for('routes.order_history') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+
+    <!-- Order Information Grid -->
+    <div class="order-info-grid">
+        <!-- Order Details -->
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> Order Details</h3>
+            <div class="info-item">
+                <span class="info-label">Order ID:</span>
+                <span class="info-value">#{{ order._id[:8] }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Status:</span>
+                <span class="info-value">
+                    <span class="status-badge status-{{ order.get('status', 'pending') }}">
+                        {{ order.get('status', 'Pending').title() }}
+                    </span>
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Order Date:</span>
+                <span class="info-value">{{ order.get('created_at', 'Unknown date') }}</span>
+            </div>
+            {% if order.get('updated_at') %}
+            <div class="info-item">
+                <span class="info-label">Last Updated:</span>
+                <span class="info-value">{{ order.get('updated_at') }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Delivery & Payment -->
+        <div class="info-card">
+            <h3><i class="fas fa-truck"></i> Delivery & Payment</h3>
+            <div class="info-item">
+                <span class="info-label">Delivery Address:</span>
+                <span class="info-value">{{ order.get('delivery_address', 'Not specified') }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Payment Method:</span>
+                <span class="info-value">{{ order.get('payment_method', 'Not specified') }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Payment Status:</span>
+                <span class="info-value">{{ order.get('payment_status', 'Pending') }}</span>
+            </div>
+            {% if order.get('delivery_date') %}
+            <div class="info-item">
+                <span class="info-label">Delivery Date:</span>
+                <span class="info-value">{{ order.get('delivery_date') }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="items-section">
+        <h3><i class="fas fa-shopping-bag"></i> Order Items</h3>
+        {% if order.get('items') %}
+            {% for item in order.get('items', []) %}
+            <div class="order-item">
+                {% if item.get('image') %}
+                    <img src="{{ item.get('image') }}" alt="{{ item.get('name', 'Item') }}" class="item-image">
+                {% else %}
+                    <div class="item-image">No Image</div>
+                {% endif %}
+                <div class="item-details">
+                    <div class="item-name">{{ item.get('name', 'Unknown Item') }}</div>
+                    <div class="item-description">{{ item.get('description', 'No description available') }}</div>
+                    <div class="item-price">Shs {{ "{:,.0f}".format(item.get('price', 0)) }}</div>
+                </div>
+                <div class="item-quantity">Qty: {{ item.get('quantity', 1) }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-items">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>No items found</h3>
+                <p>This order doesn't have any items listed.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Total Amount -->
+    <div class="total-section">
+        <div class="total-amount">Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</div>
+        <div class="total-label">Total Amount</div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        {% if order.get('status') == 'completed' %}
+        <button class="btn btn-primary" onclick="reorderItems('{{ order._id }}')">
+            <i class="fas fa-redo"></i> Reorder
+        </button>
+        {% endif %}
+        
+        {% if order.get('status') == 'pending' %}
+        <button class="btn btn-secondary" onclick="cancelOrder('{{ order._id }}')">
+            <i class="fas fa-times"></i> Cancel Order
+        </button>
+        {% endif %}
+        
+        <button class="btn btn-outline" onclick="hideFromHistory('{{ order._id }}')">
+            <i class="fas fa-eye-slash"></i> Remove from History
+        </button>
+        
+        <a href="{{ url_for('routes.order_history') }}" class="btn btn-outline">
+            <i class="fas fa-list"></i> View All Orders
+        </a>
+    </div>
+</div>
+
+<script>
+async function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/customer/orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage(data.message, 'success');
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showMessage(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        showMessage('Error cancelling order. Please try again.', 'error');
+    }
+}
+
+async function reorderItems(orderId) {
+    if (!confirm('Add all items from this order to your cart?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/customer/orders/${orderId}/reorder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage(data.message, 'success');
+            // Update cart counter if it exists
+            const cartCounter = document.getElementById('cart-count');
+            if (cartCounter && data.items_added) {
+                const currentCount = parseInt(cartCounter.innerText) || 0;
+                cartCounter.innerText = currentCount + data.items_added;
+            }
+        } else {
+            showMessage(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error reordering:', error);
+        showMessage('Error adding items to cart. Please try again.', 'error');
+    }
+}
+
+async function hideFromHistory(orderId) {
+    if (!confirm('Remove this order from your history? You can still contact support about this order if needed.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/customer/orders/${orderId}/hide`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage(data.message, 'success');
+            // Redirect to order history after a short delay
+            setTimeout(() => {
+                window.location.href = "{{ url_for('routes.order_history') }}";
+            }, 1500);
+        } else {
+            showMessage(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error hiding order:', error);
+        showMessage('Error removing order from history. Please try again.', 'error');
+    }
+}
+
+function showMessage(message, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 3000);
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
