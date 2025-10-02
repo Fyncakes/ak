@@ -546,15 +546,124 @@ function addToCart(cakeId) {
         return;
     }
 
-    // This would need to be implemented with real cake data
-    alert('Add to cart functionality - needs cake data lookup');
+    // Get cake data from the wishlist item
+    const wishlistItem = document.querySelector(`[data-cake-id="${cakeId}"]`);
+    if (!wishlistItem) {
+        alert('Cake data not found');
+        return;
+    }
+
+    const name = wishlistItem.querySelector('h4').textContent;
+    const priceText = wishlistItem.querySelector('p').textContent;
+    const price = parseFloat(priceText.replace(/[^\d]/g, ''));
+    const image = wishlistItem.querySelector('img').src;
+
+    const product = {
+        name: name,
+        price: price,
+        description: name,
+        imageUrl: image
+    };
+
+    fetch("{{ url_for('routes.add_to_cart_db') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(`${name} added to cart!`, 'success');
+            // Update cart count
+            const cartCounter = document.getElementById('cart-count');
+            if (cartCounter) {
+                const currentCount = parseInt(cartCounter.innerText) || 0;
+                cartCounter.innerText = currentCount + 1;
+            }
+        } else {
+            showMessage("Could not add item to cart. Please try again.", 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to cart:', error);
+        showMessage("Could not add item to cart. Please try again.", 'error');
+    });
 }
 
 function removeFromWishlist(itemId) {
     if (confirm('Remove this item from your wishlist?')) {
-        // This would need to be implemented with real API call
-        alert('Remove from wishlist functionality - needs API implementation');
+        fetch("{{ url_for('routes.remove_from_wishlist') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ item_id: itemId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the item from the page with animation
+                const item = document.querySelector(`[data-item-id="${itemId}"]`).closest('.wishlist-item');
+                if (item) {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.transform = 'scale(0.8)';
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        item.remove();
+                        updateWishlistStats();
+                    }, 300);
+                }
+                showMessage('Item removed from wishlist!', 'success');
+            } else {
+                showMessage(data.message || 'Could not remove item from wishlist.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error removing from wishlist:', error);
+            showMessage('Could not remove item from wishlist.', 'error');
+        });
     }
+}
+
+function updateWishlistStats() {
+    // Update the wishlist count in the stats
+    const wishlistItems = document.querySelectorAll('.wishlist-item');
+    const wishlistCount = document.querySelector('.stat-card:nth-child(4) .stat-number');
+    if (wishlistCount) {
+        wishlistCount.textContent = wishlistItems.length;
+    }
+}
+
+function showMessage(message, type) {
+    // Create a toast notification
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
 }
 </script>
 {% endblock %}

@@ -581,3 +581,86 @@
     }
 }
 
+/* --- View All Category Button --- */
+.view-all-category {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 2rem 0;
+}
+
+.view-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    
+    padding: 1.25rem 2.5rem;
+    border-radius: 15px;
+    border: none;
+    
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+    
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 56px;
+}
+
+.view-all-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.view-all-btn:hover::before {
+    left: 100%;
+}
+
+.view-all-btn:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.view-all-btn:active {
+    transform: translateY(-1px) scale(1.01);
+}
+
+.view-all-btn i {
+    font-size: 1.2rem;
+}
+
+/* Responsive Design for View All Button */
+@media (max-width: 768px) {
+    .view-all-btn {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+    
+    .view-all-btn i {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-all-btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+        min-height: 44px;
+    }
+}
+

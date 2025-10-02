@@ -1229,8 +1229,18 @@ def get_cakes_api():
         cake['_id'] = str(cake['_id'])
         cake['url'] = url_for('routes.cake_details', cake_id=cake['_id'])
         cakes_list.append(cake)
+    
+    # Get total count for pagination
+    total_cakes = db.cakes.count_documents(query)
+    total_pages = math.ceil(total_cakes / CAKES_PER_PAGE)
         
-    return jsonify(cakes_list)
+    return jsonify({
+        'cakes': cakes_list,
+        'current_page': page,
+        'total_pages': total_pages,
+        'total_cakes': total_cakes,
+        'has_more': page < total_pages
+    })
 
 @routes_bp.route('/cart/items', methods=['GET'])
 @login_required
@@ -1664,11 +1674,29 @@ def remove_from_wishlist():
     try:
         data = request.get_json()
         cake_id = data.get('cake_id')
+        item_id = data.get('item_id')
         
-        result = db.wishlist.delete_one({
-            'user_email': current_user.email,
-            'cake_id': cake_id
-        })
+        if not cake_id and not item_id:
+            return jsonify({'success': False, 'message': 'Cake ID or Item ID is required'}), 400
+        
+        # Try to remove by item_id first, then by cake_id
+        if item_id:
+            try:
+                from bson import ObjectId
+                result = db.wishlist.delete_one({
+                    '_id': ObjectId(item_id),
+                    'user_email': current_user.email
+                })
+            except:
+                result = db.wishlist.delete_one({
+                    '_id': item_id,
+                    'user_email': current_user.email
+                })
+        else:
+            result = db.wishlist.delete_one({
+                'user_email': current_user.email,
+                'cake_id': cake_id
+            })
         
         if result.deleted_count > 0:
             return jsonify({'success': True, 'message': 'Removed from wishlist'})
@@ -1683,10 +1711,41 @@ def remove_from_wishlist():
 def wishlist_page():
     """Display the user's wishlist page."""
     try:
-        # Get user's wishlist items
-        wishlist_items = list(db.wishlist.find({'user_email': current_user.email}).sort('added_at', -1))
-        for item in wishlist_items:
-            item['_id'] = str(item['_id'])
+        # Get user's wishlist items with full cake data
+        wishlist_items = []
+        wishlist_docs = list(db.wishlist.find({'user_email': current_user.email}).sort('added_at', -1))
+        
+        for wishlist_item in wishlist_docs:
+            # Get the full cake data for each wishlist item
+            cake_id = wishlist_item.get('cake_id')
+            if cake_id:
+                try:
+                    from bson import ObjectId
+                    cake = db.cakes.find_one({'_id': ObjectId(cake_id)})
+                    if cake:
+                        # Merge wishlist data with cake data
+                        wishlist_item.update({
+                            'cake_name': cake.get('name', 'Unknown Cake'),
+                            'cake_price': cake.get('price', 0),
+                            'cake_image': cake.get('image', '/static/default-cake.jpg'),
+                            'description': cake.get('description', ''),
+                            'category': cake.get('category', ''),
+                            '_id': str(wishlist_item['_id'])
+                        })
+                        wishlist_items.append(wishlist_item)
+                except:
+                    # If ObjectId conversion fails, try string match
+                    cake = db.cakes.find_one({'_id': cake_id})
+                    if cake:
+                        wishlist_item.update({
+                            'cake_name': cake.get('name', 'Unknown Cake'),
+                            'cake_price': cake.get('price', 0),
+                            'cake_image': cake.get('image', '/static/default-cake.jpg'),
+                            'description': cake.get('description', ''),
+                            'category': cake.get('category', ''),
+                            '_id': str(wishlist_item['_id'])
+                        })
+                        wishlist_items.append(wishlist_item)
         
         return render_template('wishlist.html', wishlist_items=wishlist_items)
     except Exception as e:
@@ -1739,18 +1798,36 @@ def customer_order_detail(order_id):
     try:
         from bson import ObjectId
         
-        # Find the order and verify it belongs to the current user
-        order = db.orders.find_one({
-            '_id': ObjectId(order_id),
-            'customer_email': current_user.email
-        })
+        # Try to find order by ObjectId first, then by order_id field
+        order = None
+        
+        # First try as ObjectId
+        try:
+            order = db.orders.find_one({
+                '_id': ObjectId(order_id),
+                'customer_email': current_user.email
+            })
+        except:
+            # If ObjectId fails, try as custom order_id
+            order = db.orders.find_one({
+                'order_id': order_id,
+                'customer_email': current_user.email
+            })
         
         if not order:
             flash('Order not found or you do not have permission to view it!', 'error')
             return redirect(url_for('routes.order_history'))
         
         order['_id'] = str(order['_id'])
-        return render_template('customer_order_detail.html', order=order)
+        
+        # Fetch all cakes for image lookup
+        cakes_cursor = db.cakes.find({})
+        cakes = []
+        for cake in cakes_cursor:
+            cake['_id'] = str(cake['_id'])
+            cakes.append(cake)
+        
+        return render_template('customer_order_detail.html', order=order, cakes=cakes)
         
     except Exception as e:
         print(f"Error loading customer order details: {e}")

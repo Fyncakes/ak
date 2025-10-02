@@ -98,38 +98,7 @@
 </section>
 {% endif %}
 
-<!-- NEW: Customer Testimonials Section -->
-<section class="testimonials-section">
-    <h2 class="section-title">What Our Customers Say</h2>
-    <div class="testimonials-container">
-        {% for testimonial in testimonials %}
-        <div class="testimonial-card">
-            <div class="testimonial-rating">
-                {% for i in range(testimonial.rating) %}
-                <i class="fas fa-star"></i>
-                {% endfor %}
-            </div>
-            <blockquote class="testimonial-text">"{{ testimonial.text }}"</blockquote>
-            <cite class="testimonial-author">- {{ testimonial.name }}</cite>
-        </div>
-        {% endfor %}
-    </div>
-</section>
-
-<!-- NEW: Newsletter Signup Section -->
-<section class="newsletter-section">
-    <div class="newsletter-container">
-        <h2>Stay Sweet with FynCakes</h2>
-        <p>Get the latest updates on new cake flavors, special offers, and baking tips delivered to your inbox!</p>
-        <form class="newsletter-form" id="newsletter-form">
-            <input type="email" placeholder="Enter your email address" required class="newsletter-input">
-            <button type="submit" class="newsletter-button">Subscribe</button>
-        </form>
-        <p class="newsletter-disclaimer">We respect your privacy. Unsubscribe at any time.</p>
-    </div>
-</section>
-
-<!-- Recent Comments Section -->
+<!-- Recent Comments Section (Database-driven testimonials) -->
 <section class="recent-comments-section">
     <div class="container">
         <h2>What Our Customers Say</h2>
@@ -159,6 +128,20 @@
         {% endif %}
     </div>
 </section>
+
+<!-- NEW: Newsletter Signup Section -->
+<section class="newsletter-section">
+    <div class="newsletter-container">
+        <h2>Stay Sweet with FynCakes</h2>
+        <p>Get the latest updates on new cake flavors, special offers, and baking tips delivered to your inbox!</p>
+        <form class="newsletter-form" id="newsletter-form">
+            <input type="email" placeholder="Enter your email address" required class="newsletter-input">
+            <button type="submit" class="newsletter-button">Subscribe</button>
+        </form>
+        <p class="newsletter-disclaimer">We respect your privacy. Unsubscribe at any time.</p>
+    </div>
+</section>
+
 
 <section class="cta-section">
     <h2>Ready for a Taste of Perfection?</h2>

@@ -149,17 +149,51 @@
         background: #f8f9fa;
     }
 
+    .item-image-container {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+        border: 2px solid #fff;
+        position: relative;
+    }
+
+    .item-image-container:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+
     .item-image {
-        width: 80px;
-        height: 80px;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: 8px;
-        background: #ddd;
+        transition: all 0.3s ease;
+    }
+
+    .item-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #666;
+        color: white;
         font-size: 0.8rem;
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    .item-image-placeholder i {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-image-placeholder span {
+        font-size: 0.7rem;
+        font-weight: 600;
     }
 
     .item-details {
@@ -371,11 +405,39 @@
         {% if order.get('items') %}
             {% for item in order.get('items', []) %}
             <div class="order-item">
-                {% if item.get('image') %}
-                    <img src="{{ item.get('image') }}" alt="{{ item.get('name', 'Item') }}" class="item-image">
-                {% else %}
-                    <div class="item-image">No Image</div>
-                {% endif %}
+                <div class="item-image-container">
+                    {% set item_image = None %}
+                    
+                    {# Try to get image from item first #}
+                    {% if item.get('image') %}
+                        {% set item_image = item.get('image') %}
+                    {# Try to get image from cake using cake_id #}
+                    {% elif item.get('cake_id') %}
+                        {% for cake in cakes %}
+                            {% if cake._id == item.get('cake_id') and cake.get('image') %}
+                                {% set item_image = cake.get('image') %}
+                                {% break %}
+                            {% endif %}
+                        {% endfor %}
+                    {# Try to find cake by name as fallback #}
+                    {% elif item.get('name') %}
+                        {% for cake in cakes %}
+                            {% if cake.get('name') and cake.get('name')|lower == item.get('name')|lower and cake.get('image') %}
+                                {% set item_image = cake.get('image') %}
+                                {% break %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if item_image %}
+                        <img src="{{ item_image }}" alt="{{ item.get('name', 'Item') }}" class="item-image" onerror="this.parentNode.innerHTML='<div class=\'item-image-placeholder\'><i class=\'fas fa-cake\'></i><span>Product Image</span></div>'">
+                    {% else %}
+                        <div class="item-image-placeholder">
+                            <i class="fas fa-cake"></i>
+                            <span>Product Image</span>
+                        </div>
+                    {% endif %}
+                </div>
                 <div class="item-details">
                     <div class="item-name">{{ item.get('name', 'Unknown Item') }}</div>
                     <div class="item-description">{{ item.get('description', 'No description available') }}</div>

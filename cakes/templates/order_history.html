@@ -175,42 +175,118 @@
     .order-item {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 1rem 0;
+        gap: 1.5rem;
+        padding: 1.25rem 0;
         border-bottom: 1px solid #eee;
+        transition: background-color 0.3s ease;
+    }
+
+    .order-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        margin: 0 -1rem;
+        padding: 1.25rem 1rem;
     }
 
     .order-item:last-child {
         border-bottom: none;
     }
 
-    .item-image {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-        border-radius: 8px;
+    .item-view-button-container {
+        width: 120px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .view-order-btn {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 100px;
+        height: 70px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .view-order-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .view-order-btn:hover::before {
+        left: 100%;
+    }
+
+    .view-order-btn:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+    }
+
+    .view-order-btn i {
+        font-size: 1.2rem;
+    }
+
+    .view-order-btn span {
+        font-size: 0.75rem;
+        font-weight: 600;
     }
 
     .item-info {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     .item-name {
         font-weight: 600;
         color: #333;
-        margin-bottom: 0.25rem;
+        margin: 0;
+        font-size: 1.1rem;
+        line-height: 1.3;
     }
 
     .item-details {
         display: flex;
-        gap: 1rem;
-        font-size: 0.9rem;
+        gap: 1.5rem;
+        font-size: 0.95rem;
         color: #666;
+        align-items: center;
+    }
+
+    .item-quantity {
+        background: #e74c3c;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
     }
 
     .item-price {
-        font-weight: 600;
+        font-weight: 700;
         color: #e74c3c;
+        font-size: 1rem;
     }
 
     .order-summary {
@@ -387,7 +463,12 @@
                     <h4>Order Items:</h4>
                     {% for item in order.get('items', []) %}
                     <div class="order-item">
-                        <img src="{{ item.get('image', '/static/default-cake.jpg') }}" alt="{{ item.get('name', 'Cake') }}" class="item-image">
+                        <div class="item-view-button-container">
+                            <button class="btn btn-primary view-order-btn" onclick="viewOrderDetails('{{ order.order_id }}')">
+                                <i class="fas fa-eye"></i>
+                                <span>View Order</span>
+                            </button>
+                        </div>
                         <div class="item-info">
                             <div class="item-name">{{ item.get('name', 'Unknown Cake') }}</div>
                             <div class="item-details">
@@ -525,6 +606,14 @@ function applyFilters() {
             card.style.display = 'none';
         }
     });
+}
+
+function viewOrderDetails(orderId) {
+    if (orderId) {
+        window.location.href = `/customer/orders/${orderId}`;
+    } else {
+        showMessage('Order details not available', 'error');
+    }
 }
 
 function showMessage(message, type) {

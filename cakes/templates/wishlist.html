@@ -108,48 +108,87 @@
     }
 
     .btn {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.25rem;
         border: none;
-        border-radius: 5px;
+        border-radius: 12px;
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: 0.5rem;
         flex: 1;
         justify-content: center;
+        position: relative;
+        overflow: hidden;
+        min-height: 44px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
     }
 
     .btn-primary {
-        background: #e74c3c;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         color: white;
+        border: 2px solid transparent;
     }
 
     .btn-primary:hover {
-        background: #c0392b;
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
     }
 
     .btn-outline {
         background: transparent;
         color: #e74c3c;
-        border: 1px solid #e74c3c;
+        border: 2px solid #e74c3c;
     }
 
     .btn-outline:hover {
         background: #e74c3c;
         color: white;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
     }
 
     .btn-danger {
-        background: #dc3545;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         color: white;
+        border: 2px solid transparent;
     }
 
     .btn-danger:hover {
-        background: #c82333;
+        background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+        border: 2px solid transparent;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
     }
 
     .empty-state {
@@ -192,31 +231,53 @@
     }
 
     .bulk-actions button {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.5rem;
         border: none;
-        border-radius: 5px;
+        border-radius: 12px;
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        min-height: 44px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .bulk-actions .btn-secondary {
-        background: #6c757d;
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
         color: white;
+        border: 2px solid transparent;
     }
 
     .bulk-actions .btn-secondary:hover {
-        background: #5a6268;
+        background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
     }
 
     .bulk-actions .btn-danger {
-        background: #dc3545;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         color: white;
+        border: 2px solid transparent;
     }
 
     .bulk-actions .btn-danger:hover {
-        background: #c82333;
+        background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    .bulk-actions .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+        border: 2px solid transparent;
+    }
+
+    .bulk-actions .btn-success:hover {
+        background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
     }
 </style>
 {% endblock %}
@@ -251,12 +312,15 @@
     {% if wishlist_items %}
     <!-- Bulk Actions -->
     <div class="bulk-actions">
-        <label>
-            <input type="checkbox" id="select-all" onchange="toggleAllItems()">
-            Select All
+        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #333;">
+            <input type="checkbox" id="select-all" onchange="toggleAllItems()" style="transform: scale(1.2);">
+            Select All Items
         </label>
-        <button class="btn-secondary" onclick="addSelectedToCart()">
+        <button class="btn-success" onclick="addSelectedToCart()">
             <i class="fas fa-shopping-cart"></i> Add Selected to Cart
+        </button>
+        <button class="btn-secondary" onclick="viewSelectedDetails()">
+            <i class="fas fa-eye"></i> View Selected
         </button>
         <button class="btn-danger" onclick="removeSelected()">
             <i class="fas fa-trash"></i> Remove Selected
@@ -272,7 +336,12 @@
                 <h3 class="wishlist-item-name">{{ item.cake_name }}</h3>
                 <p class="wishlist-item-price">Shs {{ "{:,.0f}".format(item.cake_price) }}</p>
                 <div class="wishlist-item-actions">
-                    <button class="btn btn-primary" onclick="addToCart('{{ item.cake_id }}', '{{ item.cake_name }}', {{ item.cake_price }}, '{{ item.cake_image }}')">
+                    <button class="btn btn-primary" 
+                            data-cake-id="{{ item.cake_id }}" 
+                            data-cake-name="{{ item.cake_name }}" 
+                            data-cake-price="{{ item.cake_price }}" 
+                            data-cake-image="{{ item.cake_image }}" 
+                            onclick="addToCartFromData(this)">
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
                     <a href="/cake/{{ item.cake_id }}" class="btn btn-outline">
@@ -302,6 +371,14 @@
 </div>
 
 <script>
+function addToCartFromData(button) {
+    const cakeId = button.dataset.cakeId;
+    const name = button.dataset.cakeName;
+    const price = parseFloat(button.dataset.cakePrice);
+    const image = button.dataset.cakeImage;
+    addToCart(cakeId, name, price, image);
+}
+
 function addToCart(cakeId, name, price, image) {
     if (!window.isUserAuthenticated) {
         alert("Please log in to add items to your cart.");
@@ -420,6 +497,99 @@ function removeSelected() {
             removedCount++;
         });
     }
+}
+
+function viewSelectedDetails() {
+    const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+    
+    if (selectedItems.length === 0) {
+        alert('Please select items to view.');
+        return;
+    }
+    
+    if (selectedItems.length === 1) {
+        const cakeId = selectedItems[0].value;
+        window.location.href = `/cake/${cakeId}`;
+    } else {
+        alert(`You have selected ${selectedItems.length} items. Please select only one item to view details.`);
+    }
+}
+
+// Enhanced remove function with better feedback
+function removeFromWishlist(cakeId) {
+    if (confirm('Remove this item from your wishlist?')) {
+        fetch("{{ url_for('routes.remove_from_wishlist') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cake_id: cakeId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the item from the page with animation
+                const item = document.querySelector(`[data-cake-id="${cakeId}"]`);
+                if (item) {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.transform = 'scale(0.8)';
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        item.remove();
+                        updateStats();
+                    }, 300);
+                }
+                showMessage('Item removed from wishlist!', 'success');
+            } else {
+                showMessage(data.message || 'Could not remove item from wishlist.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error removing from wishlist:', error);
+            showMessage('Could not remove item from wishlist.', 'error');
+        });
+    }
+}
+
+function updateStats() {
+    // Update the statistics after removing items
+    const totalItems = document.querySelectorAll('.wishlist-item').length;
+    const statNumber = document.querySelector('.stat-number');
+    if (statNumber) {
+        statNumber.textContent = totalItems;
+    }
+}
+
+function showMessage(message, type) {
+    // Create a toast notification
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
 }
 </script>
 {% endblock %}
