@@ -1273,47 +1273,108 @@ def clear_cart():
 @login_required
 def place_order():
     """Handles the final order placement and sends a confirmation email."""
-    data = request.get_json()
-    products = data.get('products')
-    total_amount = data.get('totalAmount')
-    delivery_date_str = data.get('deliveryDate')
-    phone_number = data.get('phoneNumber')
-    
-    if not all([products, total_amount, delivery_date_str, phone_number]):
-        return jsonify({'success': False, 'message': 'Missing order information.'}), 400
-
-    order_id = f"FYN-{random.randint(1000, 9999)}"
-    db.orders.insert_one({
-        'order_id': order_id,
-        'customer_email': current_user.email,
-        'products': products,
-        'total_amount': total_amount,
-        'payment_status': 'pending_payment',
-        'order_status': 'awaiting_payment',
-        'delivery_date': datetime.strptime(delivery_date_str, '%Y-%m-%d'),
-        'customer_phone': phone_number,
-        'order_placed_at': datetime.now()
-    })
-
     try:
-        product_list_html = "".join([f"<li>{p['name']} - Shs {p['price']:,.0f}</li>" for p in products])
-        msg = Message(f"FynCakes Order Confirmation - #{order_id}", recipients=[current_user.email])
-        msg.html = f"""
-        <div style="font-family: sans-serif;">
-            <h1>Thank You for Your Order!</h1>
-            <p>Your order #{order_id} has been received and is awaiting payment.</p>
-            <h3>Order Summary</h3>
-            <ul>{product_list_html}</ul>
-            <p><strong>Total Amount: Shs {total_amount:,.0f}</strong></p>
-            <h3>Next Steps: Payment</h3>
-            <p>Please send the total amount via Mobile Money to <strong>0758 449 390</strong> using your Order ID <strong>({order_id})</strong> as the reason.</p>
-        </div>
-        """
-        mail.send(msg)
-    except Exception as e:
-        current_app.logger.error(f"Failed to send order confirmation email for {order_id}: {e}")
+        data = request.get_json()
+        products = data.get('products')
+        total_amount = data.get('totalAmount')
+        delivery_date_str = data.get('deliveryDate')
+        phone_number = data.get('phoneNumber')
+        
+        if not all([products, total_amount, delivery_date_str, phone_number]):
+            return jsonify({'success': False, 'message': 'Missing order information.'}), 400
 
-    return jsonify({'success': True, 'message': f"Order #{order_id} placed! Please check your email for payment instructions."})
+        # Generate order ID
+        order_id = f"FYN-{random.randint(1000, 9999)}"
+        
+        # Create order document with consistent structure
+        from datetime import datetime
+        order_doc = {
+            'order_id': order_id,
+            'customer_email': current_user.email,
+            'customer_name': f"{current_user.first_name or current_user.username} {current_user.last_name or ''}".strip(),
+            'items': products,  # Changed from 'products' to 'items' for consistency
+            'total_amount': float(total_amount),
+            'status': 'pending',  # Changed from 'order_status' to 'status'
+            'payment_status': 'pending',  # Changed from 'pending_payment'
+            'payment_method': 'cash',  # Default payment method
+            'delivery_date': delivery_date_str,
+            'delivery_address': 'Not specified',
+            'customer_phone': phone_number,
+            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'customer_hidden': False  # For customer history management
+        }
+        
+        # Insert order into database
+        result = db.orders.insert_one(order_doc)
+        
+        if result.inserted_id:
+            print(f"✅ Order {order_id} created successfully for {current_user.email}")
+            
+            # Send confirmation email
+            try:
+                product_list_html = "".join([f"<li>{p['name']} - Shs {p['price']:,.0f}</li>" for p in products])
+                msg = Message(f"FynCakes Order Confirmation - #{order_id}", recipients=[current_user.email])
+                msg.html = f"""
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #e74c3c;">Thank You for Your Order!</h1>
+                        <p style="font-size: 18px; color: #666;">Your order has been received and is being processed.</p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3 style="color: #2c3e50; margin-top: 0;">Order Details</h3>
+                        <p><strong>Order ID:</strong> #{order_id}</p>
+                        <p><strong>Delivery Date:</strong> {delivery_date_str}</p>
+                        <p><strong>Contact Phone:</strong> {phone_number}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #2c3e50;">Order Summary</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            {product_list_html}
+                        </ul>
+                        <div style="border-top: 2px solid #e74c3c; padding-top: 15px; margin-top: 15px;">
+                            <p style="font-size: 20px; font-weight: bold; color: #e74c3c; margin: 0;">
+                                Total Amount: Shs {total_amount:,.0f}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; border-left: 5px solid #28a745;">
+                        <h3 style="color: #155724; margin-top: 0;">Next Steps: Payment</h3>
+                        <p style="color: #155724; margin-bottom: 10px;">
+                            Please send the total amount via Mobile Money to: 
+                            <strong style="font-size: 18px;">0758 449 390</strong>
+                        </p>
+                        <p style="color: #155724; margin: 0;">
+                            Use your Order ID <strong>({order_id})</strong> as the payment reference.
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                        <p style="color: #666; margin: 0;">Thank you for choosing FynCakes!</p>
+                        <p style="color: #666; margin: 5px 0 0 0;">We'll notify you once your payment is confirmed.</p>
+                    </div>
+                </div>
+                """
+                mail.send(msg)
+                print(f"✅ Order confirmation email sent to {current_user.email}")
+            except Exception as e:
+                print(f"❌ Failed to send order confirmation email for {order_id}: {e}")
+                # Don't fail the order if email fails
+            
+            return jsonify({
+                'success': True, 
+                'message': f"Order #{order_id} placed successfully! Please check your email for payment instructions.",
+                'order_id': order_id
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Failed to create order. Please try again.'})
+            
+    except Exception as e:
+        print(f"❌ Error placing order: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred while placing your order. Please try again.'}), 500
 
 @routes_bp.route('/register-class', methods=['POST'])
 @login_required
