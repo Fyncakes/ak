@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}Order History - FynCakes{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/order_history.css') }}">
+<style>
+    .history-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .history-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .history-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .history-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .filters-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: #e74c3c;
+        box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+    }
+
+    .orders-list {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .order-card {
+        border-bottom: 1px solid #e0e0e0;
+        padding: 1.5rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .order-card:hover {
+        background-color: #f8f9fa;
+    }
+
+    .order-card:last-child {
+        border-bottom: none;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .order-id {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .order-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .order-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .order-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        text-align: center;
+    }
+
+    .detail-label {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 0.3rem;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .order-items {
+        margin-top: 1rem;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+
+    .item-info {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.2rem;
+    }
+
+    .item-details {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .item-price {
+        font-weight: 600;
+        color: #e74c3c;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+
+    .btn-outline:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .order-details {
+            grid-template-columns: 1fr;
+        }
+
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .filters-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <div class="history-header">
+        <h1><i class="fas fa-history"></i> Order History</h1>
+        <p>Track all your FynCakes orders and their status</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <div class="filter-group">
+            <label for="status-filter">Status:</label>
+            <select id="status-filter">
+                <option value="">All Orders</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="date-from">From Date:</label>
+            <input type="date" id="date-from">
+        </div>
+        <div class="filter-group">
+            <label for="date-to">To Date:</label>
+            <input type="date" id="date-to">
+        </div>
+        <div class="filter-group">
+            <button class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="orders-list" id="orders-list">
+        {% if orders %}
+            {% for order in orders %}
+            <div class="order-card" data-status="{{ order.get('status', 'pending') }}">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Order #{{ order._id[:8] }}</h3>
+                        <p class="order-date">{{ order.get('created_at', 'Unknown date') }}</p>
+                    </div>
+                    <div class="order-status">
+                        <span class="status status-{{ order.get('status', 'pending') }}">
+                            {{ order.get('status', 'Pending').title() }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="order-items">
+                    <h4>Order Items:</h4>
+                    {% for item in order.get('items', []) %}
+                    <div class="order-item">
+                        <img src="{{ item.get('image', '/static/default-cake.jpg') }}" alt="{{ item.get('name', 'Cake') }}" class="item-image">
+                        <div class="item-info">
+                            <div class="item-name">{{ item.get('name', 'Unknown Cake') }}</div>
+                            <div class="item-details">
+                                <span class="item-quantity">Qty: {{ item.get('quantity', 1) }}</span>
+                                <span class="item-price">Shs {{ "{:,.0f}".format(item.get('price', 0)) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="order-total">
+                        <strong>Total: Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</strong>
+                    </div>
+                    <div class="order-details">
+                        <p><strong>Delivery Address:</strong> {{ order.get('delivery_address', 'Not specified') }}</p>
+                        <p><strong>Payment Method:</strong> {{ order.get('payment_method', 'Not specified') }}</p>
+                    </div>
+                </div>
+                
+                <div class="order-actions">
+                    <button class="btn btn-outline" onclick="viewOrderDetails('{{ order._id }}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                    {% if order.get('status') == 'pending' %}
+                    <button class="btn btn-secondary" onclick="cancelOrder('{{ order._id }}')">
+                        <i class="fas fa-times"></i> Cancel Order
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>No orders found</h3>
+                <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                <a href="{{ url_for('routes.customer') }}" class="btn btn-primary">Browse Cakes</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Orders are now loaded from server-side template
+    console.log('Order history page loaded with real data');
+});
+
+function viewOrderDetails(orderId) {
+    // This would open a modal or navigate to order details
+    alert('View order details: ' + orderId);
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        // This would make an API call to cancel the order
+        alert('Order cancelled: ' + orderId);
+    }
+}
+
+function reorder(orderId) {
+    // This would add items from the order back to cart
+    alert('Reordering: ' + orderId);
+}
+
+function loadOrders() {
+    // Mock orders data
+    const mockOrders = [
+        {
+            id: 'ORD001',
+            date: '2024-01-15',
+            status: 'completed',
+            total: 150000,
+            items: [
+                {
+                    name: 'Chocolate Delight',
+                    quantity: 1,
+                    price: 150000,
+                    image: '/static/cake_uploads/chocolate_delight.jpg'
+                }
+            ],
+            deliveryAddress: 'Plot 123, Kampala Road, Kampala',
+            paymentMethod: 'Mobile Money'
+        },
+        {
+            id: 'ORD002',
+            date: '2024-01-20',
+            status: 'processing',
+            total: 280000,
+            items: [
+                {
+                    name: 'Vanilla Dream',
+                    quantity: 1,
+                    price: 120000,
+                    image: '/static/cake_uploads/vanilla_dream.jpg'
+                },
+                {
+                    name: 'Strawberry Shortcake',
+                    quantity: 1,
+                    price: 160000,
+                    image: '/static/cake_uploads/strawberry_shortcake.jpg'
+                }
+            ],
+            deliveryAddress: 'Nakawa, Kampala',
+            paymentMethod: 'Bank Transfer'
+        },
+        {
+            id: 'ORD003',
+            date: '2024-01-25',
+            status: 'pending',
+            total: 200000,
+            items: [
+                {
+                    name: 'Red Velvet Royal',
+                    quantity: 1,
+                    price: 200000,
+                    image: '/static/cake_uploads/red_velvet_royal.jpg'
+                }
+            ],
+            deliveryAddress: 'Entebbe Road, Kampala',
+            paymentMethod: 'Cash on Delivery'
+        }
+    ];
+
+    const container = document.getElementById('orders-list');
+    
+    if (mockOrders.length > 0) {
+        container.innerHTML = mockOrders.map(order => `
+            <div class="order-card" data-status="${order.status}">
+                <div class="order-header">
+                    <div>
+                        <div class="order-id">Order #${order.id}</div>
+                        <div class="order-date">${order.date}</div>
+                    </div>
+                    <span class="order-status status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                </div>
+                
+                <div class="order-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Total Amount</div>
+                        <div class="detail-value">Shs ${order.total.toLocaleString()}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Payment Method</div>
+                        <div class="detail-value">${order.paymentMethod}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Delivery Address</div>
+                        <div class="detail-value">${order.deliveryAddress}</div>
+                    </div>
+                </div>
+
+                <div class="order-items">
+                    <h4>Order Items:</h4>
+                    ${order.items.map(item => `
+                        <div class="order-item">
+                            <img src="${item.image}" alt="${item.name}" class="item-image">
+                            <div class="item-info">
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-details">Quantity: ${item.quantity}</div>
+                            </div>
+                            <div class="item-price">Shs ${item.price.toLocaleString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="order-actions">
+                    <button class="btn btn-outline" onclick="viewOrderDetails('${order.id}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                    ${order.status === 'completed' ? `
+                        <button class="btn btn-primary" onclick="reorder('${order.id}')">
+                            <i class="fas fa-redo"></i> Reorder
+                        </button>
+                    ` : ''}
+                    ${order.status === 'pending' ? `
+                        <button class="btn btn-secondary" onclick="cancelOrder('${order.id}')">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    } else {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>No orders found</h3>
+                <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                <a href="{{ url_for('routes.customer') }}" class="btn btn-primary">Browse Cakes</a>
+            </div>
+        `;
+    }
+}
+
+function applyFilters() {
+    const statusFilter = document.getElementById('status-filter').value;
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+    
+    // Filter logic would go here
+    console.log('Applying filters:', { statusFilter, dateFrom, dateTo });
+    // For now, just reload all orders
+    loadOrders();
+}
+
+function viewOrderDetails(orderId) {
+    alert(`Viewing details for order ${orderId} (This is a demo)`);
+}
+
+function reorder(orderId) {
+    alert(`Reordering from order ${orderId} (This is a demo)`);
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        alert(`Order ${orderId} cancelled (This is a demo)`);
+    }
+}
+</script>
+{% endblock %}

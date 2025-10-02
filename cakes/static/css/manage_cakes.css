@@ -1,0 +1,172 @@
+/*
+    ========================================
+    Manage Cakes Stylesheet
+    ========================================
+*/
+
+/* --- Main Admin Container & Header --- */
+.admin-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+    gap: 1rem;
+}
+
+.admin-header h1 {
+    margin: 0;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* --- General Button Styles --- */
+.btn {
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+.btn-primary:hover {
+    background-color: #B71C1C;
+}
+.btn-secondary {
+    background-color: #6c757d;
+    color: var(--light-color);
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* --- Main Content Card --- */
+.content-card {
+    background-color: var(--light-color);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.table-responsive-wrapper {
+    overflow-x: auto;
+}
+
+/* --- Products Table Styling --- */
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table th, .products-table td {
+    padding: 1rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.products-table thead {
+    background-color: var(--grey-color);
+}
+
+.products-table th {
+    font-weight: 600;
+}
+
+.products-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.products-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.products-table img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+}
+
+.actions-cell {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.btn-edit, .btn-delete {
+    padding: 0.5rem 1rem;
+    color: var(--light-color);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    text-decoration: none; /* Added for consistency */
+    font-size: 0.9rem; /* Added for consistency */
+}
+.btn-edit { background-color: #0277BD; } /* Blue for edit */
+.btn-delete { background-color: var(--primary-color); } /* Red for delete */
+
+/* ========================================
+    IMPROVED RESPONSIVE STYLES FOR MOBILE
+   ======================================== */
+@media (max-width: 768px) {
+    /* Hide the table headers on mobile */
+    .products-table thead {
+        display: none;
+    }
+
+    /* Transform the table into a list of cards */
+    .products-table, .products-table tbody, .products-table tr, .products-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .products-table tr {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+
+    /* KEY CHANGE: From Flexbox to Block Layout */
+    .products-table td {
+        display: block; /* Stacks label and value */
+        text-align: left; /* Aligns content to the left */
+        padding: 0.75rem 1rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .products-table td:last-child {
+        border-bottom: none;
+    }
+
+    /* KEY CHANGE: Style the Label as a Sub-heading */
+    .products-table td::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #555;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem; /* Space between label and value */
+    }
+
+    /* Special handling for the actions cell to keep buttons side-by-side */
+    .products-table .actions-cell {
+        /* This applies to the content *inside* the td, below the "Actions" label */
+        display: flex;
+        gap: 0.75rem;
+    }
+}

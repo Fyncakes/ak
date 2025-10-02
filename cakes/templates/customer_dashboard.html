@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard - FynCakes{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer_dashboard.css') }}">
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .dashboard-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .dashboard-header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .user-profile-section {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-initials {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .user-info h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .user-info p {
+        margin: 0.5rem 0 0 0;
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 5px solid #e74c3c;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .stat-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #e74c3c;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-description {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .refresh-points-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        padding: 0.5rem 1rem;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .refresh-points-btn:hover {
+        background: #B71C1C;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .content-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .content-card h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+        transition: background-color 0.3s ease;
+    }
+
+    .order-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-info h4 {
+        margin: 0 0 0.5rem 0;
+        color: #2c3e50;
+    }
+
+    .order-info p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .order-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .quick-action {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #e74c3c;
+        text-decoration: none;
+        color: #2c3e50;
+        transition: all 0.3s ease;
+    }
+
+    .quick-action:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .quick-action h4 {
+        margin: 0 0 0.5rem 0;
+        color: #e74c3c;
+    }
+
+    .quick-action p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .recent-orders {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    .wishlist-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .wishlist-item:last-child {
+        border-bottom: none;
+    }
+
+    .wishlist-item img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .wishlist-info h4 {
+        margin: 0 0 0.5rem 0;
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+
+    .wishlist-info p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .wishlist-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+
+    .btn-outline:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .user-profile-section {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .profile-initials {
+            font-size: 1.5rem;
+        }
+        
+        .user-info h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            flex-direction: column;
+        }
+        
+        .quick-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div class="user-profile-section">
+                <div class="user-avatar">
+                    {% if current_user.profile_image %}
+                        <img src="{{ current_user.profile_image }}" alt="{{ current_user.first_name or current_user.username }}" class="profile-image">
+                    {% else %}
+                        <div class="profile-initials">
+                            {{ (current_user.first_name or current_user.username)[0]|upper }}{{ (current_user.last_name or '')[0]|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="user-info">
+                    <h1><i class="fas fa-tachometer-alt"></i> Welcome back, {{ current_user.first_name or current_user.username }}!</h1>
+                    <p>Here's an overview of your FynCakes experience</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3><i class="fas fa-shopping-cart"></i> Total Orders</h3>
+            <span class="stat-number">{{ total_orders }}</span>
+            <span class="stat-description">All time orders</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-dollar-sign"></i> Total Spent</h3>
+            <span class="stat-number">Shs {{ "{:,.0f}".format(total_spent) }}</span>
+            <span class="stat-description">Amount spent on cakes</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-shopping-cart"></i> Cart Items</h3>
+            <span class="stat-number">{{ cart_items|length }}</span>
+            <span class="stat-description">Items in your cart</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-heart"></i> Wishlist</h3>
+            <span class="stat-number">{{ wishlist_items|length }}</span>
+            <span class="stat-description">Favorite cakes</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-star"></i> Loyalty Points</h3>
+            <span class="stat-number">{{ loyalty_points }}</span>
+            <span class="stat-description">Available points</span>
+            <a href="{{ url_for('routes.refresh_loyalty_points') }}" class="refresh-points-btn">
+                <i class="fas fa-sync-alt"></i> Refresh Points
+            </a>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Recent Orders -->
+        <div class="content-card">
+            <h2><i class="fas fa-clock"></i> Recent Orders</h2>
+            <div class="recent-orders" id="recent-orders">
+                {% if orders %}
+                    {% for order in orders %}
+                    <div class="order-item">
+                        <div class="order-info">
+                            <h4>Order #{{ order._id[:8] }}</h4>
+                            <p>{{ order.get('items', [])|length }} item(s) - Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</p>
+                            <p>{{ order.get('created_at', 'Unknown date') }}</p>
+                        </div>
+                        <span class="order-status status-{{ order.get('status', 'pending') }}">{{ order.get('status', 'Pending').title() }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>No orders yet</h3>
+                        <p>Start shopping to see your orders here!</p>
+                        <a href="{{ url_for('routes.customer') }}" class="btn btn-primary">Browse Cakes</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="content-card">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="quick-actions">
+                <a href="{{ url_for('routes.customer') }}" class="quick-action">
+                    <h4><i class="fas fa-cake"></i> Browse Cakes</h4>
+                    <p>Explore our delicious collection</p>
+                </a>
+                <a href="{{ url_for('routes.customer_profile') }}" class="quick-action">
+                    <h4><i class="fas fa-user-edit"></i> Edit Profile</h4>
+                    <p>Update your information</p>
+                </a>
+                <a href="{{ url_for('routes.order_history') }}" class="quick-action">
+                    <h4><i class="fas fa-history"></i> Order History</h4>
+                    <p>View all your orders</p>
+                </a>
+                <a href="{{ url_for('routes.wedding_gallery') }}" class="quick-action">
+                    <h4><i class="fas fa-heart"></i> Wedding Gallery</h4>
+                    <p>Special occasion cakes</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wishlist -->
+    <div class="content-card">
+        <h2><i class="fas fa-heart"></i> My Wishlist</h2>
+        <div id="wishlist-items">
+            {% if wishlist_items %}
+                {% for item in wishlist_items %}
+                <div class="wishlist-item">
+                    <img src="{{ item.get('image', '/static/default-cake.jpg') }}" alt="{{ item.get('name', 'Cake') }}">
+                    <div class="wishlist-info">
+                        <h4>{{ item.get('name', 'Unknown Cake') }}</h4>
+                        <p>Shs {{ "{:,.0f}".format(item.get('price', 0)) }}</p>
+                    </div>
+                    <div class="wishlist-actions">
+                        <a href="/cake/{{ item.get('cake_id', '') }}" class="btn btn-outline">View</a>
+                        <button class="btn btn-primary" data-cake-id="{{ item.get('cake_id', '') }}" onclick="addToCart(this.dataset.cakeId)">Add to Cart</button>
+                        <button class="btn btn-outline" data-item-id="{{ item._id }}" onclick="removeFromWishlist(this.dataset.itemId)">Remove</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h3>No items in wishlist</h3>
+                    <p>Add cakes you love to your wishlist!</p>
+                    <a href="{{ url_for('routes.customer') }}" class="btn btn-primary">Browse Cakes</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dashboard is now fully dynamic with real data from the server
+    console.log('Customer dashboard loaded with real data');
+});
+
+function addToCart(cakeId) {
+    if (!window.isUserAuthenticated) {
+        alert("Please log in to add items to your cart.");
+        window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+        return;
+    }
+
+    // This would need to be implemented with real cake data
+    alert('Add to cart functionality - needs cake data lookup');
+}
+
+function removeFromWishlist(itemId) {
+    if (confirm('Remove this item from your wishlist?')) {
+        // This would need to be implemented with real API call
+        alert('Remove from wishlist functionality - needs API implementation');
+    }
+}
+</script>
+{% endblock %}

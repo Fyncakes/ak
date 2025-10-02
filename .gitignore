@@ -1,0 +1,16 @@
+
+venv/
+# Environment variables - DO NOT UPLOAD!
+.env
+
+# Virtual environment
+venv/
+/venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# IDE/Editor specific files
+.vscode/
+.idea/

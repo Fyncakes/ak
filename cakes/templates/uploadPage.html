@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Upload New Cake - Admin{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="upload-card">
+        <h2>Upload New Cake</h2>
+        <p class="subtitle">Add a new creation to your online store.</p>
+
+        <form action="{{ url_for('routes.upload') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="cake-name">Cake Name</label>
+                <input type="text" id="cake-name" name="cake_name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cake-description">Description</label>
+                <textarea id="cake-description" name="cake_description" rows="4" class="form-control" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="cake-price">Price (UGX)</label>
+                <input type="number" id="cake-price" name="cake_price" class="form-control" step="1" min="0" placeholder="e.g., 50000" required>
+            </div>
+
+            <!-- This is the new, essential category selector -->
+            <div class="form-group">
+                <label for="cake-category">Category</label>
+                <select id="cake-category" name="cake_category" class="form-control" required>
+                    <option value="" disabled {% if not cake or not cake.category %}selected{% endif %}>Select a category...</option>
+        
+                        {% for category_name in categories %}
+                    <option value="{{ category_name }}" {% if cake and cake.category == category_name %}selected{% endif %}>
+                        {{ category_name }}
+                    </option>
+                {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="cake-image">Upload Image</label>
+                <input type="file" id="cake-image" name="cake_image" class="form-control" accept="image/*" required>
+            </div>
+
+            <button type="submit" class="btn-upload">Upload Cake</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

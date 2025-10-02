@@ -1,0 +1,240 @@
+/*
+    ========================================
+    Admin Dashboard Stylesheet (admin.css)
+    ========================================
+    This file styles all pages within the admin section, including the
+    main dashboard, product management, and upload/edit forms.
+*/
+
+
+/* --- Main Admin Container & Header --- */
+.admin-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap; /* Allows elements to wrap on smaller screens */
+    gap: 1rem;
+}
+
+.admin-header h1 {
+    margin: 0;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+
+/* --- General Button Styles --- */
+.btn {
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.btn-primary {
+    background-color: #2E7D32; /* Green for add/upload */
+    color: var(--light-color);
+}
+.btn-primary:hover {
+    background-color: #1B5E20;
+}
+.btn-secondary {
+    background-color: #6c757d;
+    color: var(--light-color);
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+
+/* --- Dashboard Statistics Cards --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: var(--light-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    border-left: 5px solid var(--primary-color); /* Accent color border */
+}
+
+.stat-card h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.stat-description {
+    display: block;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* --- NEW: Styling for the clickable numbers in stat cards --- */
+.stat-card a {
+    text-decoration: none; /* Removes the default underline */
+}
+
+.stat-card a .stat-number {
+    color: var(--dark-color); /* Ensures the number has its original color */
+    transition: color 0.2s ease-in-out;
+}
+
+.stat-card a:hover .stat-number {
+    color: var(--primary-color); /* Changes number color on hover for feedback */
+    text-decoration: underline; /* Adds an underline on hover */
+}
+
+
+/* --- Main Content Card (for tables, etc.) --- */
+.content-card {
+    background-color: var(--light-color);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+.content-card h2 {
+    margin-top: 0;
+}
+
+
+/* --- Admin Table Styling --- */
+.table-responsive-wrapper {
+    overflow-x: auto;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+.admin-table th, .admin-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+.admin-table thead th {
+    background-color: var(--grey-color);
+    font-weight: 600;
+}
+.admin-table tbody tr:hover {
+    background-color: #fafafa;
+}
+
+
+/* --- Badge Styles for Customer/Student Status --- */
+.badge {
+    padding: 0.25em 0.6em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.customer-badge {
+    background-color: #e0e0e0;
+    color: #616161;
+}
+
+.student-badge {
+    background-color: #FFF8E1; /* A light yellow */
+    color: var(--accent-color);
+    border: 1px solid #FFECB3;
+}
+
+
+/* ========================================
+    IMPROVED RESPONSIVE STYLES FOR MOBILE
+    ========================================
+*/
+@media (max-width: 768px) {
+    /* Give the main content card some space from the header on mobile */
+    .content-card {
+        margin-top: 1.5rem;
+    }
+    
+    /* Hide the original table headers */
+    .admin-table thead {
+        display: none;
+    }
+
+    /* Make table elements stack vertically */
+    .admin-table, 
+    .admin-table tbody, 
+    .admin-table tr, 
+    .admin-table td {
+        display: block;
+        width: 100%;
+    }
+
+    /* Style each table row as a distinct "card" */
+    .admin-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /*
+     * KEY CHANGE: From Flexbox to Block Layout
+     * This stacks the label and value vertically.
+    */
+    .admin-table td {
+        display: block; /* CHANGED: No longer flex */
+        padding: 0.75rem 1rem 1rem; /* Adjusted padding for stacked layout */
+        border-bottom: 1px solid var(--border-color);
+        text-align: left; /* Ensures all content aligns left */
+    }
+
+    .admin-table td:last-child { 
+        border-bottom: none; 
+    }
+
+    /*
+     * KEY CHANGE: Style the Label as a Sub-heading
+     * This makes the label appear on top of its value.
+    */
+    .admin-table td::before {
+        content: attr(data-label);
+        display: block; /* Makes the label take up its own line */
+        font-weight: 600;
+        font-size: 0.8rem; /* Made label text slightly smaller */
+        color: #555;
+        text-transform: uppercase; /* Makes it look more like a label */
+        margin-bottom: 0.25rem; /* Adds space between label and value */
+    }
+
+    /* Ensure badges have enough space */
+    .admin-table .badge {
+        /* No longer need margin-left: auto */
+        display: inline-block; /* Ensures badge styles apply correctly */
+    }
+}

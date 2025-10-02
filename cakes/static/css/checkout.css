@@ -1,0 +1,160 @@
+/*
+    ========================================
+    Checkout Page Stylesheet (checkout.css)
+    ========================================
+    This file styles the final order and payment page.
+*/
+
+/* --- Main Container & Layout --- */
+.checkout-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.checkout-layout {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr; /* Two columns on desktop */
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.order-form-section, .order-summary {
+    background-color: var(--light-color);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.order-form-section h3, .order-summary h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-subtitle {
+    color: #666;
+    margin-top: -1rem;
+    margin-bottom: 2rem;
+}
+
+/* --- Form Group Styling (Ensures Vertical Layout by Default) --- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-family: var(--font-main);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+}
+
+
+/* --- Order Summary Styles --- */
+.summary-item, .summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+.summary-line.total {
+    font-size: 1.4rem;
+    margin-top: 1.5rem;
+}
+
+.confirm-purchase-btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: #2E7D32; /* Green for confirm */
+    color: var(--light-color);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.confirm-purchase-btn:hover {
+    background-color: #1B5E20; /* Darker green */
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+
+/* --- Modal Styling --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--primary-color);
+    margin: 1rem auto 0 auto;
+    animation: spin 1s ease infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/*
+========================================
+    RESPONSIVE ADJUSTMENTS
+========================================
+*/
+@media (max-width: 992px) {
+    .checkout-layout {
+        grid-template-columns: 1fr; /* Stack the columns vertically */
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 2rem;
+    }
+    .order-form-section, .order-summary {
+        padding: 1.5rem;
+    }
+}
+

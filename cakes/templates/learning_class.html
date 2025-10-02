@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Online Baking Class - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/learning_class.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="class-container">
+    <div class="class-header">
+        <h1>Master the Art of Baking: Online Class</h1>
+        <p class="subtitle">Join our intensive 3-week course and turn your passion into skill.</p>
+    </div>
+
+    <div class="class-layout">
+        <div class="class-details">
+            <h2>What You'll Learn</h2>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Foundations of Classic Cake Making</li>
+                <li><i class="fas fa-check-circle"></i> Advanced Frosting & Decoration Techniques</li>
+                <li><i class="fas fa-check-circle"></i> Secrets to Perfect Sponges and Fillings</li>
+                <li><i class="fas fa-check-circle"></i> Plating and Presentation Skills</li>
+            </ul>
+
+            <h2>Class Schedule</h2>
+            <p><strong>Duration:</strong> 3 Weeks</p>
+            <p><strong>Days:</strong> Monday, Wednesday & Saturday</p>
+            <div class="schedule-grid">
+                <div><strong>Monday:</strong> 10:00 AM - 1:00 PM</div>
+                <div><strong>Wednesday:</strong> 10:00 AM - 1:00 PM</div>
+                <div><strong>Saturday:</strong> 8:00 AM - 2:00 PM</div>
+            </div>
+
+             <h2>Investment</h2>
+            <p class="price">Shs 300,000/= <span class="price-note">(Full Course Fee)</span></p>
+            <p>Reserve your spot today! A 50% deposit of <strong>150,000/=</strong> is required to confirm your registration. The remaining balance is due one week before the class starts.</p>
+        </div>
+
+        <div class="registration-form">
+            <h3>Register Now!</h3>
+            <form id="registrationForm" method="POST">
+                <div class="form-group">
+                    <label for="student_name">Full Name</label>
+                    <input type="text" id="student_name" name="student_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="student_phone">Contact Phone Number</label>
+                    <input type="tel" id="student_phone" name="student_phone" placeholder="e.g., 0772123456" required>
+                </div>
+                <button type="submit" class="btn-register">Reserve My Spot</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- A simple modal for our loading simulation -->
+<div id="loading-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h4>Reserving Your Spot...</h4>
+        <div class="spinner"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Stop the form from submitting normally
+        
+        // This checks if the user is logged in using the global variable from base.html
+        if (!window.isUserAuthenticated) {
+            alert("Please log in or create an account to register for the class.");
+            window.location.href = "{{ url_for('routes.login', next=url_for('routes.learning_class')) }}";
+            return;
+        }
+
+        const modal = document.getElementById('loading-modal');
+        modal.style.display = 'flex';
+
+        const formData = {
+            name: document.getElementById('student_name').value,
+            phone: document.getElementById('student_phone').value,
+        };
+
+        // Simulate a slight delay and then submit to the backend
+        setTimeout(() => {
+            fetch("{{ url_for('routes.register_class') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                modal.style.display = 'none';
+                alert(data.message); // Show the success/error message from the server
+                if (data.success) {
+                    window.location.href = "{{ url_for('routes.home') }}";
+                }
+            });
+        }, 1500); // 1.5 second simulation
+    });
+</script>
+{% endblock %}
+

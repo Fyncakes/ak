@@ -1,0 +1,114 @@
+/* This stylesheet styles the admin form for editing a cake. */
+/* It inherits all root variables from main.css. */
+
+body {
+    background-color: var(--grey-color);
+}
+
+.edit-container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.edit-card {
+    background-color: var(--light-color);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.edit-card h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2.5rem;
+}
+
+/* --- Form Group Styling --- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-family: var(--font-main);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+}
+
+input[type="file"].form-control {
+    padding: 9px;
+}
+
+.current-image-preview img {
+    max-width: 150px;
+    height: auto;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+/* --- Form Actions (Buttons) --- */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
+
+.btn-update, .btn-cancel {
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-update {
+    background-color: #0277BD; /* Blue for update */
+    color: var(--light-color);
+}
+.btn-update:hover {
+    background-color: #01579B;
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: var(--light-color);
+}
+.btn-cancel:hover {
+    background-color: #5a6268;
+}

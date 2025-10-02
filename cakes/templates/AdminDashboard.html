@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #e74c3c;
+        }
+        
+        .btn-primary:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-secondary:hover {
+            background: white;
+            color: #e74c3c;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #e74c3c;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .content-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .content-card h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .quick-stat {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .quick-stat h4 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .quick-stat p {
+            color: #666;
+            margin: 0;
+        }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .admin-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .student-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .customer-badge {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .recent-orders {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+        
+        .order-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .order-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-processing {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .system-info {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .system-info h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .info-value {
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+        <p>Welcome back! Here's what's happening with your FynCakes business.</p>
+        <div class="admin-actions">
+            <a href="{{ url_for('routes.upload') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Upload New Cake
+            </a>
+            <a href="{{ url_for('routes.manage_cakes') }}" class="btn btn-secondary">
+                <i class="fas fa-tasks"></i> Manage Cakes
+            </a>
+            <a href="{{ url_for('routes.manage_orders') }}" class="btn btn-secondary">
+                <i class="fas fa-shopping-cart"></i> View Orders
+            </a>
+            <a href="{{ url_for('routes.manage_users') }}" class="btn btn-secondary">
+                <i class="fas fa-users"></i> Manage Users
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3><i class="fas fa-dollar-sign"></i> Total Sales</h3>
+            <span class="stat-number">Shs {{ "{:,.0f}".format(total_sales) }}</span>
+            <span class="stat-description">From all completed orders</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-shopping-cart"></i> Total Orders</h3>
+            <a href="{{ url_for('routes.manage_orders') }}">
+                <span class="stat-number">{{ total_orders }}</span>
+            </a>
+            <span class="stat-description">Across all customers</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-users"></i> Total Customers</h3>
+            <a href="{{ url_for('routes.manage_users') }}">
+                <span class="stat-number">{{ total_customers }}</span>
+            </a>
+            <span class="stat-description">Registered on the platform</span>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fas fa-cake"></i> Total Cakes</h3>
+            <a href="{{ url_for('routes.manage_cakes') }}">
+                <span class="stat-number" id="total-cakes">Loading...</span>
+            </a>
+            <span class="stat-description">In your inventory</span>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Recent Customer Activity -->
+        <div class="content-card">
+            <h2><i class="fas fa-user-clock"></i> Recent Customer Activity</h2>
+            {% if customers %}
+            <div class="table-responsive-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Registered On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td data-label="Name">{{ customer.first_name }} {{ customer.last_name }}</td>
+                            <td data-label="Email">{{ customer.email }}</td>
+                            <td data-label="Status">
+                                {% if customer.is_student %}
+                                    <span class="badge student-badge">Student</span>
+                                {% else %}
+                                    <span class="badge customer-badge">Customer</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Registered On">{{ customer._id.generation_time.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No customer data available.</p>
+            {% endif %}
+        </div>
+
+        <!-- Quick Stats & System Info -->
+        <div class="content-card">
+            <h2><i class="fas fa-chart-line"></i> Quick Stats</h2>
+            <div class="quick-stats">
+                <div class="quick-stat">
+                    <h4>Today's Orders</h4>
+                    <p id="today-orders">{{ todays_orders }}</p>
+                </div>
+                <div class="quick-stat">
+                    <h4>This Week's Sales</h4>
+                    <p id="week-sales">Shs {{ "{:,.0f}".format(weekly_sales) }}</p>
+                </div>
+                <div class="quick-stat">
+                    <h4>Pending Orders</h4>
+                    <p id="pending-orders">{{ pending_orders }}</p>
+                </div>
+                <div class="quick-stat">
+                    <h4>New Customers</h4>
+                    <p id="new-customers">{{ new_customers }}</p>
+                </div>
+            </div>
+
+            <div class="system-info">
+                <h4><i class="fas fa-info-circle"></i> System Information</h4>
+                <div class="info-item">
+                    <span class="info-label">Server Status:</span>
+                    <span class="info-value" style="color: #28a745;">{{ server_status }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Database:</span>
+                    <span class="info-value" id="db-status">{{ database_status }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Last Backup:</span>
+                    <span class="info-value">{{ last_backup }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Uptime:</span>
+                    <span class="info-value" id="uptime">{{ uptime }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="content-card">
+        <h2><i class="fas fa-clock"></i> Recent Orders</h2>
+        <div class="recent-orders" id="recent-orders">
+            {% if recent_orders %}
+                {% for order in recent_orders %}
+                <div class="order-item">
+                    <div class="order-info">
+                        <h4>Order #{{ order._id[:8] }}</h4>
+                        <p>{{ order.get('customer_name', 'Unknown') }} - Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</p>
+                        <p>{{ order.get('created_at', 'Unknown date') }}</p>
+                    </div>
+                    <span class="order-status status-{{ order.get('status', 'pending') }}">{{ order.get('status', 'Pending').title() }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <i class="fas fa-shopping-cart" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>No recent orders found</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load additional data
+    loadDashboardData();
+    
+    // Update uptime every second
+    setInterval(updateUptime, 1000);
+    
+    // Auto-refresh data every 30 seconds
+    setInterval(loadDashboardData, 30000);
+});
+
+function loadDashboardData() {
+    // Load total cakes count
+    fetch('/api/get_cakes')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('total-cakes').textContent = data.cakes.length;
+            }
+        })
+        .catch(error => console.error('Error loading cakes count:', error));
+    
+    // Load recent orders (mock data for now)
+    loadRecentOrders();
+    
+    // Load quick stats (mock data for now)
+    loadQuickStats();
+}
+
+function loadRecentOrders() {
+    // Mock recent orders data
+    const mockOrders = [
+        {
+            id: 'ORD001',
+            customer: 'Sarah Johnson',
+            amount: 150000,
+            status: 'completed',
+            date: '2024-01-15'
+        },
+        {
+            id: 'ORD002',
+            customer: 'Michael Davis',
+            amount: 250000,
+            status: 'processing',
+            date: '2024-01-15'
+        },
+        {
+            id: 'ORD003',
+            customer: 'Grace Mbabazi',
+            amount: 80000,
+            status: 'pending',
+            date: '2024-01-14'
+        }
+    ];
+    
+    const container = document.getElementById('recent-orders');
+    container.innerHTML = mockOrders.map(order => `
+        <div class="order-item">
+            <div class="order-info">
+                <h4>Order ${order.id}</h4>
+                <p>${order.customer} - Shs ${order.amount.toLocaleString()}</p>
+                <p>${order.date}</p>
+            </div>
+            <span class="order-status status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+        </div>
+    `).join('');
+}
+
+function loadQuickStats() {
+    // Mock quick stats
+    document.getElementById('today-orders').textContent = '12';
+    document.getElementById('week-sales').textContent = 'Shs 1,250,000';
+    document.getElementById('pending-orders').textContent = '5';
+    document.getElementById('new-customers').textContent = '8';
+}
+
+function updateUptime() {
+    const startTime = new Date();
+    const now = new Date();
+    const uptime = Math.floor((now - startTime) / 1000);
+    
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    const seconds = uptime % 60;
+    
+    document.getElementById('uptime').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+</script>
+{% endblock %}

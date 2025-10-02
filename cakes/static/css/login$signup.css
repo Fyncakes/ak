@@ -1,0 +1,154 @@
+/*
+    ========================================
+    Authentication Stylesheet (login$signup.css)
+    ========================================
+    This file styles the Login, Sign Up, and Verify Email pages.
+*/
+
+
+/* --- Auth Page Container & Background --- */
+body.auth-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-color: var(--grey-color); /* Fallback color */
+    background-image: url('/static/FynCakes/gettyimages-1288873262-612x612.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+}
+
+
+/* --- Main Form Card --- */
+.auth-card {
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--light-color); /* Solid white background for max readability */
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: var(--dark-color);
+}
+
+
+/* --- Form Group Styling --- */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark-color);
+    font-size: 0.9rem;
+}
+
+.form-group .form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-family: var(--font-main);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+}
+
+
+/* --- Specific Form Elements --- */
+.password-wrapper {
+    position: relative;
+}
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #999;
+}
+
+.form-group-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+.form-group-checkbox label {
+    margin-bottom: 0;
+    font-weight: 400;
+}
+.form-group-checkbox a {
+    color: var(--primary-color);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.error-text {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+
+/* --- Buttons & Links --- */
+.auth-button {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.auth-button:hover {
+    background-color: #B71C1C;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+.auth-links a {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+
+/* ========================================
+    NEW: MOBILE RESPONSIVE STYLES
+   ======================================== */
+@media (max-width: 576px) {
+    body.auth-page {
+        padding: 1rem; /* Less padding on the body for small screens */
+    }
+
+    .auth-card {
+        padding: 1.5rem; /* Reduce padding inside the card */
+    }
+
+    .auth-card h2 {
+        font-size: 1.75rem; /* Make the title slightly smaller */
+        margin-bottom: 1.5rem;
+    }
+}

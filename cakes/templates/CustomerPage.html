@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}Our Cakes - FynCakes{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="customer-container" 
+     id="customer-container-data"
+     data-current-page="{{ current_page }}"
+     data-total-pages="{{ total_pages }}"
+     data-selected-category="{{ selected_category or '' }}"
+     data-search-query="{{ search_query or '' }}">
+
+    <h1 class="page-title">
+        {% if selected_category %}{{ selected_category }}{% elif search_query %}Results for "{{ search_query }}"{% else %}Our Cakes{% endif %}
+    </h1>
+
+    <!-- Enhanced Filter Section -->
+    <div class="filter-section">
+        <div class="filter-container">
+            <div class="category-dropdown-container">
+                <label for="category-select">Filter by Category:</label>
+                <select id="category-select" class="category-dropdown" onchange="window.location.href=this.value;">
+                    <option value="{{ url_for('routes.customer') }}" {% if not selected_category %}selected{% endif %}>
+                        All Cakes
+                    </option>
+                    {% for category in categories %}
+                    <option value="{{ url_for('routes.customer', category=category) }}" {% if category == selected_category %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- NEW: Price Range Filter -->
+            <div class="price-filter-container">
+                <label for="price-range">Price Range:</label>
+                <select id="price-range" class="price-dropdown">
+                    <option value="">All Prices</option>
+                    <option value="0-50000">Under Shs 50,000</option>
+                    <option value="50000-100000">Shs 50,000 - 100,000</option>
+                    <option value="100000-200000">Shs 100,000 - 200,000</option>
+                    <option value="200000+">Above Shs 200,000</option>
+                </select>
+            </div>
+            
+            <!-- NEW: Sort Options -->
+            <div class="sort-container">
+                <label for="sort-options">Sort by:</label>
+                <select id="sort-options" class="sort-dropdown">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="name">Name A-Z</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="shop-layout">
+        <main>
+            <form action="{{ url_for('routes.customer') }}" method="GET" class="search-bar-container">
+                <input type="search" name="q" class="search-input" placeholder="Search for cakes..." value="{{ search_query or '' }}">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
+            <!-- Enhanced Product Grid with Loading States -->
+            <div class="product-grid" id="product-grid">
+                {% if cakes %}
+                    {% for cake in cakes %}
+                    <a href="{{ url_for('routes.cake_details', cake_id=cake._id) }}" class="cake-card-link">
+                        <div class="cake-card">
+                            <div class="cake-card-image">
+                                <img src="{{ cake.image }}" alt="{{ cake.name }}" loading="lazy">
+                                <div class="cake-overlay">
+                                    <div class="quick-actions">
+                                        <button class="quick-view-btn" onclick="event.preventDefault(); quickView('{{ cake._id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="quick-cart-btn" onclick="event.preventDefault(); quickAddToCart('{{ cake._id }}', '{{ cake.name }}', {{ cake.price }}, '{{ cake.image }}', '{{ cake.description }}')">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cake-card-content">
+                                <div class="cake-category">{{ cake.category }}</div>
+                                <h3>{{ cake.name }}</h3>
+                                <p class="cake-description">{{ cake.description[:100] }}{% if cake.description|length > 100 %}...{% endif %}</p>
+                                <div class="cake-price-section">
+                                    <span class="price">Shs {{ "{:,.0f}".format(cake.price|int) }}</span>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <span class="rating-text">(4.9)</span>
+                                    </div>
+                                </div>
+                                <div class="order-button-wrapper">
+                                    <span class="order-button">
+                                        <i class="fas fa-search-plus"></i> View Details
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-cakes-message">
+                        <div class="no-cakes-icon">
+                            <i class="fas fa-birthday-cake"></i>
+                        </div>
+                        <h2>No cakes found</h2>
+                        <p>Try adjusting your filters or search terms. View <a href="{{ url_for('routes.customer') }}">all our cakes</a>.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading more delicious cakes...</p>
+            </div>
+
+            <div class="see-more-container {% if current_page >= total_pages %}hidden{% endif %}" id="see-more-container">
+                <button class="see-more-btn" id="see-more-btn">See More</button>
+                <div class="loader" id="loader" style="display: none;"></div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dataContainer = document.getElementById('customer-container-data');
+    let currentPage = parseInt(dataContainer.dataset.currentPage);
+    const totalPages = parseInt(dataContainer.dataset.totalPages);
+    const selectedCategory = dataContainer.dataset.selectedCategory;
+    const searchQuery = dataContainer.dataset.searchQuery;
+
+    const seeMoreBtn = document.getElementById('see-more-btn');
+    const loader = document.getElementById('loader');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const container = document.getElementById('product-grid');
+    const seeMoreContainer = document.getElementById('see-more-container');
+
+    // Enhanced filtering and sorting
+    const priceRange = document.getElementById('price-range');
+    const sortOptions = document.getElementById('sort-options');
+
+    // Price range filter
+    if (priceRange) {
+        priceRange.addEventListener('change', applyFilters);
+    }
+
+    // Sort options
+    if (sortOptions) {
+        sortOptions.addEventListener('change', applySorting);
+    }
+
+    function applyFilters() {
+        const priceValue = priceRange.value;
+        const cards = document.querySelectorAll('.cake-card-link');
+        
+        cards.forEach(card => {
+            const priceText = card.querySelector('.price').textContent;
+            const price = parseInt(priceText.replace(/[^\d]/g, ''));
+            let show = true;
+            
+            if (priceValue) {
+                if (priceValue === '0-50000') {
+                    show = price < 50000;
+                } else if (priceValue === '50000-100000') {
+                    show = price >= 50000 && price < 100000;
+                } else if (priceValue === '100000-200000') {
+                    show = price >= 100000 && price < 200000;
+                } else if (priceValue === '200000+') {
+                    show = price >= 200000;
+                }
+            }
+            
+            card.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    function applySorting() {
+        const sortValue = sortOptions.value;
+        const cards = Array.from(document.querySelectorAll('.cake-card-link'));
+        
+        cards.sort((a, b) => {
+            switch (sortValue) {
+                case 'price-low':
+                    const priceA = parseInt(a.querySelector('.price').textContent.replace(/[^\d]/g, ''));
+                    const priceB = parseInt(b.querySelector('.price').textContent.replace(/[^\d]/g, ''));
+                    return priceA - priceB;
+                case 'price-high':
+                    const priceA2 = parseInt(a.querySelector('.price').textContent.replace(/[^\d]/g, ''));
+                    const priceB2 = parseInt(b.querySelector('.price').textContent.replace(/[^\d]/g, ''));
+                    return priceB2 - priceA2;
+                case 'name':
+                    const nameA = a.querySelector('h3').textContent.toLowerCase();
+                    const nameB = b.querySelector('h3').textContent.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                default:
+                    return 0;
+            }
+        });
+        
+        const grid = document.getElementById('product-grid');
+        cards.forEach(card => grid.appendChild(card));
+    }
+
+    // Quick view functionality
+    function quickView(cakeId) {
+        window.location.href = `/cake/${cakeId}`;
+    }
+
+    // Quick add to cart functionality
+    async function quickAddToCart(cakeId, name, price, image, description) {
+        if (!window.isUserAuthenticated) {
+            alert("Please log in to add items to your cart.");
+            window.location.href = "{{ url_for('routes.login', next=request.path) }}";
+            return;
+        }
+
+        const product = {
+            name: name,
+            price: parseFloat(price),
+            description: description,
+            imageUrl: image
+        };
+
+        try {
+            const response = await fetch("{{ url_for('routes.add_to_cart_db') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(product)
+            });
+            
+            if (response.ok) {
+                // Show success animation
+                showSuccessMessage(`${name} added to cart!`);
+                const cartCounter = document.getElementById('cart-count');
+                const currentCount = parseInt(cartCounter.innerText) || 0;
+                updateCartCounter(currentCount + 1);
+            } else {
+                alert("Could not add item to cart. Please try again.");
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert("Could not add item to cart. Please try again.");
+        }
+    }
+
+    // Success message animation
+    function showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.textContent = message;
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => successDiv.remove(), 300);
+        }, 2000);
+    }
+
+    // Enhanced see more functionality
+    if (seeMoreBtn) {
+        seeMoreBtn.addEventListener('click', async () => {
+            currentPage++;
+            
+            loadingSpinner.style.display = 'block';
+            seeMoreBtn.style.display = 'none';
+
+            try {
+                let apiUrl = `/api/get_cakes?page=${currentPage}`;
+                if (selectedCategory) {
+                    apiUrl += `&category=${encodeURIComponent(selectedCategory)}`;
+                }
+                if (searchQuery) {
+                    apiUrl += `&q=${encodeURIComponent(searchQuery)}`;
+                }
+
+                const response = await fetch(apiUrl);
+                const newCakes = await response.json();
+
+                if (newCakes.length > 0) {
+                    newCakes.forEach(cake => {
+                        const formattedPrice = new Intl.NumberFormat('en-US').format(cake.price);
+                        const cakeCardHTML = `
+                        <a href="${cake.url}" class="cake-card-link">
+                            <div class="cake-card">
+                                <div class="cake-card-image">
+                                    <img src="${cake.image}" alt="${cake.name}" loading="lazy">
+                                    <div class="cake-overlay">
+                                        <div class="quick-actions">
+                                            <button class="quick-view-btn" onclick="event.preventDefault(); quickView('${cake._id}')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="quick-cart-btn" onclick="event.preventDefault(); quickAddToCart('${cake._id}', '${cake.name}', ${cake.price}, '${cake.image}', '${cake.description}')">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cake-card-content">
+                                    <div class="cake-category">${cake.category}</div>
+                                    <h3>${cake.name}</h3>
+                                    <p class="cake-description">${cake.description.length > 100 ? cake.description.substring(0, 100) + '...' : cake.description}</p>
+                                    <div class="cake-price-section">
+                                        <span class="price">Shs ${formattedPrice}</span>
+                                        <div class="rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <span class="rating-text">(4.9)</span>
+                                        </div>
+                                    </div>
+                                    <div class="order-button-wrapper">
+                                        <span class="order-button">
+                                            <i class="fas fa-search-plus"></i> View Details
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        `;
+                        container.insertAdjacentHTML('beforeend', cakeCardHTML);
+                    });
+                }
+                
+                if (currentPage >= totalPages) {
+                    seeMoreContainer.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Failed to load more cakes:', error);
+            } finally {
+                loadingSpinner.style.display = 'none';
+                if (currentPage < totalPages) {
+                    seeMoreBtn.style.display = 'block';
+                }
+            }
+        });
+    }
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

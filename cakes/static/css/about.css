@@ -1,0 +1,150 @@
+/* --- Main Container & Header --- */
+.about-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.about-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.about-header h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* --- Team Section --- */
+.team-section {
+    margin-bottom: 4rem;
+}
+
+.team-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.team-member {
+    background-color: var(--light-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.team-member:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+.team-member img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    border: 4px solid var(--primary-color);
+}
+
+.team-member h3 {
+    margin-bottom: 0.25rem;
+    font-size: 1.5rem;
+}
+
+.team-member h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.team-member p {
+    line-height: 1.7;
+    color: #555;
+}
+
+/* --- Philosophy Section --- */
+.philosophy-section {
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding: 4rem 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.philosophy-content h2 {
+    font-size: 2.5rem;
+    color: var(--light-color);
+    margin-top: 0;
+}
+
+.philosophy-content p {
+    font-size: 1.1rem;
+    max-width: 700px;
+    margin: 1rem auto 0 auto;
+    line-height: 1.8;
+}
+
+/* --- Testimonials Section --- */
+.testimonials-section {
+    text-align: center;
+}
+
+.testimonials-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.testimonial {
+    max-width: 650px;
+    margin: 0 auto 2rem auto;
+}
+
+.testimonial blockquote {
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #555;
+    margin: 0;
+    padding: 1.5rem;
+    border-left: 5px solid var(--primary-color);
+    background-color: var(--light-color);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.testimonial cite {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+/* --- Responsive Adjustments for Mobile and Tablet --- */
+@media (max-width: 768px) {
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .about-header h1 { font-size: 2.5rem; }
+    .team-section h2, .philosophy-content h2, .testimonials-section h2 { font-size: 2rem; }
+}
+
