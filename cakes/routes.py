@@ -576,29 +576,27 @@ def admin_dashboard():
         ]))
         total_sales = sales_data[0]['total_sales'] if sales_data else 0
         
-        # Today's orders
+        # Today's orders (using string comparison since created_at might be stored as string)
         from datetime import datetime, timedelta
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now().strftime('%Y-%m-%d')
         todays_orders = db.orders.count_documents({
-            'created_at': {'$gte': today}
+            'created_at': {'$regex': f'^{today}'}
         })
         
-        # This week's sales
-        week_ago = today - timedelta(days=7)
-        weekly_sales_data = list(db.orders.aggregate([
+        # This week's sales (last 7 days)
+        week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        weekly_sales_pipeline = [
             {"$match": {"created_at": {"$gte": week_ago}}},
             {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
-        ]))
+        ]
+        weekly_sales_data = list(db.orders.aggregate(weekly_sales_pipeline))
         weekly_sales = weekly_sales_data[0]['total_sales'] if weekly_sales_data else 0
         
         # Pending orders
         pending_orders = db.orders.count_documents({'status': 'pending'})
         
-        # New customers this week
-        new_customers = db.users.count_documents({
-            'role': 'customer',
-            'created_at': {'$gte': week_ago}
-        })
+        # New customers (total customers for now, since we might not have creation dates)
+        new_customers = db.users.count_documents({'role': 'customer'})
         
         # Recent orders for display
         recent_orders = list(db.orders.find().sort('_id', -1).limit(5))
@@ -648,6 +646,75 @@ def admin_dashboard():
                                last_backup="Unknown",
                                uptime="00:00:00")
 
+@routes_bp.route('/api/dashboard_stats')
+@admin_required
+def dashboard_stats():
+    """API endpoint to get real-time dashboard statistics."""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Basic counts
+        total_orders = db.orders.count_documents({})
+        total_customers = db.users.count_documents({'role': 'customer'})
+        total_cakes = db.cakes.count_documents({})
+        
+        # Sales data
+        sales_data = list(db.orders.aggregate([
+            {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+        ]))
+        total_sales = sales_data[0]['total_sales'] if sales_data else 0
+        
+        # Today's orders (using string comparison since created_at might be stored as string)
+        today = datetime.now().strftime('%Y-%m-%d')
+        todays_orders = db.orders.count_documents({
+            'created_at': {'$regex': f'^{today}'}
+        })
+        
+        # This week's sales (last 7 days)
+        week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        weekly_sales_pipeline = [
+            {"$match": {"created_at": {"$gte": week_ago}}},
+            {"$group": {"_id": None, "total_sales": {"$sum": "$total_amount"}}}
+        ]
+        weekly_sales_data = list(db.orders.aggregate(weekly_sales_pipeline))
+        weekly_sales = weekly_sales_data[0]['total_sales'] if weekly_sales_data else 0
+        
+        # Pending orders
+        pending_orders = db.orders.count_documents({'status': 'pending'})
+        
+        # New customers this week
+        new_customers = db.users.count_documents({
+            'role': 'customer'
+            # Note: If user creation date is stored, add date filter here
+        })
+        
+        return jsonify({
+            'success': True,
+            'total_sales': total_sales,
+            'total_orders': total_orders,
+            'total_customers': total_customers,
+            'total_cakes': total_cakes,
+            'todays_orders': todays_orders,
+            'weekly_sales': weekly_sales,
+            'pending_orders': pending_orders,
+            'new_customers': new_customers
+        })
+        
+    except Exception as e:
+        print(f"Error getting dashboard stats: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'total_sales': 0,
+            'total_orders': 0,
+            'total_customers': 0,
+            'total_cakes': 0,
+            'todays_orders': 0,
+            'weekly_sales': 0,
+            'pending_orders': 0,
+            'new_customers': 0
+        })
+
 @routes_bp.route('/admin/manage_orders')
 @admin_required
 def manage_orders():
@@ -660,6 +727,118 @@ def manage_orders():
     except Exception as e:
         print(f"Error loading orders: {e}")
         return render_template('manage_orders.html', orders=[])
+
+@routes_bp.route('/admin/orders/<order_id>')
+@admin_required
+def order_detail(order_id):
+    """View detailed information about a specific order."""
+    try:
+        from bson import ObjectId
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            flash('Order not found!', 'error')
+            return redirect(url_for('routes.manage_orders'))
+        
+        order['_id'] = str(order['_id'])
+        return render_template('order_detail.html', order=order)
+    except Exception as e:
+        print(f"Error loading order details: {e}")
+        flash('Error loading order details!', 'error')
+        return redirect(url_for('routes.manage_orders'))
+
+@routes_bp.route('/admin/orders/<order_id>/update', methods=['GET', 'POST'])
+@admin_required
+def order_update(order_id):
+    """Update order information."""
+    try:
+        from bson import ObjectId
+        from datetime import datetime
+        
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            if request.method == 'POST':
+                return jsonify({'success': False, 'message': 'Order not found!'})
+            flash('Order not found!', 'error')
+            return redirect(url_for('routes.manage_orders'))
+        
+        if request.method == 'POST':
+            # Handle AJAX update request
+            data = request.get_json()
+            
+            # Prepare update data
+            update_data = {
+                'status': data.get('order_status'),
+                'payment_status': data.get('payment_status'),
+                'payment_method': data.get('payment_method'),
+                'delivery_status': data.get('delivery_status'),
+                'delivery_address': data.get('delivery_address'),
+                'admin_notes': data.get('admin_notes'),
+                'notes': data.get('customer_notes'),
+                'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # Handle payment date
+            if data.get('payment_date'):
+                update_data['payment_date'] = data.get('payment_date')
+            
+            # Handle delivery date
+            if data.get('delivery_date'):
+                update_data['delivery_date'] = data.get('delivery_date')
+            
+            # Handle transaction ID
+            if data.get('transaction_id'):
+                update_data['transaction_id'] = data.get('transaction_id')
+            
+            # Remove empty values
+            update_data = {k: v for k, v in update_data.items() if v is not None and v != ''}
+            
+            # Update the order
+            result = db.orders.update_one(
+                {'_id': ObjectId(order_id)}, 
+                {'$set': update_data}
+            )
+            
+            if result.modified_count > 0:
+                print(f"✅ Order {order_id} updated successfully")
+                return jsonify({'success': True, 'message': 'Order updated successfully!'})
+            else:
+                return jsonify({'success': False, 'message': 'No changes were made to the order.'})
+        
+        # GET request - show update form
+        order['_id'] = str(order['_id'])
+        return render_template('order_update.html', order=order)
+        
+    except Exception as e:
+        print(f"Error updating order: {e}")
+        if request.method == 'POST':
+            return jsonify({'success': False, 'message': f'Error updating order: {str(e)}'})
+        flash('Error loading order update page!', 'error')
+        return redirect(url_for('routes.manage_orders'))
+
+@routes_bp.route('/admin/orders/<order_id>/delete', methods=['DELETE'])
+@admin_required
+def order_delete(order_id):
+    """Delete an order."""
+    try:
+        from bson import ObjectId
+        
+        # Check if order exists
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found!'})
+        
+        # Delete the order
+        result = db.orders.delete_one({'_id': ObjectId(order_id)})
+        
+        if result.deleted_count > 0:
+            print(f"✅ Order {order_id} deleted successfully")
+            return jsonify({'success': True, 'message': 'Order deleted successfully!'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to delete order.'})
+            
+    except Exception as e:
+        print(f"Error deleting order: {e}")
+        return jsonify({'success': False, 'message': f'Error deleting order: {str(e)}'})
 
 @routes_bp.route('/admin/manage_users')
 @admin_required

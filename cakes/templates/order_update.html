@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Update Order - FynCakes Admin{% endblock %}
+
+{% block head_extra %}
+<style>
+    .update-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .update-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .update-header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 25px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .update-form-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-left: 4px solid #e74c3c;
+        padding-left: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #e74c3c;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .current-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #17a2b8;
+        margin-bottom: 1rem;
+    }
+
+    .current-info-label {
+        font-weight: 600;
+        color: #17a2b8;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .current-info-value {
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+
+    .status-preview {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .status-option {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-paid {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .payment-status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .payment-option {
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .payment-option:hover {
+        border-color: #e74c3c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .payment-option.selected {
+        border-color: #e74c3c;
+        background: #fff5f5;
+    }
+
+    .payment-option i {
+        font-size: 1.5rem;
+        color: #e74c3c;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e0e0e0;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+        .update-container {
+            padding: 1rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .payment-status-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="update-container">
+    <div class="update-header">
+        <h1><i class="fas fa-edit"></i> Update Order #{{ order._id[:8] }}</h1>
+        <p>Modify order status, payment information, and other details</p>
+        
+        <a href="{{ url_for('routes.order_detail', order_id=order._id) }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Order Details
+        </a>
+    </div>
+
+    <div class="alert alert-success" id="success-alert">
+        <i class="fas fa-check-circle"></i> Order updated successfully!
+    </div>
+
+    <div class="alert alert-error" id="error-alert">
+        <i class="fas fa-exclamation-circle"></i> <span id="error-message">Failed to update order.</span>
+    </div>
+
+    <form id="update-order-form" class="update-form-card">
+        <!-- Order Status Section -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-tasks"></i> Order Status
+            </h2>
+            
+            <div class="current-info">
+                <div class="current-info-label">Current Status:</div>
+                <div class="current-info-value">
+                    <span class="status-option status-{{ order.get('status', 'pending') }}">
+                        {{ order.get('status', 'Pending').title() }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="order_status">New Status:</label>
+                <select class="form-control form-select" id="order_status" name="order_status" required>
+                    <option value="pending" {{ 'selected' if order.get('status') == 'pending' else '' }}>Pending</option>
+                    <option value="processing" {{ 'selected' if order.get('status') == 'processing' else '' }}>Processing</option>
+                    <option value="completed" {{ 'selected' if order.get('status') == 'completed' else '' }}>Completed</option>
+                    <option value="cancelled" {{ 'selected' if order.get('status') == 'cancelled' else '' }}>Cancelled</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Payment Information Section -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-credit-card"></i> Payment Information
+            </h2>
+            
+            <div class="current-info">
+                <div class="current-info-label">Current Payment Status:</div>
+                <div class="current-info-value">{{ order.get('payment_status', 'Pending').title() }}</div>
+                {% if order.get('payment_date') %}
+                <div class="current-info-label" style="margin-top: 0.5rem;">Payment Date:</div>
+                <div class="current-info-value">{{ order.get('payment_date') }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="payment_status">Payment Status:</label>
+                <select class="form-control form-select" id="payment_status" name="payment_status" required>
+                    <option value="pending" {{ 'selected' if order.get('payment_status') == 'pending' else '' }}>Pending</option>
+                    <option value="paid" {{ 'selected' if order.get('payment_status') == 'paid' else '' }}>Paid</option>
+                    <option value="failed" {{ 'selected' if order.get('payment_status') == 'failed' else '' }}>Failed</option>
+                    <option value="refunded" {{ 'selected' if order.get('payment_status') == 'refunded' else '' }}>Refunded</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="payment_date">Payment Date:</label>
+                    <input type="datetime-local" class="form-control" id="payment_date" name="payment_date" 
+                           value="{{ order.get('payment_date', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="payment_method">Payment Method:</label>
+                    <select class="form-control form-select" id="payment_method" name="payment_method">
+                        <option value="cash" {{ 'selected' if order.get('payment_method') == 'cash' else '' }}>Cash on Delivery</option>
+                        <option value="mobile_money" {{ 'selected' if order.get('payment_method') == 'mobile_money' else '' }}>Mobile Money</option>
+                        <option value="bank_transfer" {{ 'selected' if order.get('payment_method') == 'bank_transfer' else '' }}>Bank Transfer</option>
+                        <option value="card" {{ 'selected' if order.get('payment_method') == 'card' else '' }}>Credit/Debit Card</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="transaction_id">Transaction ID (Optional):</label>
+                <input type="text" class="form-control" id="transaction_id" name="transaction_id" 
+                       value="{{ order.get('transaction_id', '') }}" placeholder="Enter transaction reference">
+            </div>
+        </div>
+
+        <!-- Delivery Information Section -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-truck"></i> Delivery Information
+            </h2>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="delivery_date">Delivery Date:</label>
+                    <input type="datetime-local" class="form-control" id="delivery_date" name="delivery_date" 
+                           value="{{ order.get('delivery_date', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="delivery_status">Delivery Status:</label>
+                    <select class="form-control form-select" id="delivery_status" name="delivery_status">
+                        <option value="pending" {{ 'selected' if order.get('delivery_status') == 'pending' else '' }}>Pending</option>
+                        <option value="in_transit" {{ 'selected' if order.get('delivery_status') == 'in_transit' else '' }}>In Transit</option>
+                        <option value="delivered" {{ 'selected' if order.get('delivery_status') == 'delivered' else '' }}>Delivered</option>
+                        <option value="failed" {{ 'selected' if order.get('delivery_status') == 'failed' else '' }}>Failed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="delivery_address">Delivery Address:</label>
+                <textarea class="form-control form-textarea" id="delivery_address" name="delivery_address" 
+                          placeholder="Enter delivery address">{{ order.get('delivery_address', '') }}</textarea>
+            </div>
+        </div>
+
+        <!-- Additional Notes Section -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-sticky-note"></i> Additional Notes
+            </h2>
+
+            <div class="form-group">
+                <label class="form-label" for="admin_notes">Admin Notes:</label>
+                <textarea class="form-control form-textarea" id="admin_notes" name="admin_notes" 
+                          placeholder="Add any internal notes about this order">{{ order.get('admin_notes', '') }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="customer_notes">Customer Notes:</label>
+                <textarea class="form-control form-textarea" id="customer_notes" name="customer_notes" 
+                          placeholder="Notes visible to customer">{{ order.get('notes', '') }}</textarea>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('routes.order_detail', order_id=order._id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update Order
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('update-order-form');
+    const successAlert = document.getElementById('success-alert');
+    const errorAlert = document.getElementById('error-alert');
+    const errorMessage = document.getElementById('error-message');
+
+    // Auto-set payment date when status changes to paid
+    const paymentStatusSelect = document.getElementById('payment_status');
+    const paymentDateInput = document.getElementById('payment_date');
+
+    paymentStatusSelect.addEventListener('change', function() {
+        if (this.value === 'paid' && !paymentDateInput.value) {
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            paymentDateInput.value = localDateTime;
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        submitBtn.disabled = true;
+
+        // Hide alerts
+        successAlert.style.display = 'none';
+        errorAlert.style.display = 'none';
+
+        fetch(`/admin/orders/{{ order._id }}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                successAlert.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('routes.order_detail', order_id=order._id) }}";
+                }, 2000);
+            } else {
+                errorMessage.textContent = data.message || 'Failed to update order.';
+                errorAlert.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            errorMessage.textContent = 'Network error. Please try again.';
+            errorAlert.style.display = 'block';
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}
