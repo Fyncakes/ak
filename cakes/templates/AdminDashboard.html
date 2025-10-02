@@ -428,7 +428,7 @@
         <div class="recent-orders" id="recent-orders">
             {% if recent_orders %}
                 {% for order in recent_orders %}
-                <div class="order-item" onclick="window.location.href='{{ url_for('routes.order_detail', order_id=order._id) }}'" style="cursor: pointer; transition: background-color 0.3s ease;">
+                <div class="order-item" data-order-url="{{ url_for('routes.order_detail', order_id=order._id) }}" onclick="window.location.href=this.dataset.orderUrl" style="cursor: pointer; transition: background-color 0.3s ease;">
                     <div class="order-info">
                         <h4>Order #{{ order._id[:8] }}</h4>
                         <p>{{ order.get('customer_name', 'Unknown') }} - Shs {{ "{:,.0f}".format(order.get('total_amount', 0)) }}</p>
