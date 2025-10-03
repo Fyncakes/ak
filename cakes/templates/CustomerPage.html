@@ -83,7 +83,13 @@
                                         <button class="quick-view-btn" onclick="event.preventDefault(); quickView('{{ cake._id }}')">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="quick-cart-btn" onclick="event.preventDefault(); quickAddToCart('{{ cake._id }}', '{{ cake.name }}', {{ cake.price }}, '{{ cake.image }}', '{{ cake.description }}')">
+                                        <button class="quick-cart-btn" 
+                                                data-cake-id="{{ cake._id }}" 
+                                                data-cake-name="{{ cake.name }}" 
+                                                data-cake-price="{{ cake.price }}" 
+                                                data-cake-image="{{ cake.image }}" 
+                                                data-cake-description="{{ cake.description }}" 
+                                                onclick="event.preventDefault(); quickAddToCartFromData(this)">
                                             <i class="fas fa-shopping-cart"></i>
                                         </button>
                                     </div>
@@ -224,6 +230,16 @@
         window.location.href = `/cake/${cakeId}`;
     }
 
+    // Helper function to get data from button attributes
+    function quickAddToCartFromData(button) {
+        const cakeId = button.dataset.cakeId;
+        const name = button.dataset.cakeName;
+        const price = parseFloat(button.dataset.cakePrice);
+        const image = button.dataset.cakeImage;
+        const description = button.dataset.cakeDescription;
+        quickAddToCart(cakeId, name, price, image, description);
+    }
+
     // Quick add to cart functionality
     async function quickAddToCart(cakeId, name, price, image, description) {
         if (!window.isUserAuthenticated) {
@@ -304,7 +320,8 @@
                 }
 
                 const response = await fetch(apiUrl);
-                const newCakes = await response.json();
+                const data = await response.json();
+                const newCakes = data.cakes || [];
 
                 if (newCakes.length > 0) {
                     newCakes.forEach(cake => {
@@ -353,8 +370,11 @@
                     });
                 }
                 
-                if (currentPage >= totalPages) {
-                    seeMoreContainer.style.display = 'none';
+                // Check if there are more pages using the API response
+                if (data.has_more) {
+                    seeMoreBtn.style.display = 'block';
+                } else {
+                    seeMoreBtn.style.display = 'none';
                 }
 
             } catch (error) {
